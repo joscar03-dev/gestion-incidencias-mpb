@@ -19,9 +19,15 @@ class PermissionResource extends Resource
 {
     protected static ?string $model = ModelsPermission::class;
 
+
     protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?int $navigationSort = 1;
+
     protected static ?string $navigationGroup = 'Administración';
+
+    protected static ?string $label = 'Permiso';
+    // // protected static ?string $pluralLabel = 'Permisos';
+
 
     // protected static ?string $slug = 'pending-orders';
 
@@ -43,8 +49,7 @@ class PermissionResource extends Resource
                             ->maxLength(255),
                     ]),
                 Section::make('Detalles de Permiso')
-                    ->schema([
-                    ])
+                    ->schema([])
             ]);
     }
 
@@ -87,11 +92,13 @@ class PermissionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn() => auth()->user()?->hasRole('Admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->hasRole('Admin')),
+                        ->visible(fn() => auth()->user()?->hasRole('Admin')),
                 ]),
             ]);
     }
@@ -124,7 +131,7 @@ class PermissionResource extends Resource
         if (auth()->user()?->hasRole('Moderador')) {
             // El moderador ve todos menos el admin
             return $query->whereDoesntHave('roles', function ($q) {
-            $q->where('name', 'Admin');
+                $q->where('name', 'Admin');
             });
         }
 
