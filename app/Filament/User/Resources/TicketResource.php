@@ -5,7 +5,12 @@ namespace App\Filament\User\Resources;
 use App\Filament\User\Resources\TicketResource\Pages;
 use App\Filament\User\Resources\TicketResource\RelationManagers;
 use App\Models\Ticket;
+use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -22,29 +27,44 @@ class TicketResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(3)
             ->schema([
-                Forms\Components\TextInput::make('asignado_a')
+                TextInput::make('titulo')
+                    ->label('Título')
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('asignado_por')
+                    ->autofocus(),
+                Textarea::make('descripcion')
+                    ->label('Descripción')
+                    ->rows(3),
+                Select::make('estado')
+                    ->label('Estado')
+                    ->options(self::$model::ESTADOS)
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('titulo')
+                    ->in(array_keys(self::$model::ESTADOS)),
+                FileUpload::make('attachment')
+                    ->label('Archivo')
+                    ->preserveFilenames()
+                    ->downloadable()
+                    ->uploadingMessage('Subiendo archivo...')
+                    ->directory('tickets')
+                    ->acceptedFileTypes(['application/pdf', 'image/*'])
+                    ->maxSize(1024),
+                Select::make('prioridad')
+                    ->label('Prioridad')
+                    ->options(self::$model::PRIORIDAD)
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('descripcion')
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('estado')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('attachment')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('prioridad')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('comentario')
-                    ->columnSpanFull(),
-            ]);
+                    ->in(array_keys(self::$model::PRIORIDAD)),
+                Select::make('asignado_a')
+                    ->label('Asignado a')
+
+                    ->options(
+                        User::role('Moderador')->pluck('name', 'id')->toArray()
+                    ),
+
+                Textarea::make('comentario')
+                    ->label('Comentarios')
+                    ->rows(3),
+            ])->statePath('data');
     }
 
     public static function table(Table $table): Table
