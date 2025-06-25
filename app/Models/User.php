@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Panel;
+
 class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -49,13 +50,23 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasRole(['Admin', 'Moderador']);
+            return $this->hasRole(['Admin', 'Moderador', 'Tecnico']);
         }
 
         if ($panel->getId() === 'user') {
-            return $this->hasRole(['Usuario', 'Admin', 'Moderador']);
+            return $this->hasRole(['Usuario', 'Admin', 'Moderador', 'Tecnico']);
         }
 
         return false;
+    }
+
+    public function ticketsAsignados()
+    {
+        return $this->hasMany(Ticket::class, 'asignado_a');
+    }
+
+    public function ticketsCreados()
+    {
+        return $this->hasMany(Ticket::class, 'creado_por');
     }
 }
