@@ -9,7 +9,7 @@ class Ticket extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['titulo', 'descripcion', 'estado', 'prioridad', 'comentario', 'asignado_a', 'asignado_por', 'is_resolved', 'attachment'];
+    protected $fillable = ['titulo', 'descripcion', 'estado', 'prioridad', 'comentario', 'asignado_a', 'asignado_por', 'creado_por', 'is_resolved', 'attachment'];
 
     const PRIORIDAD =
     [
@@ -38,5 +38,10 @@ class Ticket extends Model
     public function categorias()
     {
         return $this->belongsToMany(Categoria::class);
+    }
+
+    public function creadoPor()
+    {
+        return $this->belongsTo(User::class, 'creado_por');
     }
 }
