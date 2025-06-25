@@ -46,6 +46,7 @@ class TicketResource extends Resource
                 Select::make('estado')
                     ->label('Estado')
                     ->options(self::$model::ESTADOS)
+                    ->default(self::$model::ESTADOS['Abierto'])
                     ->required()
                     ->in(array_keys(self::$model::ESTADOS)),
                 FileUpload::make('attachment')
@@ -63,11 +64,10 @@ class TicketResource extends Resource
                     ->in(array_keys(self::$model::PRIORIDAD)),
                 Select::make('asignado_a')
                     ->label('Asignado a')
-
                     ->options(
-                        User::role('Moderador')->pluck('name', 'id')->toArray()
-                    ),
-
+                        User::role(['Moderador', 'Tecnico'])->pluck('name', 'id')->toArray()
+                    )
+                    ->visible(fn () => auth()->user()?->hasRole(['Admin', 'Moderador'])),
                 Textarea::make('comentario')
                     ->label('Comentarios')
                     ->rows(3),
@@ -102,12 +102,17 @@ class TicketResource extends Resource
                         'danger' => self::$model::PRIORIDAD['Baja'],
                     ])
                     ->label('Prioridad'),
+                TextColumn::make('creadoPor.name')
+                    ->label('Creado por')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('asignadoA.name')
                     ->label('Asignado a')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('asignadoPor.name')
                     ->label('Asignado por')
+                    ->default('Sistema')
                     ->searchable()
                     ->sortable(),
                 TextInputColumn::make('comentario')
