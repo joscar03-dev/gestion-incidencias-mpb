@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Area;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -41,14 +41,20 @@ class UserResource extends Resource
                             ->label('Contraseña')
                             ->password()
                             ->maxLength(255)
-                            ->required(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord)
-                            ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
+                            ->required(fn($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord) // Solo requerido al crear un nuevo usuario
+                            ->visible(fn($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
                         Forms\Components\Select::make('roles')
                             ->label('Rol')
                             ->relationship('roles', 'name')
                             ->preload()
                             ->multiple()
                             ->required(),
+                        Forms\Components\Select::make('area_id') // Relación con el área
+                            ->label('Área')
+                            ->relationship('area', 'nombre')
+                            ->preload()
+                            ->searchable()
+                            ->options(Area::all()->pluck('nombre', 'id'))
 
                     ])
                     ->columns(2),
@@ -69,6 +75,19 @@ class UserResource extends Resource
                     ->label('Rol')
                     ->badge()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('area.nombre') // Relación con el área
+                    ->label('Área')
+                    ->searchable()
+                    ->tooltip(function ($record) {
+                        // Nombre completo como tooltip
+                        $area = $record->area;
+                        $names = [];
+                        while ($area) {
+                            array_unshift($names, $area->nombre);
+                            $area = $area->parent;
+                        }
+                        return implode(' / ', $names);
+                    }),
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable()
@@ -85,9 +104,7 @@ class UserResource extends Resource
                     ->label('Actualizado')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-
-            ])
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -101,9 +118,7 @@ class UserResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -126,7 +141,7 @@ class UserResource extends Resource
         if (auth()->user()?->hasRole('Moderador')) {
             // El moderador ve todos menos el admin
             return $query->whereDoesntHave('roles', function ($q) {
-            $q->where('name', 'Admin');
+                $q->where('name', 'Admin');
             });
         }
 
