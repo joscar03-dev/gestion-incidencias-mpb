@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TicketComment;
+use Kirschbaum\Commentions\Contracts\Commentable;
+use Kirschbaum\Commentions\HasComments;
 
-class Ticket extends Model
+class Ticket extends Model implements Commentable
 {
+    use HasComments;
     use HasFactory;
 
     protected $fillable = ['titulo', 'descripcion', 'estado', 'prioridad', 'comentario', 'asignado_a', 'asignado_por', 'creado_por', 'is_resolved', 'attachment'];
