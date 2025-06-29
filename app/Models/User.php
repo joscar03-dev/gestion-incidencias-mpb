@@ -11,8 +11,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Panel;
+use Kirschbaum\Commentions\Contracts\Commenter;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, Commenter
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
@@ -68,5 +69,9 @@ class User extends Authenticatable implements FilamentUser
     public function ticketsCreados()
     {
         return $this->hasMany(Ticket::class, 'creado_por');
+    }
+    public function area()
+    {
+        return $this->belongsTo(Area::class, 'area_id');
     }
 }
