@@ -38,8 +38,13 @@ class Area extends Model
         return $this->belongsTo(Area::class, 'parent_id');
     }
     // Relación con el local
-    public function local()
+    public function locale()
     {
         return $this->belongsTo(Locale::class, 'local_id');
+    }
+    // Relación con los dispositivos en esta área
+    public function dispositivos()
+    {
+        return $this->hasMany(Dispositivo::class, 'area_id');
     }
 }

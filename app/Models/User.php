@@ -47,7 +47,9 @@ class User extends Authenticatable implements FilamentUser, Commenter
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
+    /**
+     * Método para verificar si el usuario tiene un rol específico.
+     */
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
@@ -60,18 +62,32 @@ class User extends Authenticatable implements FilamentUser, Commenter
 
         return false;
     }
-
+    /**
+     * Método para verificar si el usuario es un administrador.
+     */
     public function ticketsAsignados()
     {
         return $this->hasMany(Ticket::class, 'asignado_a');
     }
-
+    /**
+     * Relación con los tickets creados por el usuario.
+     */
     public function ticketsCreados()
     {
         return $this->hasMany(Ticket::class, 'creado_por');
     }
+    /**
+     * Relación con el área del usuario.
+     */
     public function area()
     {
         return $this->belongsTo(Area::class, 'area_id');
+    }
+    /**
+     * Relación con los dispositivos asignados al usuario.
+     */
+    public function dispositivos()
+    {
+        return $this->hasMany(Dispositivo::class, 'usuario_id');
     }
 }
