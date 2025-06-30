@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\LocaleResource\Pages;
 use App\Filament\Resources\LocaleResource\RelationManagers;
+use App\Filament\Resources\LocaleResource\RelationManagers\AreasRelationManager;
 use App\Models\Locale;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -67,7 +68,7 @@ class LocaleResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AreasRelationManager::class,
         ];
     }
 
