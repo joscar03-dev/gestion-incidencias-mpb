@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TicketResource\Pages;
 use App\Filament\Resources\TicketResource\RelationManagers;
 use App\Filament\Resources\TicketResource\RelationManagers\CategoriasRelationManager;
+use App\Filament\Resources\TicketResource\RelationManagers\CommentsRelationManager;
 use App\Models\Rol;
 use App\Models\Ticket;
 use App\Models\User;
@@ -14,6 +15,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SelectColumn;
@@ -22,7 +26,10 @@ use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Kirschbaum\Commentions\Filament\Actions\CommentsTableAction;
+use Kirschbaum\Commentions\Filament\Infolists\Components\CommentsEntry;
 
 class TicketResource extends Resource
 {
@@ -30,6 +37,15 @@ class TicketResource extends Resource
 
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return static::getModel()::count() > 4 ? 'danger' : 'success';
+    }
 
     public static function form(Form $form): Form
     {
@@ -67,7 +83,7 @@ class TicketResource extends Resource
                     ->options(
                         User::role(['Moderador', 'Tecnico'])->pluck('name', 'id')->toArray()
                     )
-                    ->visible(fn () => auth()->user()?->hasRole(['Admin', 'Moderador'])),
+                    ->visible(fn() => auth()->user()?->hasRole(['Admin', 'Moderador'])),
                 Textarea::make('comentario')
                     ->label('Comentarios')
                     ->rows(3),
@@ -96,7 +112,7 @@ class TicketResource extends Resource
                     ->label('Estado'),
                 TextColumn::make('prioridad')
                     ->badge()
-                    ->colors ([
+                    ->colors([
                         'warning' => self::$model::PRIORIDAD['Alta'],
                         'info' => self::$model::PRIORIDAD['Media'],
                         'danger' => self::$model::PRIORIDAD['Baja'],
@@ -140,6 +156,9 @@ class TicketResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                CommentsTableAction::make()
+                    ->mentionables(User::all()),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -161,6 +180,7 @@ class TicketResource extends Resource
             'index' => Pages\ListTickets::route('/'),
             'create' => Pages\CreateTicket::route('/create'),
             'edit' => Pages\EditTicket::route('/{record}/edit'),
+            'view' => Pages\ViewTicket::route('/{record}'), // <-- agrega esto
         ];
     }
 }
