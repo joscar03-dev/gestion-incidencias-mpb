@@ -47,4 +47,9 @@ class Area extends Model
     {
         return $this->hasMany(Dispositivo::class, 'area_id');
     }
+    // Relación con los niveles de servicio (SLAs) asociados a esta área
+    public function slas()
+    {
+        return $this->hasMany(Sla::class, 'area_id');
+    }
 }
