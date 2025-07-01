@@ -52,6 +52,11 @@ class TicketResource extends Resource
         return $form
             ->columns(3)
             ->schema([
+                Select::make('creado_por')
+                    ->label('Creado por')
+                    ->options(User::pluck('name', 'id')->toArray())
+                    ->visible(fn() => auth()->user()?->can('crear-ticket-administrador'))
+                    ->required(fn() => auth()->user()?->can('crear-ticket-administrador')),
                 TextInput::make('titulo')
                     ->label('Título')
                     ->required()
@@ -73,11 +78,11 @@ class TicketResource extends Resource
                     ->directory('tickets')
                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                     ->maxSize(1024),
-                Select::make('prioridad')
-                    ->label('Prioridad')
-                    ->options(self::$model::PRIORIDAD)
-                    ->required()
-                    ->in(array_keys(self::$model::PRIORIDAD)),
+                // Select::make('prioridad')
+                //     ->label('Prioridad')
+                //     ->options(self::$model::PRIORIDAD)
+                //     ->required()
+                //     ->in(array_keys(self::$model::PRIORIDAD)),
                 Select::make('asignado_a')
                     ->label('Asignado a')
                     ->options(
@@ -85,8 +90,10 @@ class TicketResource extends Resource
                     )
                     ->visible(fn() => auth()->user()?->hasRole(['Admin', 'Moderador'])),
                 Textarea::make('comentario')
-                    ->label('Comentarios')
-                    ->rows(3),
+    ->label('Solución / Comentario')
+    ->rows(3)
+    ->visible(fn ($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
+    ->required(fn ($get) => $get('estado') === Ticket::ESTADOS['Cerrado']),
             ])->statePath('data');
     }
 
@@ -131,12 +138,15 @@ class TicketResource extends Resource
                     ->default('Sistema')
                     ->searchable()
                     ->sortable(),
-                TextInputColumn::make('comentario')
-                    ->label('Comentario')
-                    ->searchable(),
+                TextColumn::make('tiempo_respuesta')
+                    ->label('Tiempo de Respuesta'),
+                TextColumn::make('tiempo_solucion')
+                    ->label('Tiempo de Solución'),
                 TextColumn::make('created_at')
                     ->label('Creado en')
-                    ->sortable()
+                    ->sortable(),
+                TextColumn::make('tiempo_resolucion_real')
+                    ->label('Tiempo de Resolución'),
 
 
 
