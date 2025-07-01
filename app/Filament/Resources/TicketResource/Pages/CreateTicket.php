@@ -14,7 +14,9 @@ class CreateTicket extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $estadosNoDisponibles = [];
-        $data['creado_por'] = auth()->id();
+        if (empty($data['creado_por'])) {
+            $data['creado_por'] = auth()->id();
+        }
 
         // Buscar usuarios con rol 'tecnico' o 'moderador'
         $tecnicos = User::role(['Tecnico', 'Moderador'])->get();
@@ -46,6 +48,29 @@ class CreateTicket extends CreateRecord
 
         // Asignar el ticket al técnico seleccionado
         $data['asignado_a'] = $tecnico->id;
+
+        // Obtener el usuario creador
+        $usuario = User::find($data['creado_por']);
+        if ($usuario) {
+            if ($usuario->area) {
+            // Obtener el SLA asociado al área del usuario
+            $sla = $usuario->area->slas()->first();
+            if ($sla) {
+                $data['tiempo_respuesta'] = $sla->tiempo_respuesta;
+                $data['tiempo_solucion'] = $sla->tiempo_resolucion;
+            } else {
+                // Si no hay SLA, establecer tiempos por defecto
+                $data['tiempo_respuesta'] = '01:00:00'; // 1 hora por defecto
+                $data['tiempo_solucion'] = '02:00:00'; // 2 horas por defecto
+            }
+            $data['prioridad'] = $sla->nivel ?? Ticket::PRIORIDAD['Media']; // Asignar prioridad según SLA
+            } else {
+            // Si el usuario no tiene área, establecer tiempos y prioridad por defecto
+            $data['tiempo_respuesta'] = '01:00:00'; // 1 hora por defecto en formato hh:mm:ss
+            $data['tiempo_solucion'] = '02:00:00'; // 2 horas por defecto
+            $data['prioridad'] = Ticket::PRIORIDAD['Media'];
+            }
+        }
 
         return $data;
     }
