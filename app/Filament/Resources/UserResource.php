@@ -49,6 +49,12 @@ class UserResource extends Resource
                             ->preload()
                             ->multiple()
                             ->required(),
+                        Forms\Components\Select::make('permissions')
+                            ->label('Permisos')
+                            ->relationship('permissions', 'name')
+                            ->preload()
+                            ->multiple()
+                            ->searchable(),
                         Forms\Components\Select::make('area_id') // Relación con el área
                             ->label('Área')
                             ->relationship('area', 'nombre')
