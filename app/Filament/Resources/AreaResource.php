@@ -37,6 +37,7 @@ class AreaResource extends Resource
                     ->label('Descripción'),
                 Select::make('parent_id')
                     ->label('Área Padre')
+                    ->preload()
                     ->options(Area::pluck('nombre', 'id'))
                     ->searchable()
                     ->nullable(),
