@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TicketResource\Pages;
 
 use App\Filament\Resources\TicketResource;
 use App\Filament\Resources\TicketResource\Widgets\MetricsOverviewSample;
+use App\Filament\Resources\TicketResource\Widgets\TicketsTiempoResolucionChart;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
@@ -23,6 +24,7 @@ class ListTickets extends ListRecords
         return [
             // StatsOverview::class, //agregar widgets de encabezado
             MetricsOverviewSample::class,
+            TicketsTiempoResolucionChart::class,
         ];
     }
 }
