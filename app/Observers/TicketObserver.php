@@ -18,7 +18,7 @@ class TicketObserver
         $agent = $ticket->asignadoA()->first();
 
         Notification::make()
-            ->title('Se te a asignado un ticket: '. $ticket->id)
+            ->title('Se te a asignado un ticket: ' . $ticket->id)
             ->sendToDatabase($agent);
         event(new DatabaseNotificationsSent($agent));
     }
@@ -39,6 +39,19 @@ class TicketObserver
 
             event(new DatabaseNotificationsSent($agent));
         } else {
+            // Notificar al creador si el ticket fue cerrado
+            if ($ticket->isDirty('estado') && $ticket->estado === Ticket::ESTADOS['Cerrado']) {
+                $creador = $ticket->creadoPor()->first();
+
+                if ($creador) {
+                    Notification::make()
+                        ->title('Tu ticket ha sido resuelto')
+                        ->body('El ticket #' . $ticket->id . ' ha sido cerrado y marcado como resuelto.')
+                        ->sendToDatabase($creador);
+
+                    event(new DatabaseNotificationsSent($creador));
+                }
+            }
             // Obtener los campos que fueron modificados
             $dirtyFields = $ticket->getDirty();
             $updatedFields = array_keys($dirtyFields);
@@ -56,7 +69,49 @@ class TicketObserver
             event(new DatabaseNotificationsSent($agent));
         }
     }
+    // public function updated(Ticket $ticket): void
+    // {
+    //     // Notificar al agente asignado si cambia el campo asignado_a
+    //     if ($ticket->isDirty('asignado_a')) {
+    //         $agent = $ticket->asignadoA()->first();
 
+    //         Notification::make()
+    //             ->title('Se te ha asignado el ticket: ' . $ticket->id)
+    //             ->sendToDatabase($agent);
+
+    //         event(new DatabaseNotificationsSent($agent));
+    //     }
+
+    //     // Notificar al creador si el ticket fue cerrado
+    //     if ($ticket->isDirty('estado') && $ticket->estado === Ticket::ESTADOS['Cerrado']) {
+    //         $creador = $ticket->creadoPor()->first();
+
+    //         if ($creador) {
+    //             Notification::make()
+    //                 ->title('Tu ticket ha sido resuelto')
+    //                 ->body('El ticket #' . $ticket->id . ' ha sido cerrado y marcado como resuelto.')
+    //                 ->sendToDatabase($creador);
+
+    //             event(new DatabaseNotificationsSent($creador));
+    //         }
+    //     }
+
+    //     // Notificar al agente si hubo otros cambios
+    //     if (!$ticket->isDirty('asignado_a') && !$ticket->isDirty('estado')) {
+    //         $dirtyFields = $ticket->getDirty();
+    //         $updatedFields = array_keys($dirtyFields);
+    //         $fieldNames = implode(', ', $updatedFields);
+
+    //         $agent = $ticket->asignadoA()->first();
+
+    //         Notification::make()
+    //             ->title('El ticket ha sido actualizado: ' . $ticket->id)
+    //             ->body('Campos actualizados: ' . $fieldNames)
+    //             ->sendToDatabase($agent);
+
+    //         event(new DatabaseNotificationsSent($agent));
+    //     }
+    // }
     /**
      * Handle the Ticket "deleted" event.
      */
