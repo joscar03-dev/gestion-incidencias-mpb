@@ -114,6 +114,10 @@ class TicketResource extends Resource
                     ->label('Título')
                     ->searchable()
                     ->sortable(),
+                // TextColumn::make('creadoPor.area.nombre')
+                //     ->label('Area')
+                //     ->searchable()
+                //     ->sortable(),
                 SelectColumn::make('estado')
                     ->options(self::$model::ESTADOS)
                     ->label('Estado'),
@@ -164,11 +168,15 @@ class TicketResource extends Resource
 
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
                 CommentsTableAction::make()
-                    ->mentionables(User::all()),
-                Tables\Actions\ViewAction::make(),
+                    ->mentionables(User::all())
+                    ->label('Comentarios')
+                    ->icon('heroicon-o-chat-bubble-left-right'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
