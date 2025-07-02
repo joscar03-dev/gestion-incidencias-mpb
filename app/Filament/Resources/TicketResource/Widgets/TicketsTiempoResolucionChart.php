@@ -46,11 +46,21 @@ class TicketsTiempoResolucionChart extends ChartWidget
         foreach ($tickets as $ticket) {
             $fechaCierre = $ticket->fecha_cierre ? Carbon::parse($ticket->fecha_cierre) : Carbon::parse($ticket->updated_at);
             $labels[] = $fechaCierre->format('d-m-Y');
-            // Tiempo real de resolución en horas
-            $horasReales = Carbon::parse($ticket->created_at)->diffInHours($fechaCierre);
-            $tiemposReales[] = $horasReales;
-            // Tiempo de solución SLA en horas
-            $tiemposSla[] = is_numeric($ticket->tiempo_solucion) ? $ticket->tiempo_solucion : 0;
+            $minutosReales = Carbon::parse($ticket->created_at)->diffInMinutes($fechaCierre);
+            $tiemposReales[] = $minutosReales;
+
+            $tiempoSolucion = null;
+            if ($ticket->creadoPor && $ticket->creadoPor->area) {
+            $sla = $ticket->creadoPor->area->slas()
+                ->where('activo', true)
+                ->first();
+            if ($sla && $sla->tiempo_resolucion) {
+                // Convierte 'HH:MM:SS' a minutos decimales
+                [$h, $m, $s] = explode(':', $sla->tiempo_resolucion);
+                $tiempoSolucion = round(($h * 60) + $m + ($s / 60), 2);
+            }
+            }
+            $tiemposSla[] = $tiempoSolucion ?? 480; // 8 horas = 480 minutos
         }
 
         return [
