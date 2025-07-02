@@ -63,10 +63,9 @@ class Ticket extends Model implements Commentable
         return $this->belongsTo(User::class, 'creado_por');
     }
     // Relación directa con Area
-    public function area()
+    public function getAreaAttribute()
     {
-        // Si el área viene del usuario creador:
-        return $this->creadoPor ? $this->creadoPor->area() : null;
+        return $this->creadoPor ? $this->creadoPor->area : null;
     }
 
     public function sla()
