@@ -39,9 +39,9 @@ class CreateTicket extends CreateRecord
         } else {
             // Seleccionar el técnico con menor número de tickets no cerrados ni archivados
             $tecnico = $disponibles->sortBy(function ($u) use ($estadosNoDisponibles) {
-            return $u->ticketsAsignados()
-                ->whereNotIn('estado', $estadosNoDisponibles)
-                ->count();
+                return $u->ticketsAsignados()
+                    ->whereNotIn('estado', $estadosNoDisponibles)
+                    ->count();
             })->first();
         }
         $data['asignado_por'] = null; // Asignado por el sistema
@@ -53,22 +53,22 @@ class CreateTicket extends CreateRecord
         $usuario = User::find($data['creado_por']);
         if ($usuario) {
             if ($usuario->area) {
-            // Obtener el SLA asociado al área del usuario
-            $sla = $usuario->area->slas()->first();
-            if ($sla) {
-                $data['tiempo_respuesta'] = $sla->tiempo_respuesta;
-                $data['tiempo_solucion'] = $sla->tiempo_resolucion;
+                // Obtener el SLA asociado al área del usuario
+                $sla = $usuario->area->slas()->first();
+                if ($sla) {
+                    $data['tiempo_respuesta'] = $sla->tiempo_respuesta;
+                    $data['tiempo_solucion'] = $sla->tiempo_resolucion;
+                } else {
+                    // Si no hay SLA, establecer tiempos por defecto
+                    $data['tiempo_respuesta'] = '00:15:00'; // 1 hora por defecto
+                    $data['tiempo_solucion'] = '00:30:00'; // 2 horas por defecto
+                }
+                $data['prioridad'] = $sla->nivel ?? Ticket::PRIORIDAD['Media']; // Asignar prioridad según SLA
             } else {
-                // Si no hay SLA, establecer tiempos por defecto
-                $data['tiempo_respuesta'] = '01:00:00'; // 1 hora por defecto
-                $data['tiempo_solucion'] = '02:00:00'; // 2 horas por defecto
-            }
-            $data['prioridad'] = $sla->nivel ?? Ticket::PRIORIDAD['Media']; // Asignar prioridad según SLA
-            } else {
-            // Si el usuario no tiene área, establecer tiempos y prioridad por defecto
-            $data['tiempo_respuesta'] = '01:00:00'; // 1 hora por defecto en formato hh:mm:ss
-            $data['tiempo_solucion'] = '02:00:00'; // 2 horas por defecto
-            $data['prioridad'] = Ticket::PRIORIDAD['Media'];
+                // Si el usuario no tiene área, establecer tiempos y prioridad por defecto
+                $data['tiempo_respuesta'] = '00:15:00'; // 1 hora por defecto en formato hh:mm:ss
+                $data['tiempo_solucion'] = '00:30:00'; // 2 horas por defecto
+                $data['prioridad'] = Ticket::PRIORIDAD['Media'];
             }
         }
 
