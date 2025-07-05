@@ -17,12 +17,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // \App\Models\User::factory(10)->create();
+        // solo usar para instalar el sistema
+        // $user = User::factory()->create([
+        //     'name' => 'Super Admin',
+        //     'email' => 'locomancocapac@gmail.com',
+        // ]);
+        // $role = Role::create(['name' => 'Admin']);
+        // $user->assignRole($role);
 
-        $user = User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
+        $this->call([
+            agregarusuarios::class,
         ]);
-        $role = Role::create(['name' => 'Admin']);
-        $user->assignRole($role);
     }
 }
