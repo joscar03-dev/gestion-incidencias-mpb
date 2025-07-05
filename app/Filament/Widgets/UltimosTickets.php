@@ -44,12 +44,12 @@ class UltimosTickets extends BaseWidget
                         'danger' => Ticket::PRIORIDAD['Baja'],
                     ])
                     ->label('Prioridad'),
-                TextColumn::make('asignadoA.name')
-                    ->label('Asignado a')
+                TextColumn::make('creadoPor.name')
+                    ->label('Reporta')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('asignadoPor.name')
-                    ->label('Asignado por')
+                TextColumn::make('creadoPor.area.nombre')
+                    ->label('Area Reporta')
                     ->searchable()
                     ->sortable(),
                 TextInputColumn::make('comentario')

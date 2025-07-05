@@ -34,10 +34,10 @@ class TicketsOverviewChart extends ChartWidget
                 $end = now()->endOfWeek();
                 $perData ='perDay';
                 break;
-            case'month':
-                $start = now()->startOfMonth();
-                $end = now()->endOfMonth();
-                $perData ='perDay';
+            case 'month':
+                $start = now()->subDays(30);
+                $end = now();
+                $perData = 'perDay';
                 break;
             case 'year':
                 $start = now()->startOfYear();
