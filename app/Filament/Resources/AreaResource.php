@@ -32,7 +32,7 @@ class AreaResource extends Resource
             ->schema([
                 TextInput::make('nombre')
                     ->label('Nombre')
-                    ->required(),
+                    ->required(),     
                 TextInput::make('descripcion')
                     ->label('Descripción'),
                 Select::make('parent_id')
@@ -48,7 +48,8 @@ class AreaResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('nombre')->label('Nombre'),
+                TextColumn::make('nombre')->label('Nombre')
+                    ->searchable(),
                 TextColumn::make('descripcion')->label('Descripción'),
                 TextColumn::make('padre.nombre')->label('Área Padre'),
                 TextColumn::make('usuarios_count')
