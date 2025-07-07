@@ -90,4 +90,9 @@ class User extends Authenticatable implements FilamentUser, Commenter
     {
         return $this->hasMany(Dispositivo::class, 'usuario_id');
     }
+    
+    public function dispositivosAsignados()
+    {
+        return $this->hasMany(\App\Models\DispositivoAsignacion::class);
+    }
 }
