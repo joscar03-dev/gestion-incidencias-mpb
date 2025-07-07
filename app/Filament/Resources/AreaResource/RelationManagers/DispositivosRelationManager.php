@@ -34,6 +34,11 @@ class DispositivosRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('nombre')->label('Nombre'),
                 TextColumn::make('estado')->label('Estado'),
+                TextColumn::make('usuario.name')->label('Usuario Asignado')
+                    ->default('No asignado')
+                    ->sortable()
+                    ->searchable(),
+
             ])
             ->headerActions([
                 AssociateAction::make()
@@ -42,7 +47,12 @@ class DispositivosRelationManager extends RelationManager
                     ->recordSelectOptionsQuery(fn($query) => $query), // Mostrar todas las áreas disponibles
             ])
             ->actions([
-                DissociateAction::make(),
+                DissociateAction::make()
+                    ->after(function ($record) {
+                        // Desasociar usuario solo si pertenece al área actual
+                        $record->usuario()->dissociate();
+                        $record->save();
+                    }),
             ]);
     }
 }
