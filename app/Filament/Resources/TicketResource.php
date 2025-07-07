@@ -90,10 +90,10 @@ class TicketResource extends Resource
                     )
                     ->visible(fn() => auth()->user()?->hasRole(['Admin', 'Moderador'])),
                 Textarea::make('comentario')
-    ->label('Solución / Comentario')
-    ->rows(3)
-    ->visible(fn ($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
-    ->required(fn ($get) => $get('estado') === Ticket::ESTADOS['Cerrado']),
+                    ->label('Solución / Comentario')
+                    ->rows(3)
+                    ->visible(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
+                    ->required(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado']),
             ])->statePath('data');
     }
 
