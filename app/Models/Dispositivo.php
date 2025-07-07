@@ -34,4 +34,9 @@ class Dispositivo extends Model
     {
         return $this->belongsTo(User::class, 'usuario_id');
     }
+
+    public function asignaciones()
+    {
+        return $this->hasMany(\App\Models\DispositivoAsignacion::class);
+    }
 }
