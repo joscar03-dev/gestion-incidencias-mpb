@@ -139,15 +139,15 @@ class UserResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (auth()->user()?->hasRole('Admin')) {
+        if (auth()->user()?->hasRole('Super Admin')) {
             // El admin ve todos los usuarios
             return $query;
         }
 
-        if (auth()->user()?->hasRole('Moderador')) {
+        if (auth()->user()?->hasRole('Admin')) {
             // El moderador ve todos menos el admin
             return $query->whereDoesntHave('roles', function ($q) {
-                $q->where('name', 'Admin');
+                $q->where('name', 'Super Admin');
             });
         }
 
