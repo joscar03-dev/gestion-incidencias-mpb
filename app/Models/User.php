@@ -53,7 +53,7 @@ class User extends Authenticatable implements FilamentUser, Commenter
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasRole(['Admin', 'Moderador', 'Tecnico']);
+            return $this->hasRole(['Super Admin','Admin', 'Moderador', 'Tecnico']);
         }
 
         if ($panel->getId() === 'user') {
@@ -90,7 +90,7 @@ class User extends Authenticatable implements FilamentUser, Commenter
     {
         return $this->hasMany(Dispositivo::class, 'usuario_id');
     }
-    
+
     public function dispositivosAsignados()
     {
         return $this->hasMany(\App\Models\DispositivoAsignacion::class);
