@@ -7,27 +7,34 @@ use App\Models\Ticket;
 use App\Models\User;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
 
 class CreateTicket extends CreateRecord
 {
     protected static string $resource = TicketResource::class;
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $estadosNoDisponibles = [];
-        if (empty($data['creado_por'])) {
-            $data['creado_por'] = auth()->id();
+        // Asignar el usuario autenticado como creador
+        $data['creado_por'] = Auth::id();
+
+        // Asignar el área del usuario autenticado
+        $user = Auth::user();
+        if ($user && $user->area_id) {
+            $data['area_id'] = $user->area_id;
         }
 
+        // Asignar un técnico disponible automáticamente
+        $estadosNoDisponibles = [
+            Ticket::ESTADOS['Cerrado'],
+            Ticket::ESTADOS['Archivado'],
+        ];
+
         // Buscar usuarios con rol 'tecnico' o 'moderador'
-        $tecnicos = User::role(['Tecnico', 'Moderador'])->get();
+        $tecnicos = User::role(['Tecnico'])->get();
 
         // Filtrar técnicos disponibles (<5 tickets no cerrados ni resueltos)
-        $disponibles = $tecnicos->filter(function ($u) {
-            // Usar los estados definidos en el modelo Ticket
-            $estadosNoDisponibles = [
-                Ticket::ESTADOS['Cerrado'],
-                Ticket::ESTADOS['Archivado'],
-            ];
+        $disponibles = $tecnicos->filter(function ($u) use ($estadosNoDisponibles) {
             return $u->ticketsAsignados()
                 ->whereNotIn('estado', $estadosNoDisponibles)
                 ->count() < 5;
@@ -44,33 +51,14 @@ class CreateTicket extends CreateRecord
                     ->count();
             })->first();
         }
-        $data['asignado_por'] = null; // Asignado por el sistema
 
         // Asignar el ticket al técnico seleccionado
-        $data['asignado_a'] = $tecnico->id;
-
-        // Obtener el usuario creador
-        $usuario = User::find($data['creado_por']);
-        if ($usuario) {
-            if ($usuario->area) {
-                // Obtener el SLA asociado al área del usuario
-                $sla = $usuario->area->slas()->first();
-                if ($sla) {
-                    $data['tiempo_respuesta'] = $sla->tiempo_respuesta;
-                    $data['tiempo_solucion'] = $sla->tiempo_resolucion;
-                } else {
-                    // Si no hay SLA, establecer tiempos por defecto
-                    $data['tiempo_respuesta'] = '00:15:00'; // 1 hora por defecto
-                    $data['tiempo_solucion'] = '00:30:00'; // 2 horas por defecto
-                }
-                $data['prioridad'] = $sla->nivel ?? Ticket::PRIORIDAD['Media']; // Asignar prioridad según SLA
-            } else {
-                // Si el usuario no tiene área, establecer tiempos y prioridad por defecto
-                $data['tiempo_respuesta'] = '00:15:00'; // 1 hora por defecto en formato hh:mm:ss
-                $data['tiempo_solucion'] = '00:30:00'; // 2 horas por defecto
-                $data['prioridad'] = Ticket::PRIORIDAD['Media'];
-            }
+        if ($tecnico) {
+            $data['asignado_a'] = $tecnico->id;
         }
+
+        // Asignar por el sistema (null indica asignación automática)
+        $data['asignado_por'] = null;
 
         return $data;
     }

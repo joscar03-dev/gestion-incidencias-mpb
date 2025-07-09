@@ -26,6 +26,7 @@ class User extends Authenticatable implements FilamentUser, Commenter
         'name',
         'email',
         'password',
+        'area_id',
     ];
 
     /**
@@ -53,11 +54,11 @@ class User extends Authenticatable implements FilamentUser, Commenter
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasRole(['Super Admin','Admin', 'Moderador', 'Tecnico']);
+            return $this->hasRole(['Super Admin','Admin', 'Técnico']);
         }
 
         if ($panel->getId() === 'user') {
-            return $this->hasRole(['Usuario', 'Admin', 'Moderador', 'Tecnico']);
+            return $this->hasRole(['Super Admin','Usuario', 'Admin','Técnico']);
         }
 
         return false;

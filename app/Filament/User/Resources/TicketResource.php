@@ -5,10 +5,12 @@ namespace App\Filament\User\Resources;
 use App\Filament\Resources\TicketResource\RelationManagers\CategoriasRelationManager;
 use App\Filament\User\Resources\TicketResource\Pages;
 use App\Filament\User\Resources\TicketResource\RelationManagers;
+use App\Models\Area;
 use App\Models\Ticket;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,6 +23,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Kirschbaum\Commentions\Filament\Actions\CommentsTableAction;
 
 class TicketResource extends Resource
@@ -43,24 +46,106 @@ class TicketResource extends Resource
         return $form
             ->columns(3)
             ->schema([
-                Select::make('creado_por')
-                    ->label('Creado por')
-                    ->options(User::pluck('name', 'id')->toArray())
-                    ->visible(fn() => auth()->user()?->can('crear-ticket-administrador'))
-                    ->required(fn() => auth()->user()?->can('crear-ticket-administrador')),
+                // Mostrar área del usuario (solo lectura)
+                Placeholder::make('area_usuario')
+                    ->label('Área')
+                    ->content(fn() => Auth::user()?->area?->nombre ?? 'Sin área asignada')
+                    ->columnSpan(1),
+
                 TextInput::make('titulo')
                     ->label('Título')
                     ->required()
-                    ->autofocus(),
+                    ->autofocus()
+                    ->columnSpan(2),
+
                 Textarea::make('descripcion')
                     ->label('Descripción')
-                    ->rows(3),
+                    ->rows(3)
+                    ->columnSpan(3),
+
+                // Prioridad (habilitada para usuarios)
+                Select::make('prioridad')
+                    ->label('Prioridad')
+                    ->options(self::$model::PRIORIDAD)
+                    ->required()
+                    ->in(array_keys(self::$model::PRIORIDAD))
+                    ->default('Media')
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, $set, $get) {
+                        // Actualizar información de SLA cuando cambie la prioridad
+                        $areaId = Auth::user()?->area_id;
+                        if ($areaId && $state) {
+                            // Buscar el SLA del área directamente
+                            $area = Area::with('sla')->find($areaId);
+                            if ($area && $area->sla) {
+                                $slaArea = $area->sla;
+
+                                // Aplicar factores de prioridad
+                                $factoresPrioridad = [
+                                    'Critica' => 0.2,   // 20% del tiempo normal
+                                    'Alta' => 0.5,      // 50% del tiempo normal
+                                    'Media' => 1.0,     // 100% del tiempo normal
+                                    'Baja' => 1.5       // 150% del tiempo normal
+                                ];
+
+                                $factor = $factoresPrioridad[$state] ?? 1.0;
+                                $tiempoRespuesta = (int) ($slaArea->tiempo_respuesta * $factor);
+                                $tiempoResolucion = (int) ($slaArea->tiempo_resolucion * $factor);
+
+                                $horas_resp = floor($tiempoRespuesta / 60);
+                                $min_resp = $tiempoRespuesta % 60;
+                                $horas_resol = floor($tiempoResolucion / 60);
+                                $min_resol = $tiempoResolucion % 60;
+
+                                $set('sla_info', "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m");
+                            }
+                        }
+                    }),
+
+                Placeholder::make('sla_info')
+                    ->label('SLA Calculado')
+                    ->content(function ($get) {
+                        $prioridad = $get('prioridad');
+                        $areaId = Auth::user()?->area_id;
+
+                        if ($prioridad && $areaId) {
+                            // Buscar el SLA del área directamente
+                            $area = Area::with('sla')->find($areaId);
+                            if ($area && $area->sla) {
+                                $slaArea = $area->sla;
+
+                                // Aplicar factores de prioridad
+                                $factoresPrioridad = [
+                                    'Critica' => 0.2,   // 20% del tiempo normal (máxima urgencia)
+                                    'Alta' => 0.5,      // 50% del tiempo normal
+                                    'Media' => 1.0,     // 100% del tiempo normal
+                                    'Baja' => 1.5       // 150% del tiempo normal
+                                ];
+
+                                $factor = $factoresPrioridad[$prioridad] ?? 1.0;
+                                $tiempoRespuesta = (int) ($slaArea->tiempo_respuesta * $factor);
+                                $tiempoResolucion = (int) ($slaArea->tiempo_resolucion * $factor);
+
+                                $horas_resp = floor($tiempoRespuesta / 60);
+                                $min_resp = $tiempoRespuesta % 60;
+                                $horas_resol = floor($tiempoResolucion / 60);
+                                $min_resol = $tiempoResolucion % 60;
+
+                                return "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m (Factor: " . ($factor * 100) . "%)";
+                            }
+                            return 'No hay SLA configurado para esta área';
+                        }
+                        return 'Selecciona prioridad para ver SLA';
+                    })
+                    ->visible(fn($get) => $get('prioridad') && Auth::user()?->area_id),
+
                 Select::make('estado')
                     ->label('Estado')
                     ->options(self::$model::ESTADOS)
                     ->default(self::$model::ESTADOS['Abierto'])
                     ->required()
                     ->in(array_keys(self::$model::ESTADOS)),
+
                 FileUpload::make('attachment')
                     ->label('Archivo')
                     ->preserveFilenames()
@@ -68,23 +153,15 @@ class TicketResource extends Resource
                     ->uploadingMessage('Subiendo archivo...')
                     ->directory('tickets')
                     ->acceptedFileTypes(['application/pdf', 'image/*'])
-                    ->maxSize(1024),
-                // Select::make('prioridad')
-                //     ->label('Prioridad')
-                //     ->options(self::$model::PRIORIDAD)
-                //     ->required()
-                //     ->in(array_keys(self::$model::PRIORIDAD)),
-                Select::make('asignado_a')
-                    ->label('Asignado a')
-                    ->options(
-                        User::role(['Moderador', 'Tecnico'])->pluck('name', 'id')->toArray()
-                    )
-                    ->visible(fn() => auth()->user()?->hasRole(['Admin', 'Moderador'])),
+                    ->maxSize(1024)
+                    ->columnSpan(2),
+
                 Textarea::make('comentario')
                     ->label('Solución / Comentario')
                     ->rows(3)
                     ->visible(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
-                    ->required(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado']),
+                    ->required(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
+                    ->columnSpan(3),
             ])->statePath('data');
     }
 
@@ -92,8 +169,7 @@ class TicketResource extends Resource
     {
         return $table
             ->modifyQueryUsing(
-                fn (Builder $query) => $query->where('creado_por', auth()->id())
-
+                fn (Builder $query) => $query->where('creado_por', Auth::id())
             )
             ->defaultSort('created_at', 'desc')
             ->columns([
@@ -101,59 +177,151 @@ class TicketResource extends Resource
                     ->description(fn(Ticket $record): ?string => $record?->descripcion ?? null)
                     ->label('Título')
                     ->searchable()
-                    ->sortable(),
-                // TextColumn::make('creadoPor.area.nombre')
-                //     ->label('Area')
-                //     ->searchable()
-                //     ->sortable(),
-                SelectColumn::make('estado')
-                    ->options(self::$model::ESTADOS)
-                    ->label('Estado'),
-                TextColumn::make('prioridad')
-                    ->badge()
-                    ->colors([
-                        'warning' => self::$model::PRIORIDAD['Alta'],
-                        'info' => self::$model::PRIORIDAD['Media'],
-                        'danger' => self::$model::PRIORIDAD['Baja'],
-                    ])
-                    ->label('Prioridad'),
-                TextColumn::make('creadoPor.name')
-                    ->label('Creado por')
+                    ->sortable()
+                    ->weight('bold'),
+
+                TextColumn::make('area.nombre')
+                    ->label('Área')
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('prioridad')
+                    ->label('Prioridad')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Critica' => 'danger',
+                        'Alta' => 'warning',
+                        'Media' => 'success',
+                        'Baja' => 'secondary',
+                        default => 'secondary',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'Critica' => 'heroicon-o-fire',
+                        'Alta' => 'heroicon-o-exclamation-triangle',
+                        'Media' => 'heroicon-o-information-circle',
+                        'Baja' => 'heroicon-o-minus-circle',
+                        default => 'heroicon-o-question-mark-circle',
+                    }),
+
+                SelectColumn::make('estado')
+                    ->options(self::$model::ESTADOS)
+                    ->label('Estado')
+                    ->disabled(fn(Ticket $record) => $record->estado === 'Cerrado'),
+
+                // Columna de Estado de SLA
+                TextColumn::make('estado_sla')
+                    ->label('SLA')
+                    ->getStateUsing(function (Ticket $record) {
+                        return $record->getEstadoSla();
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'ok' => 'success',
+                        'advertencia' => 'warning',
+                        'vencido' => 'danger',
+                        'sin_sla' => 'secondary',
+                        default => 'secondary',
+                    })
+                    ->formatStateUsing(function ($state) {
+                        return match($state) {
+                            'ok' => 'OK',
+                            'advertencia' => 'Advertencia',
+                            'vencido' => 'Vencido',
+                            'sin_sla' => 'Sin SLA',
+                            default => 'Desconocido'
+                        };
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'ok' => 'heroicon-o-check-circle',
+                        'advertencia' => 'heroicon-o-exclamation-triangle',
+                        'vencido' => 'heroicon-o-x-circle',
+                        'sin_sla' => 'heroicon-o-question-mark-circle',
+                        default => 'heroicon-o-question-mark-circle',
+                    }),
+
+                // Tiempo restante
+                TextColumn::make('tiempo_restante')
+                    ->label('Tiempo Restante')
+                    ->getStateUsing(function (Ticket $record) {
+                        $tiempo = $record->getTiempoRestanteSla('respuesta');
+                        if ($tiempo === null) return 'N/A';
+                        if ($tiempo <= 0) return 'Vencido';
+
+                        $horas = floor($tiempo / 60);
+                        $minutos = $tiempo % 60;
+
+                        if ($horas > 0) {
+                            return "{$horas}h {$minutos}m";
+                        }
+                        return "{$minutos}m";
+                    })
+                    ->color(function (Ticket $record) {
+                        $tiempo = $record->getTiempoRestanteSla('respuesta');
+                        if ($tiempo === null) return 'secondary';
+                        if ($tiempo <= 0) return 'danger';
+                        if ($tiempo <= 30) return 'warning'; // Menos de 30 minutos
+                        return 'success';
+                    }),
+
                 TextColumn::make('asignadoA.name')
                     ->label('Asignado a')
                     ->searchable()
-                    ->sortable(),
-                TextColumn::make('asignadoPor.name')
-                    ->label('Asignado por')
-                    ->default('Sistema')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('tiempo_respuesta')
-                    ->label('Tiempo de Respuesta'),
-                TextColumn::make('tiempo_solucion')
-                    ->label('Tiempo de Solución'),
+                    ->placeholder('Sin asignar'),
+
                 TextColumn::make('created_at')
-                    ->label('Creado en')
-                    ->sortable(),
-                TextColumn::make('tiempo_resolucion_real')
-                    ->label('Tiempo de Resolución'),
+                    ->label('Creado')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(),
 
-
-
+                TextColumn::make('escalado')
+                    ->label('Escalado')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Sí' : 'No')
+                    ->badge()
+                    ->color(fn (bool $state): string => $state ? 'danger' : 'success')
+                    ->icon(fn (bool $state): string => $state ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-minus')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-
                 SelectFilter::make('estado')
                     ->options(self::$model::ESTADOS)
                     ->label('Estado')
-                    ->placeholder('Filtro por estado'),
+                    ->placeholder('Filtro por estado')
+                    ->multiple(),
+
                 SelectFilter::make('prioridad')
                     ->options(self::$model::PRIORIDAD)
                     ->label('Prioridad')
-                    ->placeholder('Filtro por prioridad'),
+                    ->placeholder('Filtro por prioridad')
+                    ->multiple(),
 
+                SelectFilter::make('area_id')
+                    ->label('Área')
+                    ->relationship('area', 'nombre')
+                    ->placeholder('Filtro por área')
+                    ->multiple(),
+
+                SelectFilter::make('escalado')
+                    ->label('Escalado')
+                    ->options([
+                        '1' => 'Escalado',
+                        '0' => 'No Escalado',
+                    ])
+                    ->placeholder('Filtro por escalamiento'),
+
+                SelectFilter::make('sla_vencido')
+                    ->label('SLA Vencido')
+                    ->options([
+                        '1' => 'SLA Vencido',
+                        '0' => 'SLA Vigente',
+                    ])
+                    ->placeholder('Filtro por SLA'),
+
+                SelectFilter::make('asignado_a')
+                    ->label('Asignado a')
+                    ->relationship('asignadoA', 'name')
+                    ->placeholder('Filtro por asignado')
+                    ->multiple(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([

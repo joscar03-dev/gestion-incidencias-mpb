@@ -52,4 +52,10 @@ class Area extends Model
     {
         return $this->hasMany(Sla::class, 'area_id');
     }
+
+    // Relación con el SLA principal (activo) de esta área
+    public function sla()
+    {
+        return $this->hasOne(Sla::class, 'area_id')->where('activo', true);
+    }
 }
