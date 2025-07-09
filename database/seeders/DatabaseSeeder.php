@@ -16,17 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-        // solo usar para instalar el sistema
-        // $user = User::factory()->create([
-        //     'name' => 'Super Admin',
-        //     'email' => 'locomancocapac@gmail.com',
-        // ]);
-        // $role = Role::create(['name' => 'Admin']);
-        // $user->assignRole($role);
-
         $this->call([
-            agregarusuarios::class,
+            PermissionSeeder::class,
+            SlaSeeder::class,
         ]);
     }
 }
