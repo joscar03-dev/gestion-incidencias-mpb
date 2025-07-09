@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Categoria;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CategoriaPolicy
 {
@@ -53,7 +52,7 @@ class CategoriaPolicy
      */
     public function restore(User $user, Categoria $categoria): bool
     {
-        //
+        return $user->can('editar-categoria');
     }
 
     /**
@@ -61,6 +60,6 @@ class CategoriaPolicy
      */
     public function forceDelete(User $user, Categoria $categoria): bool
     {
-        //
+        return $user->can('borrar-categoria');
     }
 }
