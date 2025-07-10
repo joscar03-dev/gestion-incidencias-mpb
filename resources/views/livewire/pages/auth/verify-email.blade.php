@@ -15,7 +15,7 @@ new #[Layout('layouts.guest')] class extends Component
     public function sendVerification(): void
     {
         if (Auth::user()->hasVerifiedEmail()) {
-            $this->redirectIntended(default: RouteServiceProvider::HOME, navigate: true);
+            $this->redirectIntended(default: RouteServiceProvider::HOME, navigate: false);
 
             return;
         }
@@ -32,7 +32,7 @@ new #[Layout('layouts.guest')] class extends Component
     {
         $logout();
 
-        $this->redirect('/', navigate: true);
+        $this->redirect('/', navigate: false);
     }
 }; ?>
 

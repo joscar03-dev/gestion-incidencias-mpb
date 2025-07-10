@@ -1,8 +1,4 @@
-@extends('layouts.welcome')
-
-@section('title', 'Centro de Soporte - Sistema de Gestión de Incidencias')
-
-@section('content')
+<div>
     <x-hero />
 
     @auth
@@ -40,4 +36,4 @@
     <x-faq />
 
     <x-system-status />
-@endsection
+</div>

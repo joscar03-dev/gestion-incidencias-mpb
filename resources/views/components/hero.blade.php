@@ -74,7 +74,7 @@
                 Acceso Restringido
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-300">
-                Solo <strong>empleados de la empresa</strong> pueden reportar incidencias y acceder al sistema de soporte.
+                Solo <strong>empleados de la Municipalidad</strong> pueden reportar incidencias y acceder al sistema de soporte.
             </p>
         </div>
 

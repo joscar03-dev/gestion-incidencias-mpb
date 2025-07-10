@@ -4,25 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="authenticated" content="{{ auth()->check() ? 'true' : 'false' }}">
 
     <title>@yield('title', 'Centro de Soporte - Sistema de Gestión de Incidencias')</title>
-
-    <!-- Scripts -->
-    <script src="//unpkg.com/alpinejs" defer></script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 
     @include('components.styles')
 
     @stack('styles')
 </head>
-<body class="antialiased min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
-      x-data="@include('components.alpine-data')"
-      x-init="$watch('dark', val => { document.documentElement.classList.toggle('dark', val); localStorage.setItem('theme', val ? 'dark' : 'light') }); document.documentElement.classList.toggle('dark', dark);">
+<body class="antialiased min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
 
     @include('components.navigation')
 
@@ -35,6 +32,17 @@
     @include('components.footer')
     @include('components.toast')
     @include('components.report-modal')
+
+    <!-- Modal de Autenticación -->
+    @livewire('auth-modal')
+
+    @livewireScripts    <!-- Scripts adicionales para mejorar compatibilidad -->
+    <script>
+        // Configuración simple para Alpine
+        document.addEventListener('livewire:load', function () {
+            console.log('Livewire cargado');
+        });
+    </script>
 
     @stack('scripts')
 </body>
