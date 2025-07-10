@@ -398,7 +398,7 @@ class TicketResource extends Resource
                 TextColumn::make('creadoPor.name')
                     ->label('Creado por')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
 
                 TextColumn::make('created_at')
                     ->label('Creado')
