@@ -4,193 +4,1156 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Laravel</title>
-<script src="//unpkg.com/alpinejs" defer></script>
+    <title>Centro de Soporte - Sistema de Gestión de Incidencias</title>
+    <script src="//unpkg.com/alpinejs" defer></script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet" />
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-morphism {
+            backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.75);
+            border-radius: 12px;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+        }
+
+        .dark .glass-morphism {
+            background-color: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); }
+            80%, 100% { opacity: 0; }
+        }
+
+        .bg-pattern {
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        .dark .bg-pattern {
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+        }
+    </style>
 </head>
 
-<body 
-    class="antialiased"
-    x-data="{ dark: (localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark' }"
+<body
+    class="antialiased min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
+    x-data="{
+        dark: (localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark',
+        showReportModal: false,
+        reportForm: {
+            titulo: '',
+            descripcion: '',
+            prioridad: 'Media'
+        },
+        showMobileMenu: false
+    }"
     x-init="$watch('dark', val => { document.documentElement.classList.toggle('dark', val); localStorage.setItem('theme', val ? 'dark' : 'light') }); document.documentElement.classList.toggle('dark', dark);"
 >
-<nav class="fixed top-0 left-0 p-6 z-20 flex items-center space-x-3">
-    <span class="inline-flex items-center">
-        <svg class="w-9 h-9 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white" style="font-family: 'Fira Sans', 'Segoe UI', Arial, sans-serif;">
-            Centro de Soporte
-        </span>
-    </span>
-</nav>
-    <div class="fixed top-4 right-4 z-50">
-        <button
-            @click="dark = !dark"
-            class="rounded-full p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-            :aria-label="dark ? 'Modo claro' : 'Modo oscuro'"
-            title="Cambiar modo"
-        >
-            <svg x-show="!dark" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            <svg x-show="dark" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-            </svg>
-        </button>
-    </div>
-    <div class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white">
-        @if (Route::has('login'))
-            <div class="sm:fixed sm:top-0 sm:right-0 p-6 text-end z-10 space-x-4">
-                @auth
-                    <a href="{{ url('/reportar/tickets/create') }}"
-                        class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-                        Dashboard
-                    </a>
-                @else
-                    <a href="{{ url('/login') }}"
-                        class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-                        Login
-                    </a>
-                    <a href="{{ url('/register') }}"
-                        class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-                        Register
-                    </a>
-                @endauth
-            </div>
-        @endif
-
-        <div class="max-w-7xl mx-auto p-6 lg:p-8">
-            <div class="flex justify-center">
-                <svg viewBox="0 0 62 65" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    class="h-16 w-auto bg-gray-100 dark:bg-gray-900">
-                    <path
-                        d="M61.8548 14.6253C61.8778 14.7102 61.8895 14.7978 61.8897 14.8858V28.5615C61.8898 28.737 61.8434 28.9095 61.7554 29.0614C61.6675 29.2132 61.5409 29.3392 61.3887 29.4265L49.9104 36.0351V49.1337C49.9104 49.4902 49.7209 49.8192 49.4118 49.9987L25.4519 63.7916C25.3971 63.8227 25.3372 63.8427 25.2774 63.8639C25.255 63.8714 25.2338 63.8851 25.2101 63.8913C25.0426 63.9354 24.8666 63.9354 24.6991 63.8913C24.6716 63.8838 24.6467 63.8689 24.6205 63.8589C24.5657 63.8389 24.5084 63.8215 24.456 63.7916L0.501061 49.9987C0.348882 49.9113 0.222437 49.7853 0.134469 49.6334C0.0465019 49.4816 0.000120578 49.3092 0 49.1337L0 8.10652C0 8.01678 0.0124642 7.92953 0.0348998 7.84477C0.0423783 7.8161 0.0598282 7.78993 0.0697995 7.76126C0.0884958 7.70891 0.105946 7.65531 0.133367 7.6067C0.152063 7.5743 0.179485 7.54812 0.20192 7.51821C0.230588 7.47832 0.256763 7.43719 0.290416 7.40229C0.319084 7.37362 0.356476 7.35243 0.388883 7.32751C0.425029 7.29759 0.457436 7.26518 0.498568 7.2415L12.4779 0.345059C12.6296 0.257786 12.8015 0.211853 12.9765 0.211853C13.1515 0.211853 13.3234 0.257786 13.475 0.345059L25.4531 7.2415H25.4556C25.4955 7.26643 25.5292 7.29759 25.5653 7.32626C25.5977 7.35119 25.6339 7.37362 25.6625 7.40104C25.6974 7.43719 25.7224 7.47832 25.7523 7.51821C25.7735 7.54812 25.8021 7.5743 25.8196 7.6067C25.8483 7.65656 25.8645 7.70891 25.8844 7.76126C25.8944 7.78993 25.9118 7.8161 25.9193 7.84602C25.9423 7.93096 25.954 8.01853 25.9542 8.10652V33.7317L35.9355 27.9844V14.8846C35.9355 14.7973 35.948 14.7088 35.9704 14.6253C35.9792 14.5954 35.9954 14.5692 36.0053 14.5405C36.0253 14.4882 36.0427 14.4346 36.0702 14.386C36.0888 14.3536 36.1163 14.3274 36.1375 14.2975C36.1674 14.2576 36.1923 14.2165 36.2272 14.1816C36.2559 14.1529 36.292 14.1317 36.3244 14.1068C36.3618 14.0769 36.3942 14.0445 36.4341 14.0208L48.4147 7.12434C48.5663 7.03694 48.7383 6.99094 48.9133 6.99094C49.0883 6.99094 49.2602 7.03694 49.4118 7.12434L61.3899 14.0208C61.4323 14.0457 61.4647 14.0769 61.5021 14.1055C61.5333 14.1305 61.5694 14.1529 61.5981 14.1803C61.633 14.2165 61.6579 14.2576 61.6878 14.2975C61.7103 14.3274 61.7377 14.3536 61.7551 14.386C61.7838 14.4346 61.8 14.4882 61.8199 14.5405C61.8312 14.5692 61.8474 14.5954 61.8548 14.6253ZM59.893 27.9844V16.6121L55.7013 19.0252L49.9104 22.3593V33.7317L59.8942 27.9844H59.893ZM47.9149 48.5566V37.1768L42.2187 40.4299L25.953 49.7133V61.2003L47.9149 48.5566ZM1.99677 9.83281V48.5566L23.9562 61.199V49.7145L12.4841 43.2219L12.4804 43.2194L12.4754 43.2169C12.4368 43.1945 12.4044 43.1621 12.3682 43.1347C12.3371 43.1097 12.3009 43.0898 12.2735 43.0624L12.271 43.0586C12.2386 43.0275 12.2162 42.9888 12.1887 42.9539C12.1638 42.9203 12.1339 42.8916 12.114 42.8567L12.1127 42.853C12.0903 42.8156 12.0766 42.7707 12.0604 42.7283C12.0442 42.6909 12.023 42.656 12.013 42.6161C12.0005 42.5688 11.998 42.5177 11.9931 42.4691C11.9881 42.4317 11.9781 42.3943 11.9781 42.3569V15.5801L6.18848 12.2446L1.99677 9.83281ZM12.9777 2.36177L2.99764 8.10652L12.9752 13.8513L22.9541 8.10527L12.9752 2.36177H12.9777ZM18.1678 38.2138L23.9574 34.8809V9.83281L19.7657 12.2459L13.9749 15.5801V40.6281L18.1678 38.2138ZM48.9133 9.14105L38.9344 14.8858L48.9133 20.6305L58.8909 14.8846L48.9133 9.14105ZM47.9149 22.3593L42.124 19.0252L37.9323 16.6121V27.9844L43.7219 31.3174L47.9149 33.7317V22.3593ZM24.9533 47.987L39.59 39.631L46.9065 35.4555L36.9352 29.7145L25.4544 36.3242L14.9907 42.3482L24.9533 47.987Z"
-                        fill="#FF2D20" />
-                </svg>
-            </div>
-
-            <div class="mt-16">
-                <div class="flex flex-col items-center justify-center bg-gradient-to-br from-green-100 via-white to-green-200 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-3xl shadow-2xl p-12 border border-green-200 dark:border-gray-700">
-                    <h2 class="text-4xl font-extrabold text-green-700 dark:text-green-300 mb-4 drop-shadow-lg font-mono" style="font-family: 'Fira Mono', 'Consolas', monospace;">
-                        ¿Necesitas ayuda?
-                    </h2>
-                    <p class="text-lg text-gray-700 dark:text-gray-300 mb-8 font-sans">Estamos aquí para ayudarte. Envía tu consulta y te responderemos lo antes posible.</p>
-                    <a href="{{ url('/reportar/tickets/create') }}"
-                       class="inline-block px-10 py-4 bg-gradient-to-r from-green-500 via-green-600 to-emerald-500 text-white font-bold rounded-full shadow-lg hover:scale-105 hover:from-emerald-500 hover:to-green-600 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-offset-2">
-                        Crear Ticket
-                    </a>
-                    
-                </div>
-            </div>
-            <!-- Preguntas Generales (Accordion) -->
-            <div class="mt-16">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Preguntas Generales</h2>
-                <div x-data="{ open: null }" class="space-y-4">
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow">
-                        <button @click="open === 1 ? open = null : open = 1" class="w-full flex justify-between items-center p-4 focus:outline-none">
-                            <span class="text-lg font-medium text-gray-900 dark:text-white">¿Cómo puedo crear una cuenta?</span>
-                            <svg :class="{'rotate-180': open === 1}" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-morphism shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-30 pulse-ring"></div>
+                        <div class="relative bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z"/>
                             </svg>
-                        </button>
-                        <div x-show="open === 1" x-collapse class="px-4 pb-4 text-gray-700 dark:text-gray-300">
-                            Puedes crear una cuenta haciendo clic en el botón "Register" en la parte superior derecha y completando el formulario.
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow">
-                        <button @click="open === 2 ? open = null : open = 2" class="w-full flex justify-between items-center p-4 focus:outline-none">
-                            <span class="text-lg font-medium text-gray-900 dark:text-white">¿Dónde puedo ver mis tickets?</span>
-                            <svg :class="{'rotate-180': open === 2}" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        <div x-show="open === 2" x-collapse class="px-4 pb-4 text-gray-700 dark:text-gray-300">
-                            Una vez autenticado, accede al Dashboard para ver y gestionar tus tickets.
-                        </div>
+                    <div class="hidden sm:block">
+                        <h1 class="text-xl font-bold gradient-text">Centro de Soporte</h1>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">Sistema de Gestión de Incidencias</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Problemas Técnicos (Accordion) -->
-            <div class="mt-16">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Problemas Técnicos</h2>
-                <div x-data="{ open: null }" class="space-y-4">
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow">
-                        <button @click="open === 1 ? open = null : open = 1" class="w-full flex justify-between items-center p-4 focus:outline-none">
-                            <span class="text-lg font-medium text-gray-900 dark:text-white">No puedo iniciar sesión</span>
-                            <svg :class="{'rotate-180': open === 1}" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        <div x-show="open === 1" x-collapse class="px-4 pb-4 text-gray-700 dark:text-gray-300">
-                            Verifica que tu correo y contraseña sean correctos. Si olvidaste tu contraseña, utiliza la opción de recuperación.
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-4">
+                    @auth
+                        <div class="flex items-center space-x-4">
+                            <div class="text-sm text-gray-700 dark:text-gray-300">
+                                <span class="font-medium">{{ auth()->user()->name }}</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 block">{{ auth()->user()->area->nombre ?? 'Sin área' }}</span>
+                            </div>
+
+                            <!-- Notifications Dropdown -->
+                            <div class="relative" x-data="{
+                                showNotifications: false,
+                                notifications: [],
+                                unreadCount: 0,
+                                loading: false,
+                                lastCheck: null,
+                                pollingInterval: null,
+                                async fetchNotifications() {
+                                    this.loading = true;
+                                    try {
+                                        const response = await fetch('/web/notifications', {
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+                                        const data = await response.json();
+
+                                        // Verificar si hay nuevas notificaciones
+                                        const previousUnreadCount = this.unreadCount;
+                                        this.notifications = data.notifications || [];
+                                        this.unreadCount = data.unread_count || 0;
+                                        this.lastCheck = new Date();
+
+                                        // Mostrar indicador visual si hay nuevas notificaciones
+                                        if (this.unreadCount > 0 && this.unreadCount > previousUnreadCount && previousUnreadCount >= 0) {
+                                            this.showNewNotificationIndicator();
+                                            this.playNotificationSound();
+                                            // Disparar evento para mostrar toast
+                                            window.dispatchEvent(new CustomEvent('new-notification', {
+                                                detail: { message: 'Tienes nuevas notificaciones' }
+                                            }));
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching notifications:', error);
+                                    } finally {
+                                        this.loading = false;
+                                    }
+                                },
+                                showNewNotificationIndicator() {
+                                    // Hacer que el ícono de notificaciones pulse brevemente
+                                    const notificationButton = document.querySelector('[data-notification-button]');
+                                    if (notificationButton) {
+                                        notificationButton.classList.add('animate-bounce');
+                                        setTimeout(() => {
+                                            notificationButton.classList.remove('animate-bounce');
+                                        }, 2000);
+                                    }
+                                },
+                                playNotificationSound() {
+                                    // Reproducir sonido de notificación si está disponible
+                                    try {
+                                        const audio = new Audio('/sonidos/notification.mp3');
+                                        audio.volume = 0.3;
+                                        audio.play().catch(e => {
+                                            // Ignorar errores de reproducción de audio
+                                            console.log('No se pudo reproducir el sonido de notificación');
+                                        });
+                                    } catch (e) {
+                                        // Ignorar errores si no hay archivo de sonido
+                                    }
+                                },
+                                startPolling() {
+                                    // Polling cada 10 segundos para ser más reactivo
+                                    this.pollingInterval = setInterval(() => {
+                                        this.fetchNotifications();
+                                    }, 10000);
+                                },
+                                stopPolling() {
+                                    if (this.pollingInterval) {
+                                        clearInterval(this.pollingInterval);
+                                        this.pollingInterval = null;
+                                    }
+                                },
+                                async markAsRead(notificationId) {
+                                    try {
+                                        await fetch(`/web/notifications/${notificationId}/read`, {
+                                            method: 'PATCH',
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+                                        // Actualizar inmediatamente después de marcar como leída
+                                        this.fetchNotifications();
+                                    } catch (error) {
+                                        console.error('Error marking notification as read:', error);
+                                    }
+                                },
+                                async markAllAsRead() {
+                                    try {
+                                        await fetch('/web/notifications/mark-all-read', {
+                                            method: 'PATCH',
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+                                        // Actualizar inmediatamente después de marcar todas como leídas
+                                        this.fetchNotifications();
+                                    } catch (error) {
+                                        console.error('Error marking all notifications as read:', error);
+                                    }
+                                }
+                            }"
+                            x-init="
+                                fetchNotifications();
+                                startPolling();
+                                // Detener polling cuando la página no esté visible
+                                document.addEventListener('visibilitychange', () => {
+                                    if (document.hidden) {
+                                        stopPolling();
+                                    } else {
+                                        startPolling();
+                                        fetchNotifications();
+                                    }
+                                });
+                            "
+                            x-on:beforeunload.window="stopPolling()">
+                                <button @click="showNotifications = !showNotifications; if(showNotifications) fetchNotifications()"
+                                        data-notification-button
+                                        class="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                    </svg>
+
+                                    <!-- Badge de notificaciones no leídas -->
+                                    <span x-show="unreadCount > 0"
+                                          x-text="unreadCount > 99 ? '99+' : unreadCount"
+                                          x-transition:enter="transition ease-out duration-200"
+                                          x-transition:enter-start="opacity-0 transform scale-50"
+                                          x-transition:enter-end="opacity-100 transform scale-100"
+                                          x-transition:leave="transition ease-in duration-150"
+                                          x-transition:leave-start="opacity-100 transform scale-100"
+                                          x-transition:leave-end="opacity-0 transform scale-50"
+                                          class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-5 h-5 animate-pulse">
+                                    </span>
+
+                                    <!-- Indicador de carga -->
+                                    <div x-show="loading"
+                                         class="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-ping opacity-75">
+                                    </div>
+                                </button>
+
+                                <!-- Notifications Dropdown -->
+                                <div x-show="showNotifications"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 transform scale-95"
+                                     x-transition:enter-end="opacity-100 transform scale-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 transform scale-100"
+                                     x-transition:leave-end="opacity-0 transform scale-95"
+                                     @click.away="showNotifications = false"
+                                     class="absolute right-0 mt-2 w-96 glass-morphism rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden"
+                                     style="display: none;">
+
+                                    <!-- Header -->
+                                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-2">
+                                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
+                                                <span x-show="lastCheck"
+                                                      x-text="'Actualizado: ' + (lastCheck ? lastCheck.toLocaleTimeString() : '')"
+                                                      class="text-xs text-gray-500 dark:text-gray-400">
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <button @click="fetchNotifications()"
+                                                        :disabled="loading"
+                                                        class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200 disabled:opacity-50">
+                                                    <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                    </svg>
+                                                </button>
+                                                <button @click="markAllAsRead()"
+                                                        x-show="unreadCount > 0"
+                                                        class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
+                                                    Marcar todas como leídas
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Notifications List -->
+                                    <div class="max-h-80 overflow-y-auto">
+                                        <div x-show="loading" class="flex items-center justify-center py-8">
+                                            <svg class="animate-spin h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        </div>
+
+                                        <div x-show="!loading && notifications.length === 0" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <svg class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                            </svg>
+                                            <p class="text-sm">No tienes notificaciones</p>
+                                        </div>
+
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200"
+                                                 :class="notification.read_at ? 'opacity-75' : 'bg-blue-50 dark:bg-blue-900/20'">
+                                                <div class="p-4">
+                                                    <div class="flex items-start space-x-3">
+                                                        <div class="flex-shrink-0">
+                                                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                                </div>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="flex items-center justify-between">
+                                                                <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.data.title || 'Notificación'"></p>
+                                                                <div class="flex items-center space-x-2">
+                                                                    <span x-show="!notification.read_at" class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                                                    <button @click="markAsRead(notification.id)"
+                                                                            x-show="!notification.read_at"
+                                                                            class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-text="notification.data.body || notification.data.message || 'Nueva notificación'"></p>
+                                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-2" x-text="new Date(notification.created_at).toLocaleString()"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                                        <button @click="showNotifications = false"
+                                                class="w-full text-center text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200">
+                                            Cerrar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a href="{{ url('/reportar/tickets') }}"
+                                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                Mis Tickets
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" class="inline">
+                                @csrf
+                                <button type="submit" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-200">
+                                    Cerrar Sesión
+                                </button>
+                            </form>
                         </div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow">
-                        <button @click="open === 2 ? open = null : open = 2" class="w-full flex justify-between items-center p-4 focus:outline-none">
-                            <span class="text-lg font-medium text-gray-900 dark:text-white">No recibo notificaciones</span>
-                            <svg :class="{'rotate-180': open === 2}" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        <div x-show="open === 2" x-collapse class="px-4 pb-4 text-gray-700 dark:text-gray-300">
-                            Revisa tu bandeja de spam o verifica que tu correo esté correctamente registrado en tu perfil.
+                    @else
+                        <div class="flex items-center space-x-3">
+                            <a href="{{ url('/login') }}"
+                                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                </svg>
+                                Iniciar Sesión
+                            </a>
+                            <a href="{{ url('/register') }}"
+                                class="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium transition-colors duration-200">
+                                Registrarse
+                            </a>
                         </div>
-                    </div>
+                    @endauth
+
+                    <!-- Theme Toggle -->
+                    <button
+                        @click="dark = !dark"
+                        class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                        :aria-label="dark ? 'Modo claro' : 'Modo oscuro'"
+                    >
+                        <svg x-show="!dark" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <svg x-show="dark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+                        </svg>
+                    </button>
                 </div>
-            </div>
 
-            <!-- Explora por Categorías -->
-            <div class="mt-16">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Explora por Categorías</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow p-6 flex flex-col items-center hover:scale-105 transition">
-                        <div class="h-12 w-12 bg-green-100 dark:bg-green-800/20 flex items-center justify-center rounded-full mb-4">
-                            <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L6 21h12l-3.75-4M12 3v14"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Soporte Técnico</h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm text-center">Problemas con hardware, software o acceso a sistemas.</p>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow p-6 flex flex-col items-center hover:scale-105 transition">
-                        <div class="h-12 w-12 bg-green-100 dark:bg-green-800/20 flex items-center justify-center rounded-full mb-4">
-                            <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Incidencias Generales</h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm text-center">Reporta cualquier otro tipo de incidencia o solicitud.</p>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800/50 rounded-lg shadow p-6 flex flex-col items-center hover:scale-105 transition">
-                        <div class="h-12 w-12 bg-green-100 dark:bg-green-800/20 flex items-center justify-center rounded-full mb-4">
-                            <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Solicitudes Administrativas</h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm text-center">Trámites, permisos y otros servicios administrativos.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-center mt-16 px-0 sm:items-center sm:justify-between">
-                <div class="text-center text-sm sm:text-start">
-                    &nbsp;
-                </div>
-
-                <div class="text-center text-sm text-gray-500 dark:text-gray-400 sm:text-end sm:ms-0">
-                    Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button @click="showMobileMenu = !showMobileMenu" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                        <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="showMobileMenu" x-transition class="md:hidden border-t border-gray-200 dark:border-gray-700">
+            <div class="px-4 py-3 space-y-2">
+                @auth
+                    <div class="py-2">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ auth()->user()->name }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ auth()->user()->area->nombre ?? 'Sin área' }}</p>
+                    </div>
+                    <a href="{{ url('/reportar/tickets') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+                        Mis Tickets
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" class="block">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+                            Cerrar Sesión
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ url('/login') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+                        Iniciar Sesión
+                    </a>
+                    <a href="{{ url('/register') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+                        Registrarse
+                    </a>
+                @endauth
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-16 min-h-screen bg-pattern">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Success Message -->
+            @if(session('success'))
+                <div class="mb-8 mt-8">
+                    <div class="glass-morphism p-4 border-l-4 border-green-500">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                                    {{ session('success') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Hero Section -->
+            <section class="py-20 text-center">
+                <div class="floating-animation">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg mb-8">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+                    <span class="gradient-text">Centro de Soporte</span>
+                </h1>
+
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+                    Tu portal integral para gestionar incidencias y solicitudes de soporte técnico.
+                    Reporta problemas, realiza seguimiento y mantente informado del estado de tus tickets.
+                </p>
+
+                <!-- Call to Action -->
+                @auth
+                    <div class="flex flex-col sm:flex-row gap-4 items-center justify-center mb-16">
+                        <button @click="showReportModal = true"
+                               class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl shadow-lg hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-200 hover:shadow-xl">
+                            <svg class="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Reportar Incidencia
+                        </button>
+
+                        <a href="{{ url('/reportar') }}"
+                           class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 hover:shadow-xl">
+                            <svg class="w-6 h-6 mr-3 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Ver Mis Tickets
+                        </a>
+                    </div>
+
+                    <div class="inline-flex items-center px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-full">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        <span class="text-sm font-medium text-green-700 dark:text-green-300">
+                            Bienvenido de vuelta, {{ auth()->user()->name }}
+                        </span>
+                    </div>
+                @else
+                    <div class="text-center mb-8">
+                        <div class="glass-morphism p-6 max-w-md mx-auto mb-8">
+                            <div class="flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Acceso Restringido
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">
+                                Solo <strong>empleados de la empresa</strong> pueden reportar incidencias y acceder al sistema de soporte.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="{{ url('/login') }}"
+                               class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 hover:shadow-xl">
+                                <svg class="w-6 h-6 mr-3 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                </svg>
+                                Iniciar Sesión
+                            </a>
+
+                            <a href="{{ url('/register') }}"
+                               class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl shadow-lg hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200 hover:shadow-xl">
+                                <svg class="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                </svg>
+                                Crear Cuenta
+                            </a>
+                        </div>
+                    </div>
+                @endauth
+            </section>
+
+            @auth
+            <!-- Quick Report Form -->
+            <section class="py-16">
+                <div class="glass-morphism p-8 rounded-2xl shadow-xl">
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            Reportar Incidencia
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                            Reporta tu incidencia rápidamente desde aquí. Tu área se asignará automáticamente según tu perfil.
+                        </p>
+                    </div>
+
+                    <form action="{{ route('tickets.quick-create') }}" method="POST" class="max-w-4xl mx-auto">
+                        @csrf
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="lg:col-span-1">
+                                <label for="titulo_rapid" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Título de la Incidencia *
+                                </label>
+                                <input type="text"
+                                       id="titulo_rapid"
+                                       name="titulo"
+                                       required
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition-colors duration-200"
+                                       placeholder="Ej: No puedo acceder al sistema">
+                            </div>
+
+                            <div class="lg:col-span-1">
+                                <label for="area_rapid" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Área Asignada
+                                </label>
+                                <div class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                        {{ auth()->user()->area->nombre ?? 'Sin área asignada' }}
+                                    </div>
+                                </div>
+                                <input type="hidden" name="area_id" value="{{ auth()->user()->area->id ?? '' }}">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Área asignada automáticamente según tu perfil
+                                </p>
+                            </div>
+
+                            <div class="lg:col-span-2">
+                                <label for="descripcion_rapid" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Descripción del Problema *
+                                </label>
+                                <textarea id="descripcion_rapid"
+                                          name="descripcion"
+                                          rows="4"
+                                          required
+                                          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition-colors duration-200"
+                                          placeholder="Describe el problema en detalle. Incluye información sobre cuándo ocurrió, qué estabas haciendo, mensajes de error, etc."></textarea>
+                            </div>
+
+                            <div class="lg:col-span-1">
+                                <label for="prioridad_rapid" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Nivel de Prioridad
+                                </label>
+                                <select id="prioridad_rapid"
+                                        name="prioridad"
+                                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition-colors duration-200">
+                                    <option value="Baja">🟢 Baja - No urgente</option>
+                                    <option value="Media" selected>🟡 Media - Normal</option>
+                                    <option value="Alta">🟠 Alta - Requiere atención</option>
+                                    <option value="Urgente">🔴 Urgente - Crítico</option>
+                                </select>
+                            </div>
+
+                            <div class="lg:col-span-1 flex items-end">
+                                <button type="submit"
+                                        class="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg shadow-lg hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-red-300">
+                                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                    </svg>
+                                    Reportar Incidencia
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                ¿Necesitas opciones más avanzadas o adjuntar archivos?
+                                <a href="{{ url('/reportar/tickets/create') }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium underline">
+                                    Usar el formulario completo
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- User Statistics -->
+            <section class="py-16">
+                <div class="glass-morphism p-8 rounded-2xl shadow-xl">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            Resumen de tus Tickets
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            Estado actual de todas tus solicitudes de soporte
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="text-center card-hover">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                <div class="flex items-center justify-center mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-3xl font-bold mb-2">{{ auth()->user()->tickets()->count() }}</div>
+                                <div class="text-sm font-medium opacity-90">Total de Tickets</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center card-hover">
+                            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg">
+                                <div class="flex items-center justify-center mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-3xl font-bold mb-2">{{ auth()->user()->tickets()->where('estado', 'Abierto')->count() }}</div>
+                                <div class="text-sm font-medium opacity-90">Tickets Abiertos</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center card-hover">
+                            <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+                                <div class="flex items-center justify-center mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-3xl font-bold mb-2">{{ auth()->user()->tickets()->where('estado', 'En Progreso')->count() }}</div>
+                                <div class="text-sm font-medium opacity-90">En Progreso</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center card-hover">
+                            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                                <div class="flex items-center justify-center mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <div class="text-3xl font-bold mb-2">{{ auth()->user()->tickets()->where('estado', 'Cerrado')->count() }}</div>
+                                <div class="text-sm font-medium opacity-90">Completados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            @endauth
+
+            <!-- Service Categories -->
+            <section class="py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                        Tipos de Soporte Disponibles
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                        Nuestro equipo de soporte está especializado en diferentes áreas para brindarte la mejor asistencia
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass-morphism p-8 rounded-2xl shadow-xl card-hover text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-lg mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Soporte Técnico</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">
+                            Hardware, software, redes, sistemas operativos y aplicaciones empresariales.
+                        </p>
+                        <div class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-full text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            SLA: 30 minutos
+                        </div>
+                    </div>
+
+                    <div class="glass-morphism p-8 rounded-2xl shadow-xl card-hover text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-lg mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Incidencias Generales</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">
+                            Solicitudes generales, consultas y problemas que no requieren soporte técnico especializado.
+                        </p>
+                        <div class="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            SLA: 1 hora
+                        </div>
+                    </div>
+
+                    <div class="glass-morphism p-8 rounded-2xl shadow-xl card-hover text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-lg mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Servicios Administrativos</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">
+                            Trámites, permisos, gestión documental y otros servicios administrativos corporativos.
+                        </p>
+                        <div class="inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            SLA: 2 horas
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                        Preguntas Frecuentes
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                        Encuentra respuestas rápidas a las consultas más comunes sobre nuestro sistema de soporte
+                    </p>
+                </div>
+
+                <div class="max-w-4xl mx-auto">
+                    <div x-data="{ openFaq: null }" class="space-y-4">
+                        <div class="glass-morphism rounded-xl shadow-lg overflow-hidden">
+                            <button @click="openFaq === 1 ? openFaq = null : openFaq = 1"
+                                    class="w-full flex justify-between items-center p-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                                <span class="text-lg font-semibold text-gray-900 dark:text-white">¿Cómo puedo crear una cuenta?</span>
+                                <svg :class="{'rotate-180': openFaq === 1}" class="w-6 h-6 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="openFaq === 1" x-collapse class="px-6 pb-6">
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Para crear una cuenta, haz clic en "Crear Cuenta" en la parte superior de la página. Solo los empleados de la empresa pueden registrarse con su correo corporativo.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-morphism rounded-xl shadow-lg overflow-hidden">
+                            <button @click="openFaq === 2 ? openFaq = null : openFaq = 2"
+                                    class="w-full flex justify-between items-center p-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                                <span class="text-lg font-semibold text-gray-900 dark:text-white">¿Dónde puedo ver mis tickets?</span>
+                                <svg :class="{'rotate-180': openFaq === 2}" class="w-6 h-6 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="openFaq === 2" x-collapse class="px-6 pb-6">
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Una vez autenticado, puedes ver todos tus tickets haciendo clic en "Ver Mis Tickets" o visitando el panel de control para gestionar y dar seguimiento a tus solicitudes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-morphism rounded-xl shadow-lg overflow-hidden">
+                            <button @click="openFaq === 3 ? openFaq = null : openFaq = 3"
+                                    class="w-full flex justify-between items-center p-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                                <span class="text-lg font-semibold text-gray-900 dark:text-white">¿Cuánto tiempo tarda la respuesta?</span>
+                                <svg :class="{'rotate-180': openFaq === 3}" class="w-6 h-6 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="openFaq === 3" x-collapse class="px-6 pb-6">
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Los tiempos de respuesta varían según el tipo de solicitud: Soporte Técnico (30 min), Incidencias Generales (1 hora), Servicios Administrativos (2 horas). Los tickets urgentes son priorizados.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-morphism rounded-xl shadow-lg overflow-hidden">
+                            <button @click="openFaq === 4 ? openFaq = null : openFaq = 4"
+                                    class="w-full flex justify-between items-center p-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                                <span class="text-lg font-semibold text-gray-900 dark:text-white">¿Cómo puedo adjuntar archivos?</span>
+                                <svg :class="{'rotate-180': openFaq === 4}" class="w-6 h-6 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="openFaq === 4" x-collapse class="px-6 pb-6">
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Para adjuntar archivos como capturas de pantalla o documentos, utiliza el "formulario completo" en lugar del reporte rápido. Allí encontrarás la opción para subir archivos.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Status -->
+            <section class="py-16">
+                <div class="glass-morphism p-8 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="relative">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                                    <div class="absolute inset-0 w-4 h-4 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Estado del Sistema</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Todos los servicios operativos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                Última actualización: {{ now()->format('d/m/Y H:i') }}
+                            </div>
+                            <div class="text-xs text-gray-400 dark:text-gray-500">
+                                Próxima verificación: {{ now()->addMinutes(5)->format('H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Centro de Soporte</h3>
+                            <p class="text-gray-400 text-sm">Sistema de Gestión de Incidencias</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 mb-4 max-w-md">
+                        Plataforma integral para la gestión eficiente de incidencias y solicitudes de soporte técnico empresarial.
+                    </p>
+                    <div class="flex space-x-4">
+                        <div class="text-sm text-gray-400">
+                            <span class="font-medium">Estado:</span>
+                            <span class="text-green-400">Operativo</span>
+                        </div>
+                        <div class="text-sm text-gray-400">
+                            <span class="font-medium">Versión:</span>
+                            <span>{{ Illuminate\Foundation\Application::VERSION }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Enlaces Rápidos</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        @auth
+                            <li><a href="{{ url('/reportar') }}" class="hover:text-white transition-colors">Mis Tickets</a></li>
+                            <li><a href="{{ url('/reportar/tickets/create') }}" class="hover:text-white transition-colors">Crear Ticket</a></li>
+                        @else
+                            <li><a href="{{ url('/login') }}" class="hover:text-white transition-colors">Iniciar Sesión</a></li>
+                            <li><a href="{{ url('/register') }}" class="hover:text-white transition-colors">Registrarse</a></li>
+                        @endauth
+                        <li><a href="#" class="hover:text-white transition-colors">Documentación</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Políticas de Uso</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Soporte</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            24/7 Disponible
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            soporte@empresa.com
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Ext. 1234
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <div class="text-sm text-gray-400">
+                    © {{ date('Y') }} Centro de Soporte. Todos los derechos reservados.
+                </div>
+                <div class="text-sm text-gray-400 mt-4 md:mt-0">
+                    Desarrollado con Laravel v{{ Illuminate\Foundation\Application::VERSION }}
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Enhanced Modal -->
+    <div x-show="showReportModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform scale-95"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform scale-100"
+         x-transition:leave-end="opacity-0 transform scale-95"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+            <div class="fixed inset-0 transition-opacity bg-black bg-opacity-50 backdrop-blur-sm" @click="showReportModal = false"></div>
+
+            <div class="inline-block w-full max-w-2xl p-0 my-8 overflow-hidden text-left align-middle transition-all transform glass-morphism shadow-2xl rounded-2xl">
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 rounded-t-2xl">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white/20 rounded-full p-2">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Reportar Incidencia</h3>
+                                <p class="text-red-100 text-sm">Rápido y sencillo</p>
+                            </div>
+                        </div>
+                        <button @click="showReportModal = false" class="text-white hover:text-red-200 transition-colors duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <form action="{{ url('/reportar/tickets') }}" method="POST" class="space-y-6">
+                        @csrf
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="titulo" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Título de la Incidencia *
+                                </label>
+                                <input type="text"
+                                       id="titulo"
+                                       name="titulo"
+                                       x-model="reportForm.titulo"
+                                       required
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-colors duration-200"
+                                       placeholder="Describe brevemente el problema">
+                            </div>
+
+                            <div>
+                                <label for="area_modal" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Área Asignada
+                                </label>
+                                <div class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                        {{ auth()->user()->area->nombre ?? 'Sin área asignada' }}
+                                    </div>
+                                </div>
+                                <input type="hidden" name="area_id" value="{{ auth()->user()->area->id ?? '' }}">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    Área asignada automáticamente según tu perfil
+                                </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="descripcion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Descripción del Problema *
+                            </label>
+                            <textarea id="descripcion"
+                                      name="descripcion"
+                                      x-model="reportForm.descripcion"
+                                      rows="4"
+                                      required
+                                      class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-colors duration-200"
+                                      placeholder="Describe el problema en detalle. Incluye cuándo ocurrió, qué estabas haciendo, mensajes de error, etc."></textarea>
+                        </div>
+
+                        <div>
+                            <label for="prioridad" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Nivel de Prioridad
+                            </label>
+                            <select id="prioridad"
+                                    name="prioridad"
+                                    x-model="reportForm.prioridad"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-colors duration-200">
+                                <option value="Baja">🟢 Baja - No urgente</option>
+                                <option value="Media">🟡 Media - Normal</option>
+                                <option value="Alta">🟠 Alta - Requiere atención</option>
+                                <option value="Urgente">🔴 Urgente - Crítico</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <button type="button"
+                                    @click="showReportModal = false"
+                                    class="px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg focus:outline-none focus:ring-4 focus:ring-red-300">
+                                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                                Reportar Incidencia
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div x-data="{
+        toasts: [],
+        addToast(message, type = 'info') {
+            const id = Date.now();
+            this.toasts.push({ id, message, type });
+            setTimeout(() => this.removeToast(id), 5000);
+        },
+        removeToast(id) {
+            this.toasts = this.toasts.filter(toast => toast.id !== id);
+        }
+    }"
+    x-on:new-notification.window="addToast($event.detail.message, 'info')"
+    class="fixed bottom-4 right-4 z-50 space-y-2">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div x-show="true"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-x-full"
+                 x-transition:enter-end="opacity-100 transform translate-x-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-x-0"
+                 x-transition:leave-end="opacity-0 transform translate-x-full"
+                 class="glass-morphism p-4 rounded-lg shadow-lg max-w-sm">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="toast.message"></p>
+                    </div>
+                    <button @click="removeToast(toast.id)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </template>
     </div>
 </body>
 

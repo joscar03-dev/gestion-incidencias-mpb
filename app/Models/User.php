@@ -96,4 +96,11 @@ class User extends Authenticatable implements FilamentUser, Commenter
     {
         return $this->hasMany(\App\Models\DispositivoAsignacion::class);
     }
+    /**
+     * Relación con todos los tickets del usuario (creados o asignados).
+     */
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'creado_por');
+    }
 }

@@ -14,13 +14,15 @@ class TicketObserver
      */
     public function created(Ticket $ticket): void
     {
-        // Enviar notificación al agente asignado
+        // Enviar notificación al agente asignado solo si está asignado
         $agent = $ticket->asignadoA()->first();
 
-        Notification::make()
-            ->title('Se te a asignado un ticket: ' . $ticket->id)
-            ->sendToDatabase($agent);
-        event(new DatabaseNotificationsSent($agent));
+        if ($agent) {
+            Notification::make()
+                ->title('Se te ha asignado un ticket: ' . $ticket->id)
+                ->sendToDatabase($agent);
+            event(new DatabaseNotificationsSent($agent));
+        }
     }
 
     /**
@@ -28,16 +30,18 @@ class TicketObserver
      */
     public function updated(Ticket $ticket): void
     {
-        // Verificar si el campo asignadoA_id ha cambiado
+        // Verificar si el campo asignado_a ha cambiado
         if ($ticket->isDirty('asignado_a')) {
             $agent = $ticket->asignadoA()->first();
 
             // Si el ticket fue reasignado a un nuevo agente
-            Notification::make()
-            ->title('Se te ha asignado el ticket: ' . $ticket->id)
-            ->sendToDatabase($agent);
+            if ($agent) {
+                Notification::make()
+                    ->title('Se te ha asignado el ticket: ' . $ticket->id)
+                    ->sendToDatabase($agent);
 
-            event(new DatabaseNotificationsSent($agent));
+                event(new DatabaseNotificationsSent($agent));
+            }
         } else {
             // Notificar al creador si el ticket fue cerrado
             if ($ticket->isDirty('estado') && $ticket->estado === Ticket::ESTADOS['Cerrado']) {
