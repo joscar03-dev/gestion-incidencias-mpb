@@ -23,7 +23,7 @@
                     </div>
                     <div class="text-sm text-gray-400">
                         <span class="font-medium">Versión:</span>
-                        <span>{{ Illuminate\Foundation\Application::VERSION }}</span>
+                        <span>{{ env('VERSION_ID') }}</span>
                     </div>
                 </div>
             </div>

@@ -30,6 +30,8 @@ class Ticket extends Model implements Commentable
         'tiempo_respuesta',
         'tiempo_solucion',
         'fecha_cierre',
+        'fecha_resolucion',
+        'comentarios_resolucion',
         'escalado',
         'fecha_escalamiento',
         'sla_vencido',
@@ -50,6 +52,7 @@ class Ticket extends Model implements Commentable
         'En Progreso' => 'En Progreso',
         'Escalado' => 'Escalado',
         'Cerrado' => 'Cerrado',
+        'Cancelado' => 'Cancelado',
         'Archivado' => 'Archivado',
     ];
 
@@ -107,9 +110,13 @@ class Ticket extends Model implements Commentable
         static::updating(function ($ticket) {
             if (
                 $ticket->isDirty('estado') &&
-                $ticket->estado === self::ESTADOS['Cerrado']
+                ($ticket->estado === self::ESTADOS['Cerrado'] || $ticket->estado === self::ESTADOS['Cancelado'])
             ) {
                 $ticket->fecha_cierre = now();
+                // Si no tiene fecha_resolucion, asignarla también
+                if (!$ticket->fecha_resolucion) {
+                    $ticket->fecha_resolucion = now();
+                }
             }
         });
 
@@ -189,8 +196,8 @@ class Ticket extends Model implements Commentable
      */
     public function debeEscalar()
     {
-        // No escalar si ya fue escalado o está cerrado
-        if ($this->escalado || $this->estado === self::ESTADOS['Cerrado']) {
+        // No escalar si ya fue escalado o está cerrado/cancelado
+        if ($this->escalado || in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado']])) {
             return false;
         }
 
@@ -430,7 +437,7 @@ class Ticket extends Model implements Commentable
     public function verificarSlaYEscalamiento()
     {
         // Solo verificar si el ticket está abierto o en progreso
-        if (in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Archivado']])) {
+        if (in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado'], self::ESTADOS['Archivado']])) {
             return false;
         }
 
@@ -453,7 +460,7 @@ class Ticket extends Model implements Commentable
      */
     public function scopeActivos($query)
     {
-        return $query->whereNotIn('estado', [self::ESTADOS['Cerrado'], self::ESTADOS['Archivado']]);
+        return $query->whereNotIn('estado', [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado'], self::ESTADOS['Archivado']]);
     }
 
     public function scopePorPrioridad($query, $prioridad)

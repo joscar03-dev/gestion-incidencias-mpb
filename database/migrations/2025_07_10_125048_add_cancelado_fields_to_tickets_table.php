@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->unsignedBigInteger('asignado_a')->nullable()->change();
-            $table->unsignedBigInteger('asignado_por')->nullable()->change();
+            // Agregar campo para fecha de resolución (para cerrado y cancelado)
+            $table->timestamp('fecha_resolucion')->nullable()->after('fecha_cierre');
+
+            // Agregar campo para comentarios de resolución
+            $table->text('comentarios_resolucion')->nullable()->after('fecha_resolucion');
         });
     }
 
@@ -23,8 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->unsignedBigInteger('asignado_a')->nullable(false)->change();
-            $table->unsignedBigInteger('asignado_por')->nullable(false)->change();
+            $table->dropColumn(['fecha_resolucion', 'comentarios_resolucion']);
         });
     }
 };
