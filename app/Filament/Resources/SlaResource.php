@@ -31,14 +31,7 @@ class SlaResource extends Resource
                     ->unique(
                         table: 'slas',
                         column: 'area_id',
-                        ignoreRecord: true,
-                        modifyRuleUsing: function ($rule, $component, $get, $livewire) {
-                            // En edición, ignorar el registro actual
-                            if ($livewire instanceof \Filament\Resources\Pages\EditRecord) {
-                                return $rule->ignore($livewire->getRecord()->id);
-                            }
-                            return $rule;
-                        }
+                        ignoreRecord: true
                     )
                     ->validationMessages([
                         'unique' => 'Ya existe un SLA para esta área. Cada área puede tener únicamente un SLA.',
@@ -167,13 +160,15 @@ class SlaResource extends Resource
                     ->sortable()
                     ->weight('bold'),
 
-                Tables\Columns\BadgeColumn::make('nivel')
+                Tables\Columns\TextColumn::make('nivel')
                     ->label('Nivel')
-                    ->colors([
-                        'danger' => 'Alto',
-                        'warning' => 'Medio',
-                        'success' => 'Bajo',
-                    ])
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Alto' => 'danger',
+                        'Medio' => 'warning',
+                        'Bajo' => 'success',
+                        default => 'gray',
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('tiempo_respuesta')
@@ -213,16 +208,19 @@ class SlaResource extends Resource
                     ->label('Tipo')
                     ->badge(),
 
-                Tables\Columns\ToggleColumn::make('activo')
+                Tables\Columns\IconColumn::make('activo')
                     ->label('Activo')
+                    ->boolean()
                     ->alignCenter(),
 
-                Tables\Columns\ToggleColumn::make('override_area')
+                Tables\Columns\IconColumn::make('override_area')
                     ->label('Override Prioridad')
+                    ->boolean()
                     ->alignCenter(),
 
-                Tables\Columns\ToggleColumn::make('escalamiento_automatico')
+                Tables\Columns\IconColumn::make('escalamiento_automatico')
                     ->label('Auto Escalamiento')
+                    ->boolean()
                     ->alignCenter(),
             ])
             ->filters([

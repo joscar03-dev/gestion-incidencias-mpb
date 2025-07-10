@@ -54,20 +54,27 @@ class Sla extends Model
             ];
         }
 
-        // Mapeo de prioridades a factores de tiempo
+        // Mapeo de prioridades a factores de tiempo (normalizar a minúsculas)
         $factoresPrioridad = [
             'critico' => 0.2,   // 20% del tiempo normal
+            'critica' => 0.2,   // 20% del tiempo normal (alternativa)
+            'urgente' => 0.2,   // 20% del tiempo normal (alternativa)
             'alto' => 0.5,      // 50% del tiempo normal
+            'alta' => 0.5,      // 50% del tiempo normal (alternativa)
             'medio' => 1.0,     // 100% del tiempo normal
-            'bajo' => 1.5       // 150% del tiempo normal
+            'media' => 1.0,     // 100% del tiempo normal (alternativa)
+            'bajo' => 1.5,      // 150% del tiempo normal
+            'baja' => 1.5       // 150% del tiempo normal (alternativa)
         ];
 
-        $factor = $factoresPrioridad[$prioridadTicket] ?? 1.0;
+        $prioridadNormalizada = strtolower($prioridadTicket);
+        $factor = $factoresPrioridad[$prioridadNormalizada] ?? 1.0;
 
         return [
             'tiempo_respuesta' => (int)($this->tiempo_respuesta * $factor),
             'tiempo_resolucion' => (int)($this->tiempo_resolucion * $factor),
             'prioridad_aplicada' => $prioridadTicket,
+            'prioridad_normalizada' => $prioridadNormalizada,
             'override_aplicado' => true,
             'factor_aplicado' => $factor
         ];
