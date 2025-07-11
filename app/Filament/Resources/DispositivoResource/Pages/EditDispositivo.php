@@ -36,8 +36,7 @@ class EditDispositivo extends EditRecord
         }
 
         foreach ($asignacionesActivas->get() as $asignacion) {
-            $asignacion->fecha_desasignacion = now();
-            $asignacion->save();
+            $asignacion->desasignar('Reasignado a otro usuario desde el sistema');
         }
 
         // Si hay usuario, crea nueva asignación si no existe activa
@@ -60,7 +59,7 @@ class EditDispositivo extends EditRecord
                 $record->estado = 'Asignado';
                 $record->save();
             }
-        } 
+        }
 
         $this->dispatch('refreshRelationManager', relationManager: 'asignaciones'); // Notifica al manager de asignaciones para refrescar la tabla
     }

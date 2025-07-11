@@ -92,8 +92,21 @@ class DispositivoAsignacion extends Model
 
     public function getDuracionAsignacionAttribute()
     {
-        $fechaFin = $this->fecha_desasignacion ?? now();
-        return $this->fecha_asignacion->diffInDays($fechaFin);
+        if (!$this->fecha_asignacion) {
+            return 0;
+        }
+
+        $fechaInicio = $this->fecha_asignacion instanceof \Carbon\Carbon
+            ? $this->fecha_asignacion
+            : \Carbon\Carbon::parse($this->fecha_asignacion);
+
+        $fechaFin = $this->fecha_desasignacion
+            ? ($this->fecha_desasignacion instanceof \Carbon\Carbon
+                ? $this->fecha_desasignacion
+                : \Carbon\Carbon::parse($this->fecha_desasignacion))
+            : now();
+
+        return $fechaInicio->diffInDays($fechaFin);
     }
 
     public function getEstaActivaAttribute()

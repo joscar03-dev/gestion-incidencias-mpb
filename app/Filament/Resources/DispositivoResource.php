@@ -364,6 +364,17 @@ class DispositivoResource extends Resource
                     ->modalHeading('Liberar Dispositivo')
                     ->modalDescription('¿Está seguro de que desea liberar este dispositivo?')
                     ->action(function (Dispositivo $record): void {
+                        // Cerrar todas las asignaciones activas del dispositivo usando el método del modelo
+                        $asignacionesActivas = \App\Models\DispositivoAsignacion::where('dispositivo_id', $record->id)
+                            ->whereNull('fecha_desasignacion')
+                            ->get();
+
+                        foreach ($asignacionesActivas as $asignacion) {
+                            $asignacion->desasignar('Liberado manualmente desde el sistema');
+                        }
+
+                        // Actualizar el dispositivo (el método desasignar ya actualiza el dispositivo,
+                        // pero lo hacemos aquí por si acaso para asegurar consistencia)
                         $record->update([
                             'usuario_id' => null,
                             'estado' => 'Disponible'
