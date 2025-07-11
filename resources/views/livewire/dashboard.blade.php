@@ -36,6 +36,17 @@
                     </svg>
                     Dashboard
                 </button>
+
+                <!-- Botón Dispositivos -->
+                <button
+                    wire:click="showDevices"
+                    class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 {{ $currentView === 'devices' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+                >
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    Dispositivos
+                </button>
             </div>
         </div>
     </div>
@@ -52,6 +63,14 @@
                 <p class="text-gray-600 dark:text-gray-300 mb-6">Reporta una nueva incidencia o solicitud de soporte</p>
             </div>
             @livewire('ticket-create', ['isDashboard' => true], key('ticket-create-dashboard'))
+
+        @elseif($currentView === 'devices')
+            <!-- Gestión de Dispositivos -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Gestión de Dispositivos</h2>
+                <p class="text-gray-600 dark:text-gray-300 mb-6">Administra tus dispositivos y solicita nuevos equipos</p>
+            </div>
+            @livewire('dispositivos-usuario', [], key('dispositivos-usuario-dashboard'))
 
         @elseif($currentView === 'home')
             <!-- Dashboard/Home -->

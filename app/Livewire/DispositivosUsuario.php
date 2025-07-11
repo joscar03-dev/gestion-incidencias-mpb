@@ -71,7 +71,11 @@ class DispositivosUsuario extends Component
             $documentoPath = $this->documento_requerimiento->store('requerimientos', 'public');
         }
 
-        SolicitudDispositivo::create([
+        // Obtener la categoría seleccionada
+        $categoria = CategoriaDispositivo::find($this->categoria_solicitada);
+
+        // Crear la solicitud de dispositivo (como antes)
+        $solicitud = SolicitudDispositivo::create([
             'user_id' => Auth::id(),
             'categoria_dispositivo_id' => $this->categoria_solicitada,
             'justificacion' => $this->justificacion_requerimiento,
@@ -81,8 +85,23 @@ class DispositivosUsuario extends Component
             'fecha_solicitud' => now(),
         ]);
 
+        // Crear automáticamente un ticket de tipo "Requerimiento"
+        $ticket = Ticket::create([
+            'area_id' => Auth::user()->area_id,
+            'categoria_id' => 1, // Categoría por defecto
+            'prioridad' => $this->prioridad_requerimiento,
+            'tipo' => 'Requerimiento', // Tipo automático
+            'estado' => 'Abierto',
+            'titulo' => "Requerimiento de dispositivo: {$categoria->nombre}",
+            'descripcion' => $this->justificacion_requerimiento,
+            'creado_por' => Auth::id(),
+            'asignado_a' => null,
+            'fecha_creacion' => now(),
+            'attachment' => $documentoPath, // Adjuntar documento si existe
+        ]);
+
         $this->showRequerimientoModal = false;
-        $this->dispatch('notify', 'Requerimiento enviado correctamente. Será revisado por el administrador.');
+        $this->dispatch('notify', "Requerimiento enviado correctamente. Ticket #{$ticket->id} creado automáticamente y será revisado por el administrador.");
         $this->reset(['categoria_solicitada', 'justificacion_requerimiento', 'documento_requerimiento', 'prioridad_requerimiento']);
     }
 
@@ -134,27 +153,41 @@ class DispositivosUsuario extends Component
     {
         try {
             $asignacion = DispositivoAsignacion::findOrFail($asignacionId);
-            
+
             // Verificar que la asignación pertenece al usuario actual
             if ($asignacion->user_id !== Auth::id()) {
                 session()->flash('error', 'No tienes permisos para confirmar esta asignación.');
                 return;
             }
-            
+
             // Verificar que la asignación no esté ya confirmada
             if ($asignacion->confirmado) {
                 session()->flash('info', 'Esta asignación ya ha sido confirmada.');
                 return;
             }
-            
+
             // Confirmar la recepción usando el método del modelo
             $asignacion->confirmarRecepcion();
-            
+
             session()->flash('success', '✅ Recepción confirmada exitosamente. Gracias por confirmar que has recibido el dispositivo.');
-            
+
         } catch (\Exception $e) {
             session()->flash('error', 'Error al confirmar la recepción: ' . $e->getMessage());
         }
+    }
+
+    // Crear ticket de requerimiento general
+    public function crearTicketRequerimiento()
+    {
+        // Emitir evento para que el Dashboard cambie a la vista de crear ticket
+        // con el tipo "Requerimiento" preseleccionado
+        $this->dispatch('changeView', 'create');
+
+        // También emitir evento específico para preseleccionar el tipo
+        $this->dispatch('preseleccionar-tipo', 'Requerimiento');
+
+        // Mostrar mensaje informativo
+        session()->flash('info', 'Será redirigido al formulario de creación de tickets con el tipo "Requerimiento" preseleccionado.');
     }
 
     // Obtener dispositivos asignados al usuario

@@ -17,15 +17,19 @@ class TicketCreate extends Component
     public $titulo = '';
     public $descripcion = '';
     public $prioridad = 'Media';
+    public $tipo = ''; // Agregar campo tipo
     public $area_id = '';
     public $showModal = false;
     public $archivos = [];
     public $isDashboard = false; // Para saber si está en el dashboard o en modal
 
+    protected $listeners = ['preseleccionar-tipo' => 'preseleccionarTipo'];
+
     protected $rules = [
         'titulo' => 'required|string|max:255',
         'descripcion' => 'required|string|max:1000',
         'prioridad' => 'required|in:Baja,Media,Alta,Critica',
+        'tipo' => 'required|in:Incidencia,Problema,Requerimiento,Cambio',
         'area_id' => 'required|exists:areas,id',
         'archivos.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt,zip,rar,xls,xlsx,ppt,pptx',
     ];
@@ -37,6 +41,8 @@ class TicketCreate extends Component
         'descripcion.max' => 'La descripción no puede tener más de 1000 caracteres.',
         'prioridad.required' => 'La prioridad es obligatoria.',
         'prioridad.in' => 'La prioridad debe ser: Baja, Media, Alta o Critica.',
+        'tipo.required' => 'El tipo de ticket es obligatorio.',
+        'tipo.in' => 'El tipo debe ser: Incidencia, Problema, Requerimiento o Cambio.',
         'area_id.required' => 'El área es obligatoria.',
         'area_id.exists' => 'El área seleccionada no existe.',
         'archivos.*.max' => 'Cada archivo no puede ser mayor a 10MB.',
@@ -69,6 +75,7 @@ class TicketCreate extends Component
         $this->titulo = '';
         $this->descripcion = '';
         $this->prioridad = 'Media';
+        $this->tipo = '';
         $this->archivos = [];
 
         // Mantener el área pre-asignada si es dashboard
@@ -144,6 +151,7 @@ class TicketCreate extends Component
                 'titulo' => $this->titulo,
                 'descripcion' => $this->descripcion,
                 'prioridad' => $this->prioridad,
+                'tipo' => $this->tipo,
                 'area_id' => $this->area_id,
                 'creado_por' => Auth::id(),
                 'estado' => 'Abierto',
@@ -194,6 +202,11 @@ class TicketCreate extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Error al crear el ticket: ' . $e->getMessage());
         }
+    }
+
+    public function preseleccionarTipo($tipo)
+    {
+        $this->tipo = $tipo;
     }
 
     public function render()

@@ -21,6 +21,7 @@ class Ticket extends Model implements Commentable
         'descripcion',
         'estado',
         'prioridad',
+        'tipo', // Agregar tipo de ticket
         'comentario',
         'asignado_a',
         'asignado_por',
@@ -45,6 +46,14 @@ class Ticket extends Model implements Commentable
         'Alta' => 'Alta',
         'Media' => 'Media',
         'Baja' => 'Baja',
+    ];
+
+    const TIPOS =
+    [
+        'Incidente' => 'Incidente',
+        'General' => 'General', 
+        'Requerimiento' => 'Requerimiento',
+        'Cambio' => 'Cambio',
     ];
 
     const ESTADOS =
@@ -460,6 +469,54 @@ class Ticket extends Model implements Commentable
         }
 
         return false;
+    }
+
+    /**
+     * Calcula el SLA efectivo para este ticket usando el sistema híbrido
+     */
+    public function calcularSlaEfectivo()
+    {
+        if (!$this->area_id) {
+            return [
+                'encontrado' => false,
+                'mensaje' => 'Ticket sin área asignada',
+                'tiempo_respuesta' => null,
+                'tiempo_resolucion' => null
+            ];
+        }
+
+        return Sla::calcularParaTicket(
+            $this->area_id, 
+            $this->prioridad, 
+            $this->tipo
+        );
+    }
+
+    /**
+     * Verifica si este ticket debe escalar automáticamente
+     */
+    public function debeEscalarAutomaticamente()
+    {
+        if (!$this->area_id || !$this->created_at) {
+            return false;
+        }
+
+        $tiempoTranscurrido = $this->created_at->diffInMinutes(now());
+        
+        return Sla::verificarEscalamiento(
+            $this->area_id,
+            $tiempoTranscurrido,
+            $this->prioridad,
+            $this->tipo
+        );
+    }
+
+    /**
+     * Obtiene los tiempos de SLA calculados para este ticket
+     */
+    public function getTiemposSlaAttribute()
+    {
+        return $this->calcularSlaEfectivo();
     }
 
     /**

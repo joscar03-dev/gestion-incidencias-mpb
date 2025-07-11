@@ -63,17 +63,6 @@ class SlaResource extends Resource
                     ->suffix('minutos')
                     ->helperText('Tiempo máximo para resolver el ticket'),
 
-                Forms\Components\Select::make('tipo_ticket')
-                    ->label('Tipo de Ticket')
-                    ->options([
-                        'General' => 'General',
-                        'Incidente' => 'Incidente',
-                        'Requerimiento' => 'Requerimiento',
-                        'Cambio' => 'Cambio',
-                    ])
-                    ->default('General')
-                    ->required(),
-
                 Forms\Components\Select::make('canal')
                     ->label('Canal')
                     ->options([
@@ -116,32 +105,53 @@ class SlaResource extends Resource
                     ->visible(fn($get) => $get('escalamiento_automatico'))
                     ->helperText('Tiempo después del cual se escala automáticamente'),
 
-                // Información del sistema híbrido
+                // Información del sistema híbrido simplificado
                 Forms\Components\Placeholder::make('info_hibrido')
-                    ->label('Sistema de Prioridades')
+                    ->label('Sistema SLA Híbrido: UN SLA por Área con Factores Dinámicos')
                     ->content(function ($get) {
                         $overrideActivado = $get('override_area');
 
                         if ($overrideActivado) {
                             return '
-                                ℹ️ IMPORTANTE: Cada área puede tener únicamente UN SLA
+                                ℹ️ **IMPORTANTE:** Cada área tiene únicamente UN SLA que se ajusta dinámicamente
 
-                                🔴 CRÍTICA: 20% del tiempo base
-                                🟠 ALTA: 50% del tiempo base
-                                🟡 MEDIA: 100% del tiempo base
-                                🟢 BAJA: 150% del tiempo base
+                                🎯 **COMO FUNCIONA:**
+                                1. Configuras UN tiempo base por área
+                                2. El sistema aplica factores automáticamente según:
+                                   • La prioridad del ticket (crítica, alta, media, baja)
+                                   • El tipo del ticket (incidente, general, requerimiento, cambio)
 
-                                ✅ Override ACTIVADO: Los tiempos se ajustan según la prioridad del ticket.
+                                🔴 **FACTORES POR PRIORIDAD:**
+                                • CRÍTICA: 20% del tiempo base (muy urgente)
+                                • ALTA: 50% del tiempo base (urgente)
+                                • MEDIA: 100% del tiempo base (normal)
+                                • BAJA: 150% del tiempo base (menos urgente)
+
+                                🎯 **FACTORES POR TIPO:**
+                                • INCIDENTE: 60% del tiempo (respuesta rápida)
+                                • GENERAL: 80% del tiempo (consulta importante)
+                                • REQUERIMIENTO: 120% del tiempo (planificación)
+                                • CAMBIO: 150% del tiempo (análisis requerido)
+
+                                ⚡ **CÁLCULO FINAL:**
+                                Tiempo = Base × Factor Prioridad × Factor Tipo
+
+                                **Ejemplo:** Incidente Crítico = 60min × 0.2 × 0.6 = 7.2min
+                                **Ejemplo:** Cambio Bajo = 60min × 1.5 × 1.5 = 135min
+
+                                ✅ **Override ACTIVADO:** Cálculo dinámico por prioridad y tipo
                             ';
                         } else {
                             return '
-                                ℹ️ IMPORTANTE: Cada área puede tener únicamente UN SLA
+                                ℹ️ **IMPORTANTE:** Cada área tiene únicamente UN SLA
 
-                                ⚠️ Override DESACTIVADO: Todos los tickets usarán los mismos tiempos base, sin importar la prioridad.
+                                ⚠️ **Override DESACTIVADO:** Todos los tickets usarán exactamente los mismos tiempos base, sin importar la prioridad ni el tipo.
 
-                                Tiempo fijo para todos los tickets:
+                                **Tiempo fijo para TODOS los tickets:**
                                 • Respuesta: Los minutos configurados arriba
                                 • Resolución: Los minutos configurados arriba
+
+                                💡 **Sugerencia:** Active el Override para tener SLAs dinámicos según prioridad y tipo
                             ';
                         }
                     })
@@ -183,30 +193,45 @@ class SlaResource extends Resource
                     ->alignCenter()
                     ->sortable(),
 
-                // Columnas de ejemplo de SLA por prioridad
-                Tables\Columns\TextColumn::make('sla_critica')
-                    ->label('SLA Crítica')
+                // Columnas de ejemplo de SLA combinado (tipo + prioridad)
+                Tables\Columns\TextColumn::make('sla_incidente_critico')
+                    ->label('Incidente Crítico')
                     ->getStateUsing(function ($record) {
-                        $respuesta = (int)($record->tiempo_respuesta * 0.2);
-                        $resolucion = (int)($record->tiempo_resolucion * 0.2);
-                        return "{$respuesta}m / {$resolucion}m";
+                        if (!$record->override_area) return 'Sin override';
+                        $sla = $record->calcularSlaEfectivo('critico', 'incidente');
+                        $respHoras = round($sla['tiempo_respuesta'] / 60, 1);
+                        $resolHoras = round($sla['tiempo_resolucion'] / 60, 1);
+                        return "{$respHoras}h / {$resolHoras}h";
                     })
                     ->color('danger')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->description('Respuesta / Resolución'),
 
-                Tables\Columns\TextColumn::make('sla_alta')
-                    ->label('SLA Alta')
+                Tables\Columns\TextColumn::make('sla_requerimiento_medio')
+                    ->label('Requerimiento Medio')
                     ->getStateUsing(function ($record) {
-                        $respuesta = (int)($record->tiempo_respuesta * 0.5);
-                        $resolucion = (int)($record->tiempo_resolucion * 0.5);
-                        return "{$respuesta}m / {$resolucion}m";
+                        if (!$record->override_area) return 'Sin override';
+                        $sla = $record->calcularSlaEfectivo('medio', 'requerimiento');
+                        $respHoras = round($sla['tiempo_respuesta'] / 60, 1);
+                        $resolHoras = round($sla['tiempo_resolucion'] / 60, 1);
+                        return "{$respHoras}h / {$resolHoras}h";
                     })
                     ->color('warning')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->description('Respuesta / Resolución'),
 
-                Tables\Columns\TextColumn::make('tipo_ticket')
-                    ->label('Tipo')
-                    ->badge(),
+                Tables\Columns\TextColumn::make('sla_cambio_bajo')
+                    ->label('Cambio Bajo')
+                    ->getStateUsing(function ($record) {
+                        if (!$record->override_area) return 'Sin override';
+                        $sla = $record->calcularSlaEfectivo('bajo', 'cambio');
+                        $respHoras = round($sla['tiempo_respuesta'] / 60, 1);
+                        $resolHoras = round($sla['tiempo_resolucion'] / 60, 1);
+                        return "{$respHoras}h / {$resolHoras}h";
+                    })
+                    ->color('success')
+                    ->alignCenter()
+                    ->description('Respuesta / Resolución'),
 
                 Tables\Columns\IconColumn::make('activo')
                     ->label('Activo')
@@ -243,6 +268,43 @@ class SlaResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+
+                Tables\Actions\Action::make('ver_ejemplos')
+                    ->label('Ver Ejemplos SLA')
+                    ->icon('heroicon-o-calculator')
+                    ->color('info')
+                    ->modalHeading(fn ($record) => 'Ejemplos de SLA para ' . $record->area->nombre)
+                    ->modalContent(function ($record) {
+                        if (!$record->override_area) {
+                            return view('filament.sla.ejemplos-sin-override', ['sla' => $record]);
+                        }
+
+                        $ejemplos = [];
+                        $prioridades = ['critico', 'alto', 'medio', 'bajo'];
+                        $tipos = ['incidente', 'general', 'requerimiento', 'cambio'];
+
+                        foreach ($tipos as $tipo) {
+                            foreach ($prioridades as $prioridad) {
+                                $sla = $record->calcularSlaEfectivo($prioridad, $tipo);
+                                $ejemplos[] = [
+                                    'tipo' => ucfirst($tipo),
+                                    'prioridad' => ucfirst($prioridad),
+                                    'respuesta_min' => $sla['tiempo_respuesta'],
+                                    'respuesta_horas' => round($sla['tiempo_respuesta'] / 60, 1),
+                                    'resolucion_min' => $sla['tiempo_resolucion'],
+                                    'resolucion_horas' => round($sla['tiempo_resolucion'] / 60, 1),
+                                    'factor_combinado' => round($sla['factor_combinado'], 3),
+                                ];
+                            }
+                        }
+
+                        return view('filament.sla.ejemplos-completos', [
+                            'sla' => $record,
+                            'ejemplos' => $ejemplos
+                        ]);
+                    })
+                    ->modalWidth('7xl'),
+
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

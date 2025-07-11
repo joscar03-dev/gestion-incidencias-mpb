@@ -15,11 +15,10 @@ class Sla extends Model
         'nivel',
         'tiempo_respuesta',
         'tiempo_resolucion',
-        'tipo_ticket',
         'canal',
         'descripcion',
         'activo',
-        // Nuevos campos para SLA híbrido
+        // Campos para SLA híbrido
         'prioridad_ticket',  // critico, alto, medio, bajo
         'override_area',     // si el ticket puede sobrescribir la prioridad del área
         'escalamiento_automatico', // si escala automáticamente
@@ -41,59 +40,109 @@ class Sla extends Model
     }
 
     /**
-     * Calcula el SLA efectivo considerando área y prioridad del ticket
+     * Calcula el SLA efectivo considerando área, prioridad y tipo de ticket
      */
-    public function calcularSlaEfectivo($prioridadTicket = null)
+    public function calcularSlaEfectivo($prioridadTicket = null, $tipoTicket = null)
     {
-        // Si no hay prioridad de ticket o el override está desactivado, usar SLA del área
-        if (!$prioridadTicket || !$this->override_area) {
+        // Si el override está desactivado, usar SLA del área sin modificaciones
+        if (!$this->override_area) {
             return [
                 'tiempo_respuesta' => $this->tiempo_respuesta,
                 'tiempo_resolucion' => $this->tiempo_resolucion,
-                'override_aplicado' => false
+                'override_aplicado' => false,
+                'factor_prioridad' => 1.0,
+                'factor_tipo' => 1.0,
+                'factor_combinado' => 1.0
             ];
+        }
+
+        // Obtener factores individuales
+        $factorPrioridad = $this->obtenerFactorPrioridad($prioridadTicket);
+        $factorTipo = $this->obtenerFactorTipo($tipoTicket);
+        
+        // Calcular factor combinado
+        $factorCombinado = $factorPrioridad * $factorTipo;
+
+        return [
+            'tiempo_respuesta' => (int)($this->tiempo_respuesta * $factorCombinado),
+            'tiempo_resolucion' => (int)($this->tiempo_resolucion * $factorCombinado),
+            'prioridad_aplicada' => $prioridadTicket,
+            'tipo_aplicado' => $tipoTicket,
+            'override_aplicado' => true,
+            'factor_prioridad' => $factorPrioridad,
+            'factor_tipo' => $factorTipo,
+            'factor_combinado' => $factorCombinado,
+            'tiempos_base' => [
+                'respuesta' => $this->tiempo_respuesta,
+                'resolucion' => $this->tiempo_resolucion
+            ]
+        ];
+    }
+
+    /**
+     * Obtiene el factor multiplicador para la prioridad del ticket
+     */
+    public function obtenerFactorPrioridad($prioridadTicket = null)
+    {
+        if (!$prioridadTicket) {
+            return 1.0;
         }
 
         // Mapeo de prioridades a factores de tiempo (normalizar a minúsculas)
         $factoresPrioridad = [
-            'critico' => 0.2,   // 20% del tiempo normal
+            'critico' => 0.2,   // 20% del tiempo normal - MUY URGENTE
             'critica' => 0.2,   // 20% del tiempo normal (alternativa)
             'urgente' => 0.2,   // 20% del tiempo normal (alternativa)
-            'alto' => 0.5,      // 50% del tiempo normal
+            'alto' => 0.5,      // 50% del tiempo normal - URGENTE
             'alta' => 0.5,      // 50% del tiempo normal (alternativa)
-            'medio' => 1.0,     // 100% del tiempo normal
+            'medio' => 1.0,     // 100% del tiempo normal - NORMAL
             'media' => 1.0,     // 100% del tiempo normal (alternativa)
-            'bajo' => 1.5,      // 150% del tiempo normal
+            'bajo' => 1.5,      // 150% del tiempo normal - MENOS URGENTE
             'baja' => 1.5       // 150% del tiempo normal (alternativa)
         ];
 
         $prioridadNormalizada = strtolower($prioridadTicket);
-        $factor = $factoresPrioridad[$prioridadNormalizada] ?? 1.0;
+        return $factoresPrioridad[$prioridadNormalizada] ?? 1.0;
+    }
 
-        return [
-            'tiempo_respuesta' => (int)($this->tiempo_respuesta * $factor),
-            'tiempo_resolucion' => (int)($this->tiempo_resolucion * $factor),
-            'prioridad_aplicada' => $prioridadTicket,
-            'prioridad_normalizada' => $prioridadNormalizada,
-            'override_aplicado' => true,
-            'factor_aplicado' => $factor
+    /**
+     * Obtiene el factor multiplicador para el tipo de ticket
+     */
+    public function obtenerFactorTipo($tipoTicket = null)
+    {
+        if (!$tipoTicket) {
+            return 1.0;
+        }
+
+        // Mapeo de tipos de ticket a factores de tiempo
+        $factoresTipo = [
+            'incidente' => 0.6,      // 60% - Los incidentes requieren respuesta rápida
+            'general' => 0.8,        // 80% - Consultas generales son importantes
+            'requerimiento' => 1.2,  // 120% - Los requerimientos pueden tomar más tiempo
+            'cambio' => 1.5          // 150% - Los cambios requieren planificación y más tiempo
         ];
+
+        $tipoNormalizado = strtolower($tipoTicket);
+        return $factoresTipo[$tipoNormalizado] ?? 1.0;
     }
 
     /**
      * Determina si debe escalar automáticamente
      */
-    public function debeEscalar($tiempoTranscurrido, $prioridadTicket = null)
+    public function debeEscalar($tiempoTranscurrido, $prioridadTicket = null, $tipoTicket = null)
     {
         if (!$this->escalamiento_automatico || !$this->tiempo_escalamiento) {
             return false;
         }
 
-        // Obtener el SLA efectivo considerando la configuración de override
-        $slaEfectivo = $this->calcularSlaEfectivo($prioridadTicket);
+        // Obtener el SLA efectivo considerando prioridad y tipo
+        $slaEfectivo = $this->calcularSlaEfectivo($prioridadTicket, $tipoTicket);
 
-        // Escalar si ha pasado el tiempo de escalamiento configurado
-        return $tiempoTranscurrido >= $this->tiempo_escalamiento;
+        // Aplicar el mismo factor al tiempo de escalamiento
+        $tiempoEscalamientoEfectivo = (int)($this->tiempo_escalamiento * $slaEfectivo['factor_combinado']);
+
+        // Escalar si ha pasado el tiempo de escalamiento efectivo
+        return $tiempoTranscurrido >= $tiempoEscalamientoEfectivo;
     }
 
     /**
@@ -140,5 +189,92 @@ class Sla extends Model
                 'area_id' => "Ya existe un SLA para {$areaName}. Cada área puede tener únicamente un SLA."
             ]);
         }
+    }
+
+    /**
+     * Obtiene todos los factores de prioridad disponibles
+     */
+    public static function getFactoresPrioridad()
+    {
+        return [
+            'critico' => ['factor' => 0.2, 'label' => 'Crítica', 'descripcion' => 'Muy Urgente - 20% del tiempo'],
+            'alto' => ['factor' => 0.5, 'label' => 'Alta', 'descripcion' => 'Urgente - 50% del tiempo'],
+            'medio' => ['factor' => 1.0, 'label' => 'Media', 'descripcion' => 'Normal - 100% del tiempo'],
+            'bajo' => ['factor' => 1.5, 'label' => 'Baja', 'descripcion' => 'Menos Urgente - 150% del tiempo'],
+        ];
+    }
+
+    /**
+     * Obtiene todos los factores de tipo disponibles
+     */
+    public static function getFactoresTipo()
+    {
+        return [
+            'incidente' => ['factor' => 0.6, 'label' => 'Incidente', 'descripcion' => 'Respuesta rápida - 60% del tiempo'],
+            'general' => ['factor' => 0.8, 'label' => 'General', 'descripcion' => 'Consulta importante - 80% del tiempo'],
+            'requerimiento' => ['factor' => 1.2, 'label' => 'Requerimiento', 'descripcion' => 'Planificación - 120% del tiempo'],
+            'cambio' => ['factor' => 1.5, 'label' => 'Cambio', 'descripcion' => 'Requiere análisis - 150% del tiempo'],
+        ];
+    }
+
+    /**
+     * Calcula un ejemplo de SLA para mostrar en la interfaz
+     */
+    public function calcularEjemploSla($prioridad, $tipo)
+    {
+        $sla = $this->calcularSlaEfectivo($prioridad, $tipo);
+        
+        return [
+            'respuesta_horas' => round($sla['tiempo_respuesta'] / 60, 1),
+            'resolucion_horas' => round($sla['tiempo_resolucion'] / 60, 1),
+            'respuesta_minutos' => $sla['tiempo_respuesta'],
+            'resolucion_minutos' => $sla['tiempo_resolucion'],
+            'factor_combinado' => $sla['factor_combinado'],
+            'descripcion' => ucfirst($prioridad) . ' + ' . ucfirst($tipo)
+        ];
+    }
+
+    /**
+     * Obtiene el SLA de un área y calcula los tiempos efectivos
+     * Este es el método principal para usar el sistema híbrido
+     */
+    public static function calcularParaTicket($areaId, $prioridadTicket = null, $tipoTicket = null)
+    {
+        $sla = static::where('area_id', $areaId)
+                    ->where('activo', true)
+                    ->first();
+        
+        if (!$sla) {
+            return [
+                'encontrado' => false,
+                'mensaje' => 'No se encontró SLA para esta área',
+                'tiempo_respuesta' => null,
+                'tiempo_resolucion' => null
+            ];
+        }
+
+        $tiemposCalculados = $sla->calcularSlaEfectivo($prioridadTicket, $tipoTicket);
+        
+        return array_merge([
+            'encontrado' => true,
+            'sla_id' => $sla->id,
+            'area_nombre' => $sla->area->nombre ?? 'Área no encontrada'
+        ], $tiemposCalculados);
+    }
+
+    /**
+     * Método helper para verificar si un ticket debe escalar
+     */
+    public static function verificarEscalamiento($areaId, $tiempoTranscurrido, $prioridadTicket = null, $tipoTicket = null)
+    {
+        $sla = static::where('area_id', $areaId)
+                    ->where('activo', true)
+                    ->first();
+        
+        if (!$sla) {
+            return false;
+        }
+
+        return $sla->debeEscalar($tiempoTranscurrido, $prioridadTicket, $tipoTicket);
     }
 }

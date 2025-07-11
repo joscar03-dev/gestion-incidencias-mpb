@@ -129,94 +129,54 @@ class TicketResource extends Resource
                     ->reactive()
                     ->afterStateUpdated(function ($state, $set, $get) {
                         // Actualizar información de SLA cuando cambie la prioridad
-                        $areaId = $get('area_id');
-                        if (!$areaId) {
-                            // Si no hay área en el formulario, usar la del usuario autenticado
-                            $areaId = Auth::user()?->area_id;
-                        }
-
-                        if ($areaId && $state) {
-                            // Buscar el SLA del área directamente
-                            $area = Area::with('slas')->find($areaId);
-                            if ($area && $area->slas->isNotEmpty()) {
-                                $slaArea = $area->slas->first();
-
-                                // Mapear las prioridades del ticket al formato esperado por el SLA
-                                $prioridadParaSla = match($state) {
-                                    'Critica' => 'critico',
-                                    'Alta' => 'alto',
-                                    'Media' => 'medio',
-                                    'Baja' => 'bajo',
-                                    default => 'medio'
-                                };
-
-                                // Usar el método calcularSlaEfectivo que respeta la configuración de override
-                                $slaCalculado = $slaArea->calcularSlaEfectivo($prioridadParaSla);
-
-                                $tiempoRespuesta = $slaCalculado['tiempo_respuesta'];
-                                $tiempoResolucion = $slaCalculado['tiempo_resolucion'];
-
-                                $horas_resp = floor($tiempoRespuesta / 60);
-                                $min_resp = $tiempoRespuesta % 60;
-                                $horas_resol = floor($tiempoResolucion / 60);
-                                $min_resol = $tiempoResolucion % 60;
-
-                                $overrideInfo = $slaCalculado['override_aplicado'] ?
-                                    " (Override activo)" : " (Tiempo fijo)";
-
-                                $set('sla_info', "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m{$overrideInfo}");
-                            }
-                        }
+                        $this->actualizarSlaAdmin($state, $get('tipo'), $get('area_id'), $set);
                     }),
 
                 Placeholder::make('sla_info')
                     ->label('SLA Calculado')
                     ->content(function ($get) {
                         $prioridad = $get('prioridad');
+                        $tipo = $get('tipo');
                         $areaId = $get('area_id');
 
                         if (!$areaId) {
-                            // Si no hay área en el formulario, usar la del usuario autenticado
                             $areaId = Auth::user()?->area_id;
                         }
 
-                        if ($prioridad && $areaId) {
-                            // Buscar el SLA del área directamente
-                            $area = Area::with('slas')->find($areaId);
-                            if ($area && $area->slas->isNotEmpty()) {
-                                $slaArea = $area->slas->first();
+                        if ($prioridad && $tipo && $areaId) {
+                            $resultado = \App\Models\Sla::calcularParaTicket($areaId, $prioridad, $tipo);
+                            
+                            if ($resultado['encontrado']) {
+                                $horas_resp = floor($resultado['tiempo_respuesta'] / 60);
+                                $min_resp = $resultado['tiempo_respuesta'] % 60;
+                                $horas_resol = floor($resultado['tiempo_resolucion'] / 60);
+                                $min_resol = $resultado['tiempo_resolucion'] % 60;
 
-                                // Mapear las prioridades del ticket al formato esperado por el SLA
-                                $prioridadParaSla = match($prioridad) {
-                                    'Critica' => 'critico',
-                                    'Alta' => 'alto',
-                                    'Media' => 'medio',
-                                    'Baja' => 'bajo',
-                                    default => 'medio'
-                                };
-
-                                // Usar el método calcularSlaEfectivo que respeta la configuración de override
-                                $slaCalculado = $slaArea->calcularSlaEfectivo($prioridadParaSla);
-
-                                $tiempoRespuesta = $slaCalculado['tiempo_respuesta'];
-                                $tiempoResolucion = $slaCalculado['tiempo_resolucion'];
-
-                                $horas_resp = floor($tiempoRespuesta / 60);
-                                $min_resp = $tiempoRespuesta % 60;
-                                $horas_resol = floor($tiempoResolucion / 60);
-                                $min_resol = $tiempoResolucion % 60;
-
-                                $overrideInfo = $slaCalculado['override_aplicado'] ?
-                                    " (Override activo - Factor: " . (($slaCalculado['factor_aplicado'] ?? 1) * 100) . "%)" :
-                                    " (Tiempo fijo - Override desactivado)";
+                                $overrideInfo = $resultado['override_aplicado'] ?
+                                    " (Sistema híbrido - Factor: " . round($resultado['factor_combinado'] * 100) . "%)" :
+                                    " (Tiempo fijo)";
 
                                 return "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m{$overrideInfo}";
                             }
                             return 'No hay SLA configurado para esta área';
                         }
-                        return 'Selecciona prioridad para ver SLA';
+                        return 'Selecciona prioridad y tipo para ver SLA completo';
                     })
                     ->visible(fn($get) => $get('prioridad')),
+
+                // Tipo de ticket (nuevo campo)
+                Select::make('tipo')
+                    ->label('Tipo de Ticket')
+                    ->options(self::$model::TIPOS)
+                    ->required()
+                    ->in(array_keys(self::$model::TIPOS))
+                    ->default('General')
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, $set, $get) {
+                        // Actualizar información de SLA cuando cambie el tipo
+                        $this->actualizarSlaAdmin($get('prioridad'), $state, $get('area_id'), $set);
+                    })
+                    ->helperText('Selecciona el tipo que mejor describe la solicitud'),
 
                 // Sección de Estado y Asignación
                 Select::make('estado')
@@ -307,6 +267,24 @@ class TicketResource extends Resource
                         'Alta' => 'heroicon-o-exclamation-triangle',
                         'Media' => 'heroicon-o-information-circle',
                         'Baja' => 'heroicon-o-minus-circle',
+                        default => 'heroicon-o-question-mark-circle',
+                    }),
+
+                TextColumn::make('tipo')
+                    ->label('Tipo')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Incidente' => 'danger',
+                        'General' => 'info',
+                        'Requerimiento' => 'warning',
+                        'Cambio' => 'success',
+                        default => 'secondary',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'Incidente' => 'heroicon-o-exclamation-triangle',
+                        'General' => 'heroicon-o-chat-bubble-left-right',
+                        'Requerimiento' => 'heroicon-o-document-text',
+                        'Cambio' => 'heroicon-o-cog-6-tooth',
                         default => 'heroicon-o-question-mark-circle',
                     }),
 
@@ -421,6 +399,11 @@ class TicketResource extends Resource
                     ->options(self::$model::PRIORIDAD)
                     ->multiple(),
 
+                SelectFilter::make('tipo')
+                    ->label('Tipo de Ticket')
+                    ->options(self::$model::TIPOS)
+                    ->multiple(),
+
                 SelectFilter::make('area_id')
                     ->label('Área')
                     ->relationship('area', 'nombre')
@@ -515,5 +498,36 @@ class TicketResource extends Resource
             'edit' => Pages\EditTicket::route('/{record}/edit'),
             'view' => Pages\ViewTicket::route('/{record}'), // <-- agrega esto
         ];
+    }
+
+    /**
+     * Método helper para actualizar la información de SLA en el formulario admin
+     */
+    protected function actualizarSlaAdmin($prioridad, $tipo, $areaId, $set)
+    {
+        if (!$areaId) {
+            $areaId = Auth::user()?->area_id;
+        }
+
+        if ($prioridad && $tipo && $areaId) {
+            $resultado = \App\Models\Sla::calcularParaTicket($areaId, $prioridad, $tipo);
+            
+            if ($resultado['encontrado']) {
+                $horas_resp = floor($resultado['tiempo_respuesta'] / 60);
+                $min_resp = $resultado['tiempo_respuesta'] % 60;
+                $horas_resol = floor($resultado['tiempo_resolucion'] / 60);
+                $min_resol = $resultado['tiempo_resolucion'] % 60;
+
+                $overrideInfo = $resultado['override_aplicado'] ?
+                    " (Sistema híbrido - Factor: " . round($resultado['factor_combinado'] * 100) . "%)" :
+                    " (Tiempo fijo)";
+
+                $set('sla_info', "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m{$overrideInfo}");
+            } else {
+                $set('sla_info', 'No hay SLA configurado para esta área');
+            }
+        } else {
+            $set('sla_info', 'Selecciona prioridad y tipo para calcular SLA');
+        }
     }
 }

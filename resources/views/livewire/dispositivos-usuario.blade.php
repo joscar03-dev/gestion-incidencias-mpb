@@ -218,36 +218,129 @@
 
     @elseif($activeTab === 'solicitar-dispositivo')
         <!-- Solicitar Requerimiento -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Enviar Requerimiento de Dispositivo</h3>
-                <p class="text-sm text-gray-600">Complete el formulario para solicitar un dispositivo. Su requerimiento será revisado por el administrador.</p>
-            </div>
+        <div class="space-y-6">
+            <!-- Opción 1: Requerimiento de Dispositivo Específico -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Solicitar Dispositivo Específico</h3>
+                    <p class="text-sm text-gray-600">Complete el formulario para solicitar un dispositivo específico. Su requerimiento será revisado por el administrador.</p>
+                </div>
 
-            <form wire:submit="enviarRequerimiento" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="categoria_solicitada" class="block text-sm font-medium text-gray-700 mb-2">
-                            Categoría de Dispositivo *
-                        </label>
-                        <select
-                            wire:model="categoria_solicitada"
-                            id="categoria_solicitada"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        >
-                            <option value="">Seleccione una categoría</option>
-                            @foreach($categorias as $id => $nombre)
-                                <option value="{{ $id }}">{{ $nombre }}</option>
-                            @endforeach
-                        </select>
-                        @error('categoria_solicitada') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                <form wire:submit="enviarRequerimiento" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="categoria_solicitada" class="block text-sm font-medium text-gray-700 mb-2">
+                                Categoría de Dispositivo *
+                            </label>
+                            <select
+                                wire:model="categoria_solicitada"
+                                id="categoria_solicitada"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="">Seleccione una categoría</option>
+                                @foreach($categorias as $id => $nombre)
+                                    <option value="{{ $id }}">{{ $nombre }}</option>
+                                @endforeach
+                            </select>
+                            @error('categoria_solicitada') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label for="prioridad_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                                Prioridad *
+                            </label>
+                            <select
+                                wire:model="prioridad_requerimiento"
+                                id="prioridad_requerimiento"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                            </select>
+                            @error('prioridad_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
                     <div>
-                        <label for="prioridad_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
-                            Prioridad *
+                        <label for="justificacion_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                            Justificación del Requerimiento *
                         </label>
-                        <select
+                        <textarea
+                            wire:model="justificacion_requerimiento"
+                            id="justificacion_requerimiento"
+                            rows="4"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Explique por qué necesita este dispositivo y cómo lo utilizará..."
+                        ></textarea>
+                        @error('justificacion_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="documento_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                            Documento de Respaldo (Opcional)
+                        </label>
+                        <input
+                            type="file"
+                            wire:model="documento_requerimiento"
+                            id="documento_requerimiento"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                        <p class="mt-1 text-sm text-gray-500">
+                            Formatos permitidos: PDF, DOC, DOCX, JPG, PNG. Tamaño máximo: 2MB
+                        </p>
+                        @error('documento_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button
+                            type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            <x-heroicon-o-paper-airplane class="w-4 h-4 mr-2" />
+                            Solicitar Dispositivo Específico
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Separador visual -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-50 text-gray-500">o también puede</span>
+                </div>
+            </div>
+
+            <!-- Opción 2: Requerimiento General -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Crear Ticket de Requerimiento General</h3>
+                    <p class="text-sm text-gray-600">Para requerimientos que no sean específicamente solicitar un dispositivo (por ejemplo: software, accesos, configuraciones, etc.)</p>
+                </div>
+
+                <div class="flex justify-center">
+                    <button
+                        wire:click="crearTicketRequerimiento"
+                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                    >
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Crear Ticket de Requerimiento
+                    </button>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <p class="text-xs text-gray-500">
+                        Esto lo llevará al formulario completo de creación de tickets donde puede especificar todos los detalles de su requerimiento
+                    </p>
+                </div>
+            </div>
+        </div>
                             wire:model="prioridad_requerimiento"
                             id="prioridad_requerimiento"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -300,8 +393,6 @@
                         Enviar Requerimiento
                     </button>
                 </div>
-            </form>
-        </div>
             </form>
         </div>
 

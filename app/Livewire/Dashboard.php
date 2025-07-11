@@ -34,6 +34,11 @@ class Dashboard extends Component
         $this->currentView = 'home';
     }
 
+    public function showDevices()
+    {
+        $this->currentView = 'devices';
+    }
+
     public function onTicketCreated()
     {
         // Cambiar automáticamente a la vista de tickets cuando se crea uno

@@ -39,6 +39,30 @@
                     @enderror
                 </div>
 
+                <!-- Tipo de Ticket -->
+                <div>
+                    <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Tipo de Ticket *
+                    </label>
+                    <select
+                        id="tipo"
+                        wire:model="tipo"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('tipo') border-red-500 @enderror"
+                    >
+                        <option value="">Selecciona el tipo</option>
+                        <option value="Incidencia">🚨 Incidencia - Interrupciones o fallos del servicio</option>
+                        <option value="Problema">🔧 Problema - Causa subyacente de múltiples incidencias</option>
+                        <option value="Requerimiento">📝 Requerimiento - Solicitudes de nuevos servicios o elementos</option>
+                        <option value="Cambio">🔄 Cambio - Modificaciones en servicios o configuraciones</option>
+                    </select>
+                    @error('tipo')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Selecciona el tipo que mejor describa tu solicitud
+                    </p>
+                </div>
+
                 <!-- Prioridad y Área -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Prioridad -->
