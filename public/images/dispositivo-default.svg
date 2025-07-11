@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo del dispositivo -->
+  <rect x="30" y="20" width="140" height="160" rx="15" ry="15" fill="url(#gradient)" stroke="#4338ca" stroke-width="2"/>
+
+  <!-- Pantalla -->
+  <rect x="45" y="40" width="110" height="80" rx="8" ry="8" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+
+  <!-- Líneas de la pantalla -->
+  <line x1="55" y1="50" x2="145" y2="50" stroke="#6b7280" stroke-width="2" opacity="0.6"/>
+  <line x1="55" y1="60" x2="135" y2="60" stroke="#6b7280" stroke-width="2" opacity="0.4"/>
+  <line x1="55" y1="70" x2="125" y2="70" stroke="#6b7280" stroke-width="2" opacity="0.3"/>
+
+  <!-- Botón principal -->
+  <circle cx="100" cy="145" r="12" fill="#374151" stroke="#6b7280" stroke-width="1"/>
+  <circle cx="100" cy="145" r="8" fill="#4b5563"/>
+
+  <!-- Indicador LED -->
+  <circle cx="100" cy="32" r="3" fill="#10b981"/>
+
+  <!-- Botones laterales -->
+  <rect x="25" y="60" width="5" height="15" rx="2" fill="#374151"/>
+  <rect x="25" y="80" width="5" height="15" rx="2" fill="#374151"/>
+  <rect x="170" y="70" width="5" height="25" rx="2" fill="#374151"/>
+
+  <!-- Sombra -->
+  <ellipse cx="100" cy="185" rx="50" ry="8" fill="#000000" opacity="0.1"/>
+</svg>

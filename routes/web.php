@@ -51,6 +51,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/web/notifications', [NotificationController::class, 'index']);
     Route::patch('/web/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/web/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    
+    // Rutas para dispositivos de usuario
+    Route::get('/dispositivos', App\Livewire\DispositivosUsuario::class)->name('dispositivos.usuario');
 });
 
 require __DIR__.'/auth.php';

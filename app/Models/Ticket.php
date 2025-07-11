@@ -36,6 +36,7 @@ class Ticket extends Model implements Commentable
         'fecha_escalamiento',
         'sla_vencido',
         'area_id', // Agregar relación directa con área
+        'dispositivo_id', // Agregar relación con dispositivo
     ];
 
     const PRIORIDAD =
@@ -80,6 +81,12 @@ class Ticket extends Model implements Commentable
     public function area()
     {
         return $this->belongsTo(Area::class, 'area_id');
+    }
+
+    // Relación con Dispositivo
+    public function dispositivo()
+    {
+        return $this->belongsTo(Dispositivo::class, 'dispositivo_id');
     }
 
     // Mantener compatibilidad con el getter anterior
