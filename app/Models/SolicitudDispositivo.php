@@ -23,6 +23,7 @@ class SolicitudDispositivo extends Model
         'observaciones_admin',
         'admin_respuesta_id',
         'dispositivo_asignado_id',
+        'ticket_id',
     ];
 
     protected $casts = [
@@ -66,6 +67,11 @@ class SolicitudDispositivo extends Model
         return $this->belongsTo(Dispositivo::class, 'dispositivo_asignado_id');
     }
 
+    public function ticket()
+    {
+        return $this->belongsTo(Ticket::class);
+    }
+
     // Scopes
     public function scopePendientes($query)
     {
@@ -98,6 +104,7 @@ class SolicitudDispositivo extends Model
             Dispositivo::find($dispositivoId)->update([
                 'usuario_id' => $this->user_id,
                 'estado' => 'Asignado',
+                'area_id' => $this->user->area_id, // Asignar el área del usuario
             ]);
 
             // Crear registro de asignación
@@ -112,6 +119,14 @@ class SolicitudDispositivo extends Model
 
             $this->update(['estado' => 'Completado']);
         }
+
+        // Cerrar automáticamente el ticket asociado
+        if ($this->ticket) {
+            $this->ticket->update([
+                'estado' => 'Cerrado',
+                'comentario' => $observaciones ? "Requerimiento aprobado. {$observaciones}" : 'Requerimiento aprobado por el Jefe de Administración.',
+            ]);
+        }
     }
 
     public function rechazar($adminId, $motivo)
@@ -122,6 +137,14 @@ class SolicitudDispositivo extends Model
             'admin_respuesta_id' => $adminId,
             'observaciones_admin' => $motivo,
         ]);
+
+        // Cerrar automáticamente el ticket asociado
+        if ($this->ticket) {
+            $this->ticket->update([
+                'estado' => 'Cerrado',
+                'comentario' => "Requerimiento rechazado. Motivo: {$motivo}",
+            ]);
+        }
     }
 
     public function getEstadoBadgeColorAttribute()

@@ -59,6 +59,14 @@ class Dispositivo extends Model
         return $query->where('estado', 'Disponible');
     }
 
+    public function scopeDisponiblesParaAsignacion($query)
+    {
+        return $query->where('estado', 'Disponible')
+            ->whereDoesntHave('asignaciones', function ($subQuery) {
+                $subQuery->whereNull('fecha_desasignacion');
+            });
+    }
+
     public function scopeAsignados($query)
     {
         return $query->where('estado', 'Asignado');

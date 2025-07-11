@@ -40,6 +40,15 @@ class Ticket extends Model implements Commentable
         'dispositivo_id', // Agregar relación con dispositivo
     ];
 
+    protected $casts = [
+        'fecha_resolucion' => 'datetime',
+        'fecha_cierre' => 'datetime',
+        'fecha_escalamiento' => 'datetime',
+        'escalado' => 'boolean',
+        'sla_vencido' => 'boolean',
+        'is_resolved' => 'boolean',
+    ];
+
     const PRIORIDAD =
     [
         'Critica' => 'Critica',
@@ -51,7 +60,7 @@ class Ticket extends Model implements Commentable
     const TIPOS =
     [
         'Incidente' => 'Incidente',
-        'General' => 'General', 
+        'General' => 'General',
         'Requerimiento' => 'Requerimiento',
         'Cambio' => 'Cambio',
     ];
@@ -486,8 +495,8 @@ class Ticket extends Model implements Commentable
         }
 
         return Sla::calcularParaTicket(
-            $this->area_id, 
-            $this->prioridad, 
+            $this->area_id,
+            $this->prioridad,
             $this->tipo
         );
     }
@@ -502,7 +511,7 @@ class Ticket extends Model implements Commentable
         }
 
         $tiempoTranscurrido = $this->created_at->diffInMinutes(now());
-        
+
         return Sla::verificarEscalamiento(
             $this->area_id,
             $tiempoTranscurrido,

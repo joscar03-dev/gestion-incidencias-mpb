@@ -74,6 +74,13 @@ class DispositivosUsuario extends Component
         // Obtener la categoría seleccionada
         $categoria = CategoriaDispositivo::find($this->categoria_solicitada);
 
+        // Buscar al Jefe de Administración para auto-asignar
+        $jefeAdministracion = User::role('Jefe de Administración')->first();
+        if (!$jefeAdministracion) {
+            // Fallback: buscar administrador
+            $jefeAdministracion = User::role(['Administrador', 'Admin'])->first();
+        }
+
         // Crear la solicitud de dispositivo (como antes)
         $solicitud = SolicitudDispositivo::create([
             'user_id' => Auth::id(),
@@ -83,6 +90,7 @@ class DispositivosUsuario extends Component
             'prioridad' => $this->prioridad_requerimiento,
             'estado' => 'Pendiente',
             'fecha_solicitud' => now(),
+            'admin_respuesta_id' => $jefeAdministracion ? $jefeAdministracion->id : null, // Auto-asignar
         ]);
 
         // Crear automáticamente un ticket de tipo "Requerimiento"
@@ -95,10 +103,13 @@ class DispositivosUsuario extends Component
             'titulo' => "Requerimiento de dispositivo: {$categoria->nombre}",
             'descripcion' => $this->justificacion_requerimiento,
             'creado_por' => Auth::id(),
-            'asignado_a' => null,
+            'asignado_a' => $jefeAdministracion ? $jefeAdministracion->id : null, // Auto-asignar al Jefe de Administración
             'fecha_creacion' => now(),
             'attachment' => $documentoPath, // Adjuntar documento si existe
         ]);
+
+        // Actualizar la solicitud con el ticket_id para establecer la relación bidireccional
+        $solicitud->update(['ticket_id' => $ticket->id]);
 
         $this->showRequerimientoModal = false;
         $this->dispatch('notify', "Requerimiento enviado correctamente. Ticket #{$ticket->id} creado automáticamente y será revisado por el administrador.");

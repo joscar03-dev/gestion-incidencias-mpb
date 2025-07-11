@@ -50,7 +50,7 @@
                             Fecha de Creación
                         </label>
                         <p class="text-gray-900 dark:text-white">
-                            {{ $ticket->created_at->format('d/m/Y H:i') }}
+                            {{ $ticket->created_at ? $ticket->created_at->format('d/m/Y H:i') : 'No disponible' }}
                         </p>
                     </div>
                 </div>
@@ -61,7 +61,7 @@
                             Última Actualización
                         </label>
                         <p class="text-gray-900 dark:text-white">
-                            {{ $ticket->updated_at->format('d/m/Y H:i') }}
+                            {{ $ticket->updated_at ? $ticket->updated_at->format('d/m/Y H:i') : 'No disponible' }}
                         </p>
                     </div>
 
@@ -71,7 +71,19 @@
                                 Fecha de Resolución
                             </label>
                             <p class="text-gray-900 dark:text-white">
-                                {{ $ticket->fecha_resolucion->format('d/m/Y H:i') }}
+                                @php
+                                    try {
+                                        if ($ticket->fecha_resolucion instanceof \Carbon\Carbon) {
+                                            echo $ticket->fecha_resolucion->format('d/m/Y H:i');
+                                        } elseif (is_string($ticket->fecha_resolucion)) {
+                                            echo \Carbon\Carbon::parse($ticket->fecha_resolucion)->format('d/m/Y H:i');
+                                        } else {
+                                            echo 'Fecha no válida';
+                                        }
+                                    } catch (\Exception $e) {
+                                        echo 'Fecha no disponible';
+                                    }
+                                @endphp
                             </p>
                         </div>
                     @endif
@@ -94,6 +106,17 @@
                     </label>
                     <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                         <p class="text-gray-900 dark:text-white whitespace-pre-wrap">{{ $ticket->comentarios_resolucion }}</p>
+                    </div>
+                </div>
+            @endif
+
+            @if($ticket->estado === 'Cerrado' && $ticket->comentario)
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Solución del Problema
+                    </label>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                        <p class="text-gray-900 dark:text-white whitespace-pre-wrap">{{ $ticket->comentario }}</p>
                     </div>
                 </div>
             @endif

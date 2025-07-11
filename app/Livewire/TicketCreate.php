@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\Area;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\CategoriaDispositivo;
+use App\Models\SolicitudDispositivo;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +20,7 @@ class TicketCreate extends Component
     public $descripcion = '';
     public $prioridad = 'Media';
     public $tipo = ''; // Agregar campo tipo
+    public $categoria_dispositivo_id = ''; // Para requerimientos
     public $area_id = '';
     public $showModal = false;
     public $archivos = [];
@@ -30,6 +33,7 @@ class TicketCreate extends Component
         'descripcion' => 'required|string|max:1000',
         'prioridad' => 'required|in:Baja,Media,Alta,Critica',
         'tipo' => 'required|in:Incidencia,Problema,Requerimiento,Cambio',
+        'categoria_dispositivo_id' => 'nullable|required_if:tipo,Requerimiento|exists:categoria_dispositivos,id',
         'area_id' => 'required|exists:areas,id',
         'archivos.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt,zip,rar,xls,xlsx,ppt,pptx',
     ];
@@ -43,6 +47,8 @@ class TicketCreate extends Component
         'prioridad.in' => 'La prioridad debe ser: Baja, Media, Alta o Critica.',
         'tipo.required' => 'El tipo de ticket es obligatorio.',
         'tipo.in' => 'El tipo debe ser: Incidencia, Problema, Requerimiento o Cambio.',
+        'categoria_dispositivo_id.required_if' => 'La categoría de dispositivo es obligatoria para requerimientos.',
+        'categoria_dispositivo_id.exists' => 'La categoría de dispositivo seleccionada no existe.',
         'area_id.required' => 'El área es obligatoria.',
         'area_id.exists' => 'El área seleccionada no existe.',
         'archivos.*.max' => 'Cada archivo no puede ser mayor a 10MB.',
@@ -76,6 +82,7 @@ class TicketCreate extends Component
         $this->descripcion = '';
         $this->prioridad = 'Media';
         $this->tipo = '';
+        $this->categoria_dispositivo_id = '';
         $this->archivos = [];
 
         // Mantener el área pre-asignada si es dashboard
@@ -143,8 +150,20 @@ class TicketCreate extends Component
         }
 
         try {
-            // Asignar técnico disponible automáticamente
-            $tecnicoAsignado = $this->asignarTecnicoDisponible();
+            // Determinar técnico asignado basado en el tipo de ticket
+            $tecnicoAsignado = null;
+
+            if ($this->tipo === 'Requerimiento') {
+                // Para requerimientos, asignar automáticamente al Jefe de Administración
+                $tecnicoAsignado = User::role('Jefe de Administración')->first();
+                if (!$tecnicoAsignado) {
+                    // Fallback: buscar cualquier usuario con rol de administración
+                    $tecnicoAsignado = User::role(['Administrador', 'Admin'])->first();
+                }
+            } else {
+                // Para otros tipos, asignar técnico disponible como antes
+                $tecnicoAsignado = $this->asignarTecnicoDisponible();
+            }
 
             // Preparar datos para crear el ticket
             $ticketData = [
@@ -182,7 +201,31 @@ class TicketCreate extends Component
             // Crear el ticket
             $ticket = Ticket::create($ticketData);
 
+            // Si es un requerimiento, crear también una solicitud de dispositivo
+            if ($this->tipo === 'Requerimiento' && $this->categoria_dispositivo_id) {
+                $documentoPath = null;
+                if (!empty($archivosGuardados)) {
+                    // Usar el primer archivo como documento de respaldo
+                    $documentoPath = $archivosGuardados[0]['ruta'];
+                }
+
+                $solicitud = SolicitudDispositivo::create([
+                    'user_id' => Auth::id(),
+                    'categoria_dispositivo_id' => $this->categoria_dispositivo_id,
+                    'justificacion' => $this->descripcion,
+                    'documento_requerimiento' => $documentoPath,
+                    'prioridad' => $this->prioridad,
+                    'estado' => 'Pendiente',
+                    'fecha_solicitud' => now(),
+                    'ticket_id' => $ticket->id, // Vincular con el ticket creado
+                    'admin_respuesta_id' => $tecnicoAsignado ? $tecnicoAsignado->id : null, // Auto-asignar al Jefe de Administración
+                ]);
+            }
+
             $mensaje = 'Ticket #' . $ticket->id . ' creado exitosamente.';
+            if ($this->tipo === 'Requerimiento' && $this->categoria_dispositivo_id) {
+                $mensaje .= ' Se ha creado también una solicitud de dispositivo vinculada.';
+            }
             if ($tecnicoAsignado) {
                 $mensaje .= ' Asignado a: ' . $tecnicoAsignado->name;
             }
@@ -212,7 +255,8 @@ class TicketCreate extends Component
     public function render()
     {
         return view('livewire.ticket-create', [
-            'areas' => Area::all()
+            'areas' => Area::all(),
+            'categorias' => CategoriaDispositivo::pluck('nombre', 'id')
         ]);
     }
 }

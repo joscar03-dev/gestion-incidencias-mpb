@@ -164,14 +164,46 @@ class SolicitudDispositivoResource extends Resource
                                     ->relationship('aprobadoPor', 'name')
                                     ->searchable()
                                     ->preload()
-                                    ->placeholder('Sin asignar'),
+                                    ->placeholder('Sin asignar')
+                                    ->disabled() // Deshabilitado porque se asigna automáticamente
+                                    ->helperText('Se asigna automáticamente al Jefe de Administración'),
 
                                 Forms\Components\Select::make('dispositivo_asignado_id')
                                     ->label('💻 Dispositivo Asignado')
-                                    ->relationship('dispositivoAsignado', 'nombre')
+                                    ->options(function () {
+                                        return Dispositivo::disponiblesParaAsignacion()
+                                            ->orderBy('nombre')
+                                            ->pluck('nombre', 'id');
+                                    })
                                     ->searchable()
                                     ->preload()
-                                    ->placeholder('Sin asignar'),
+                                    ->placeholder('Sin asignar')
+                                    ->helperText('Solo dispositivos disponibles sin asignaciones activas'),
+                            ]),
+
+                        Forms\Components\Grid::make(1)
+                            ->schema([
+                                Forms\Components\Placeholder::make('ticket_info')
+                                    ->label('🎫 Información del Ticket')
+                                    ->visible(fn ($record) => $record && $record->ticket_id)
+                                    ->content(function ($record) {
+                                        if (!$record || !$record->ticket) {
+                                            return 'Sin ticket asociado';
+                                        }
+                                        
+                                        $ticket = $record->ticket;
+                                        $verTicketUrl = "/admin/tickets/{$ticket->id}";
+                                        
+                                        return new \Illuminate\Support\HtmlString(
+                                            "<div class='space-y-2'>
+                                                <div><strong>Ticket #{$ticket->id}</strong></div>
+                                                <div>Estado: <span class='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800'>{$ticket->estado}</span></div>
+                                                <div>Título: {$ticket->titulo}</div>
+                                                <div><a href='{$verTicketUrl}' target='_blank' class='text-blue-600 hover:text-blue-800 underline'>Ver ticket completo →</a></div>
+                                            </div>"
+                                        );
+                                    })
+                                    ->columnSpanFull(),
                             ]),
 
                         Forms\Components\Textarea::make('observaciones_admin')
@@ -273,6 +305,16 @@ class SolicitudDispositivoResource extends Resource
                     ->badge()
                     ->color('success')
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('ticket.id')
+                    ->label('Ticket')
+                    ->formatStateUsing(fn ($state) => $state ? "#{$state}" : '-')
+                    ->url(fn (SolicitudDispositivo $record): ?string => 
+                        $record->ticket_id ? "/admin/tickets/{$record->ticket_id}" : null)
+                    ->color('info')
+                    ->tooltip(fn (SolicitudDispositivo $record): ?string =>
+                        $record->ticket ? "Estado: {$record->ticket->estado}" : null)
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('estado')
@@ -387,10 +429,15 @@ class SolicitudDispositivoResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('dispositivo_id')
                                     ->label('Dispositivo a Asignar')
-                                    ->options(Dispositivo::where('estado', 'Disponible')->pluck('nombre', 'id'))
+                                    ->options(function () {
+                                        return Dispositivo::disponiblesParaAsignacion()
+                                            ->orderBy('nombre')
+                                            ->pluck('nombre', 'id');
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->placeholder('Seleccionar dispositivo (opcional)')
+                                    ->helperText('Solo se muestran dispositivos disponibles y sin asignaciones activas')
                                     ->columnSpanFull(),
 
                                 Forms\Components\Textarea::make('observaciones')
@@ -409,6 +456,13 @@ class SolicitudDispositivoResource extends Resource
                             $data['observaciones'] ?? null,
                             $data['dispositivo_id'] ?? null
                         );
+
+                        Notification::make()
+                            ->title('Requerimiento Aprobado')
+                            ->body('El requerimiento ha sido aprobado exitosamente.' . 
+                                   ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
+                            ->success()
+                            ->send();
                     }),
 
                 Tables\Actions\Action::make('rechazar')
@@ -429,6 +483,13 @@ class SolicitudDispositivoResource extends Resource
                     ->modalSubmitActionLabel('Rechazar')
                     ->action(function (SolicitudDispositivo $record, array $data): void {
                         $record->rechazar(Auth::id(), $data['motivo']);
+
+                        Notification::make()
+                            ->title('Requerimiento Rechazado')
+                            ->body('El requerimiento ha sido rechazado.' . 
+                                   ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
+                            ->warning()
+                            ->send();
                     }),
             ])
             ->bulkActions([
@@ -538,5 +599,11 @@ class SolicitudDispositivoResource extends Resource
             'create' => Pages\CreateSolicitudDispositivo::route('/create'),
             'edit' => Pages\EditSolicitudDispositivo::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['ticket', 'user', 'categoria_dispositivo', 'aprobadoPor', 'dispositivoAsignado']);
     }
 }

@@ -114,7 +114,6 @@ class DispositivoResource extends Resource
                                 Forms\Components\Select::make('area_id')
                                     ->label('🏢 Área')
                                     ->relationship('area', 'nombre')
-                                    ->required()
                                     ->live()
                                     ->preload()
                                     ->searchable()

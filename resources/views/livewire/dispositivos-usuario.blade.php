@@ -160,7 +160,7 @@
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                         </svg>
-                                        <span>{{ $dispositivo->area->nombre }}</span>
+                                        <span>{{ $dispositivo->area->nombre ?? 'Sin área asignada' }}</span>
                                     </div>
                                     @if($dispositivo->fecha_compra)
                                         <div class="flex items-center text-xs text-gray-500">
@@ -340,60 +340,6 @@
                     </p>
                 </div>
             </div>
-        </div>
-                            wire:model="prioridad_requerimiento"
-                            id="prioridad_requerimiento"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        >
-                            <option value="Baja">Baja</option>
-                            <option value="Media">Media</option>
-                            <option value="Alta">Alta</option>
-                        </select>
-                        @error('prioridad_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-
-                <div>
-                    <label for="justificacion_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
-                        Justificación del Requerimiento *
-                    </label>
-                    <textarea
-                        wire:model="justificacion_requerimiento"
-                        id="justificacion_requerimiento"
-                        rows="4"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="Explique por qué necesita este dispositivo y cómo lo utilizará..."
-                    ></textarea>
-                    @error('justificacion_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label for="documento_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
-                        Documento de Respaldo (Opcional)
-                    </label>
-                    <input
-                        type="file"
-                        wire:model="documento_requerimiento"
-                        id="documento_requerimiento"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                    <p class="mt-1 text-sm text-gray-500">
-                        Formatos permitidos: PDF, DOC, DOCX, JPG, PNG. Tamaño máximo: 2MB
-                    </p>
-                    @error('documento_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="flex justify-end">
-                    <button
-                        type="submit"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        <x-heroicon-o-paper-airplane class="w-4 h-4 mr-2" />
-                        Enviar Requerimiento
-                    </button>
-                </div>
-            </form>
         </div>
 
     @elseif($activeTab === 'mis-requerimientos')

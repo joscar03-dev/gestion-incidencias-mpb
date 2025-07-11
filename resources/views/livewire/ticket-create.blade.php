@@ -46,7 +46,7 @@
                     </label>
                     <select
                         id="tipo"
-                        wire:model="tipo"
+                        wire:model.live="tipo"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('tipo') border-red-500 @enderror"
                     >
                         <option value="">Selecciona el tipo</option>
@@ -62,6 +62,31 @@
                         Selecciona el tipo que mejor describa tu solicitud
                     </p>
                 </div>
+
+                <!-- Categoría de Dispositivo (solo para Requerimientos) -->
+                @if($tipo === 'Requerimiento')
+                    <div>
+                        <label for="categoria_dispositivo_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Categoría de Dispositivo *
+                        </label>
+                        <select
+                            id="categoria_dispositivo_id"
+                            wire:model="categoria_dispositivo_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('categoria_dispositivo_id') border-red-500 @enderror"
+                        >
+                            <option value="">Selecciona una categoría</option>
+                            @foreach($categorias as $id => $nombre)
+                                <option value="{{ $id }}">{{ $nombre }}</option>
+                            @endforeach
+                        </select>
+                        @error('categoria_dispositivo_id')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Esta información se utilizará para crear automáticamente una solicitud de dispositivo
+                        </p>
+                    </div>
+                @endif
 
                 <!-- Prioridad y Área -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -287,15 +312,58 @@
                                     wire:model="prioridad"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('prioridad') border-red-500 @enderror"
                                 >
-                                    <option value="Baja">Baja</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Alta">Alta</option>
-                                    <option value="Critica">Crítica</option>
+                                    <option value="Baja">🟢 Baja</option>
+                                    <option value="Media">🟡 Media</option>
+                                    <option value="Alta">🟠 Alta</option>
+                                    <option value="Critica">🔴 Crítica</option>
                                 </select>
                                 @error('prioridad')
                                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            <!-- Tipo de Ticket -->
+                            <div>
+                                <label for="tipo_modal" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Tipo de Ticket *
+                                </label>
+                                <select
+                                    id="tipo_modal"
+                                    wire:model.live="tipo"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('tipo') border-red-500 @enderror"
+                                >
+                                    <option value="">Selecciona el tipo</option>
+                                    <option value="Incidencia">🚨 Incidencia</option>
+                                    <option value="Problema">🔧 Problema</option>
+                                    <option value="Requerimiento">📝 Requerimiento</option>
+                                    <option value="Cambio">🔄 Cambio</option>
+                                </select>
+                                @error('tipo')
+                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Categoría de Dispositivo (solo para Requerimientos) -->
+                            @if($tipo === 'Requerimiento')
+                                <div>
+                                    <label for="categoria_dispositivo_id_modal" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Categoría de Dispositivo *
+                                    </label>
+                                    <select
+                                        id="categoria_dispositivo_id_modal"
+                                        wire:model="categoria_dispositivo_id"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('categoria_dispositivo_id') border-red-500 @enderror"
+                                    >
+                                        <option value="">Selecciona una categoría</option>
+                                        @foreach($categorias as $id => $nombre)
+                                            <option value="{{ $id }}">{{ $nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('categoria_dispositivo_id')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
 
                             <!-- Descripción -->
                             <div>
