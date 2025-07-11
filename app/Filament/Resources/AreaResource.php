@@ -24,7 +24,9 @@ class AreaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
     protected static ?string $navigationLabel = 'Áreas';
     protected static ?string $pluralModelLabel = 'Áreas';
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = '🏢 Administración Organizacional';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -32,7 +34,7 @@ class AreaResource extends Resource
             ->schema([
                 TextInput::make('nombre')
                     ->label('Nombre')
-                    ->required(),     
+                    ->required(),
                 TextInput::make('descripcion')
                     ->label('Descripción'),
                 Select::make('parent_id')

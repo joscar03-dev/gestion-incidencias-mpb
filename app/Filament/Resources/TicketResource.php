@@ -40,8 +40,11 @@ class TicketResource extends Resource
 {
     protected static ?string $model = Ticket::class;
 
+    protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = '📊 Centro de Soporte';
+
+    protected static ?int $navigationSort = 1;
 
     public static function getNavigationBadge(): ?string
     {
@@ -145,7 +148,7 @@ class TicketResource extends Resource
 
                         if ($prioridad && $tipo && $areaId) {
                             $resultado = \App\Models\Sla::calcularParaTicket($areaId, $prioridad, $tipo);
-                            
+
                             if ($resultado['encontrado']) {
                                 $horas_resp = floor($resultado['tiempo_respuesta'] / 60);
                                 $min_resp = $resultado['tiempo_respuesta'] % 60;
@@ -511,7 +514,7 @@ class TicketResource extends Resource
 
         if ($prioridad && $tipo && $areaId) {
             $resultado = \App\Models\Sla::calcularParaTicket($areaId, $prioridad, $tipo);
-            
+
             if ($resultado['encontrado']) {
                 $horas_resp = floor($resultado['tiempo_respuesta'] / 60);
                 $min_resp = $resultado['tiempo_respuesta'] % 60;

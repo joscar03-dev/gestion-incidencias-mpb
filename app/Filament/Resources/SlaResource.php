@@ -17,7 +17,11 @@ class SlaResource extends Resource
 {
     protected static ?string $model = Sla::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-clock';
+
+    protected static ?string $navigationGroup = '⚙️ Configuración';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

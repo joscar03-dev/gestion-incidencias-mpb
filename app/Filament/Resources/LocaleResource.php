@@ -18,7 +18,11 @@ class LocaleResource extends Resource
 {
     protected static ?string $model = Locale::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+
+    protected static ?string $navigationGroup = '🏢 Administración Organizacional';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

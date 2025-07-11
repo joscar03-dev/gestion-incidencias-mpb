@@ -33,7 +33,7 @@ class SolicitudDispositivoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Requerimientos';
 
-    protected static ?string $navigationGroup = 'Gestión de Dispositivos';
+    protected static ?string $navigationGroup = '💻 Gestión de Dispositivos';
 
     protected static ?int $navigationSort = 2;
 
@@ -190,10 +190,10 @@ class SolicitudDispositivoResource extends Resource
                                         if (!$record || !$record->ticket) {
                                             return 'Sin ticket asociado';
                                         }
-                                        
+
                                         $ticket = $record->ticket;
                                         $verTicketUrl = "/admin/tickets/{$ticket->id}";
-                                        
+
                                         return new \Illuminate\Support\HtmlString(
                                             "<div class='space-y-2'>
                                                 <div><strong>Ticket #{$ticket->id}</strong></div>
@@ -309,7 +309,7 @@ class SolicitudDispositivoResource extends Resource
                 Tables\Columns\TextColumn::make('ticket.id')
                     ->label('Ticket')
                     ->formatStateUsing(fn ($state) => $state ? "#{$state}" : '-')
-                    ->url(fn (SolicitudDispositivo $record): ?string => 
+                    ->url(fn (SolicitudDispositivo $record): ?string =>
                         $record->ticket_id ? "/admin/tickets/{$record->ticket_id}" : null)
                     ->color('info')
                     ->tooltip(fn (SolicitudDispositivo $record): ?string =>
@@ -459,7 +459,7 @@ class SolicitudDispositivoResource extends Resource
 
                         Notification::make()
                             ->title('Requerimiento Aprobado')
-                            ->body('El requerimiento ha sido aprobado exitosamente.' . 
+                            ->body('El requerimiento ha sido aprobado exitosamente.' .
                                    ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
                             ->success()
                             ->send();
@@ -486,7 +486,7 @@ class SolicitudDispositivoResource extends Resource
 
                         Notification::make()
                             ->title('Requerimiento Rechazado')
-                            ->body('El requerimiento ha sido rechazado.' . 
+                            ->body('El requerimiento ha sido rechazado.' .
                                    ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
                             ->warning()
                             ->send();

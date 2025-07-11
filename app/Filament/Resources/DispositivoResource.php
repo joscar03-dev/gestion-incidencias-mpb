@@ -21,17 +21,17 @@ class DispositivoResource extends Resource
 {
     protected static ?string $model = Dispositivo::class;
 
-    protected static ?string $navigationGroup = 'Gestión de Dispositivos';
+    protected static ?string $navigationGroup = '💻 Gestión de Dispositivos';
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Dispositivos';
 
     protected static ?string $modelLabel = 'Dispositivo';
 
     protected static ?string $pluralModelLabel = 'Dispositivos';
-
-    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'nombre';
 
