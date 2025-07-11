@@ -5,6 +5,15 @@
     </svg>
     Mis Tickets
 </a>
+
+<a href="{{ route('dispositivos.usuario') }}"
+    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a1 1 0 001-1v-5.5c0-.3-.2-.5-.5-.5h-9c-.3 0-.5.2-.5.5V20a1 1 0 001 1zM10 9a2 2 0 114 0v3a2 2 0 01-4 0V9zM9 9a3 3 0 116 0v3a2 2 0 01-2 2H11a2 2 0 01-2-2V9z"/>
+    </svg>
+    Mis Dispositivos
+</a>
+
 <form method="POST" action="{{ route('logout') }}" class="inline">
     @csrf
     <button type="submit" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-200">
