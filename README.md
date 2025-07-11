@@ -1,66 +1,270 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📋 Sistema de Gestión de Incidencias
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Un sistema completo de gestión de tickets de soporte técnico desarrollado con Laravel 11, Livewire 3 y Filament 3.
 
-## About Laravel
+## 🚀 Características Principales
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Sistema de Tickets**: Creación, asignación y seguimiento de incidencias
+- **Gestión de SLA**: Control automático de tiempos de respuesta y resolución
+- **Panel Administrativo**: Interfaz completa con Filament para administradores
+- **Interfaz de Usuario**: SPA moderna con Livewire para usuarios finales
+- **Sistema de Roles**: Control granular de permisos con Spatie Permission
+- **Escalamiento Automático**: Escalamiento inteligente basado en SLA
+- **Exportación de Datos**: Generación de reportes en Excel y PDF
+- **Dashboard Interactivo**: Métricas y gráficos en tiempo real
+- **Sistema de Comentarios**: Seguimiento detallado de conversaciones
+- **Notificaciones**: Alertas en tiempo real para usuarios y administradores
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🛠️ Tecnologías Utilizadas
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Backend**: Laravel 11 (PHP 8.2+)
+- **Frontend**: Livewire 3, Alpine.js, Tailwind CSS
+- **Admin Panel**: Filament 3
+- **Base de Datos**: MySQL
+- **Autenticación**: Laravel Breeze
+- **Permisos**: Spatie Laravel Permission
+- **Reportes**: Laravel Excel, DomPDF
+- **Gráficos**: Apex Charts
+- **Comentarios**: Commentions Package
 
-## Learning Laravel
+## 📁 Estructura del Proyecto
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+gestion-incidencias/
+├── app/
+│   ├── Console/
+│   │   └── Commands/           # Comandos personalizados
+│   ├── Exports/               # Clases para exportación Excel/PDF
+│   ├── Filament/             # Panel administrativo Filament
+│   │   ├── Resources/        # Recursos CRUD
+│   │   ├── Widgets/          # Widgets del dashboard
+│   │   └── Pages/            # Páginas personalizadas
+│   ├── Http/
+│   │   ├── Controllers/      # Controladores
+│   │   ├── Middleware/       # Middleware personalizado
+│   │   └── Requests/         # Form Requests
+│   ├── Jobs/                 # Jobs para cola de trabajos
+│   ├── Livewire/            # Componentes Livewire
+│   ├── Models/              # Modelos Eloquent
+│   ├── Observers/           # Observadores de modelos
+│   └── Policies/            # Políticas de autorización
+├── database/
+│   ├── factories/           # Factories para testing
+│   ├── migrations/          # Migraciones de base de datos
+│   └── seeders/            # Seeders para datos iniciales
+├── resources/
+│   ├── views/              # Vistas Blade
+│   │   ├── components/     # Componentes reutilizables
+│   │   ├── exports/        # Plantillas para reportes
+│   │   └── livewire/       # Vistas de componentes Livewire
+│   ├── css/                # Estilos CSS
+│   └── js/                 # JavaScript
+└── docs/                   # Documentación detallada
+    ├── installation.md     # Guía de instalación
+    ├── api.md             # Documentación de API
+    ├── models.md          # Documentación de modelos
+    ├── filament.md        # Documentación de Filament
+    └── frontend.md        # Documentación del frontend
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🔧 Instalación
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerrequisitos
 
-## Laravel Sponsors
+- PHP 8.2 o superior
+- Composer
+- Node.js 16+ y npm
+- MySQL 8.0+
+- Apache/Nginx
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Instalación Paso a Paso
 
-### Premium Partners
+1. **Clonar el repositorio**
+```bash
+git clone https://github.com/joscar03-dev/gestion-incidencias-mpb.git
+cd gestion-incidencias-mpb
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+2. **Instalar dependencias de PHP**
+```bash
+composer install
+```
 
-## Contributing
+3. **Instalar dependencias de Node.js**
+```bash
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. **Configurar variables de entorno**
+```bash
+cp .env.example .env
+```
 
-## Code of Conduct
+5. **Configurar base de datos en `.env`**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=gestion_incidencias
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_contraseña
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+6. **Generar clave de aplicación**
+```bash
+php artisan key:generate
+```
 
-## Security Vulnerabilities
+7. **Ejecutar migraciones y seeders**
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+8. **Crear enlace simbólico para storage**
+```bash
+php artisan storage:link
+```
 
-## License
+9. **Compilar assets**
+```bash
+npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+10. **Iniciar el servidor**
+```bash
+php artisan serve
+```
+
+### Configuración Adicional
+
+**Configurar colas de trabajo:**
+```bash
+php artisan queue:work
+```
+
+**Configurar tareas programadas (cron):**
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+## 👥 Usuarios por Defecto
+
+Después de ejecutar los seeders, tendrás estos usuarios:
+
+- **Super Admin**: admin@admin.com / password
+- **Admin**: admin2@admin.com / password
+- **Técnico**: tecnico@tecnico.com / password
+- **Usuario**: user@user.com / password
+
+## 🎯 Características Detalladas
+
+### Sistema de Tickets
+
+- **Creación**: Formulario intuitivo con validación en tiempo real
+- **Asignación**: Automática basada en área y carga de trabajo
+- **Estados**: Abierto, En Progreso, Escalado, Cerrado, Cancelado, Archivado
+- **Prioridades**: Crítica, Alta, Media, Baja
+- **Archivos**: Soporte para adjuntos (PDF, imágenes)
+
+### Gestión de SLA
+
+- **Configuración por Área**: Tiempos personalizados por departamento
+- **Escalamiento Automático**: Basado en vencimiento de SLA
+- **Factores de Prioridad**: Multiplicadores por tipo de incidencia
+- **Monitoreo**: Dashboard con indicadores de cumplimiento
+
+### Panel Administrativo
+
+- **Dashboard**: Métricas, gráficos y KPIs
+- **Gestión de Usuarios**: CRUD completo con roles
+- **Configuración de Áreas**: Departamentos y responsables
+- **Configuración de SLA**: Tiempos y escalamiento
+- **Reportes**: Generación de informes detallados
+
+### Interfaz de Usuario
+
+- **Dashboard Personal**: Vista de tickets del usuario
+- **Creación de Tickets**: Formulario simplificado
+- **Seguimiento**: Estado y progreso en tiempo real
+- **Comunicación**: Sistema de comentarios integrado
+
+## 📊 Métricas y Reportes
+
+- **Tickets por Estado**: Distribución actual
+- **Tickets por Prioridad**: Análisis de criticidad
+- **Cumplimiento de SLA**: Porcentajes de cumplimiento
+- **Productividad**: Tickets resueltos por técnico
+- **Tendencias**: Análisis temporal de incidencias
+
+## 🔐 Seguridad
+
+- **Autenticación**: Laravel Breeze con verificación de email
+- **Autorización**: Roles y permisos granulares
+- **Validación**: Validación robusta en frontend y backend
+- **Sanitización**: Protección contra XSS y SQL injection
+- **CSRF**: Protección contra ataques CSRF
+
+## 📱 Responsividad
+
+- **Mobile First**: Diseño optimizado para dispositivos móviles
+- **Tablet Friendly**: Adaptación perfecta para tablets
+- **Desktop**: Experiencia completa en escritorio
+- **PWA Ready**: Preparado para Progressive Web App
+
+## 🚀 Rendimiento
+
+- **Paginación**: Carga eficiente de datos
+- **Lazy Loading**: Carga diferida de componentes
+- **Cacheo**: Optimización de consultas frecuentes
+- **Compresión**: Assets optimizados y comprimidos
+
+## 🔄 Flujo de Trabajo
+
+1. **Usuario crea ticket** → Sistema asigna automáticamente
+2. **Técnico recibe notificación** → Comienza trabajo
+3. **Seguimiento de SLA** → Alertas por vencimiento
+4. **Escalamiento automático** → Si se vence SLA
+5. **Resolución** → Cierre con comentarios
+6. **Métricas** → Actualización de dashboard
+
+## 📋 Roadmap
+
+- [ ] API REST completa
+- [ ] App móvil nativa
+- [ ] Integración con sistemas externos
+- [ ] Chatbot automático
+- [ ] Análisis predictivo con IA
+- [ ] Modo offline
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Fork el proyecto
+2. Crea una rama para tu feature
+3. Commit tus cambios
+4. Push a la rama
+5. Abre un Pull Request
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
+
+## 📞 Soporte
+
+Para soporte técnico, contacta:
+- Email: locomancocapac@gmail.co
+
+---
+
+**Desarrollado con ❤️**
+
+## 📚 Documentación Adicional
+
+Para más detalles técnicos, consulta la documentación específica en la carpeta `docs/`:
+
+- 📖 [Guía de Instalación](docs/installation.md)
+- 🔌 [Documentación de API](docs/api.md)
+- 🗄️ [Modelos y Base de Datos](docs/models.md)
+- 🎛️ [Panel Administrativo Filament](docs/filament.md)
+- 🎨 [Interfaz de Usuario](docs/frontend.md)
