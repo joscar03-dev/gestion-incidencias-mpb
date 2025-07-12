@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             SlaSeeder::class,
             ItilCategoriasSeeder::class,
             CategoriaDispositivoSeeder::class,
+            DispositivoSeeder::class,
         ]);
     }
 }

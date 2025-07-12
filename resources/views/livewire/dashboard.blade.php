@@ -65,13 +65,7 @@
             @livewire('ticket-create', ['isDashboard' => true], key('ticket-create-dashboard'))
 
         @elseif($currentView === 'devices')
-            <!-- Gestión de Dispositivos -->
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Gestión de Dispositivos</h2>
-                <p class="text-gray-600 dark:text-gray-300 mb-6">Administra tus dispositivos y solicita nuevos equipos</p>
-            </div>
             @livewire('dispositivos-usuario', [], key('dispositivos-usuario-dashboard'))
-
         @elseif($currentView === 'home')
             <!-- Dashboard/Home -->
             <div class="mb-6">

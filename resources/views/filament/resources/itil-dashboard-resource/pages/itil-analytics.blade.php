@@ -1,208 +1,277 @@
 <x-filament-panels::page>
+    @php
+        $efficiency = $this->getViewData()['efficiency_indicators'];
+        $quality = $this->getViewData()['quality_indicators'];
+        $comparison = $this->getViewData()['performance_comparison'];
+        $lastUpdated = $this->getViewData()['last_updated'];
+    @endphp
+
     <div class="space-y-6">
-        <!-- Análisis de tendencias -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Análisis de Tendencias (Últimos 30 días)</h3>
-            @php
-                $trends = $this->getViewData()['trend_analysis'];
-            @endphp
-            <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                <div class="text-center">
-                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                    </svg>
-                    <p class="text-gray-600">Gráfico de tendencias interactivo</p>
-                    <p class="text-sm text-gray-500">{{ count($trends) }} días de datos disponibles</p>
+        <!-- Header con indicadores principales -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold">Indicadores de Eficiencia y Calidad ITIL</h2>
+                <div class="text-sm opacity-90">
+                    Última actualización: {{ $lastUpdated }}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="text-lg font-bold">{{ $efficiency['overall_efficiency'] }}%</div>
+                    <div class="text-sm opacity-90">Eficiencia General</div>
+                    <div class="text-xs mt-1">
+                        @if($comparison['efficiency_trend'] > 0)
+                            <span class="text-green-200">↗ +{{ number_format($comparison['efficiency_trend'], 1) }}%</span>
+                        @elseif($comparison['efficiency_trend'] < 0)
+                            <span class="text-red-200">↘ {{ number_format($comparison['efficiency_trend'], 1) }}%</span>
+                        @else
+                            <span class="text-gray-200">→ Sin cambios</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="text-lg font-bold">{{ $quality['overall_quality_score'] }}%</div>
+                    <div class="text-sm opacity-90">Calidad General</div>
+                    <div class="text-xs mt-1">{{ $comparison['performance_indicators']['quality_status'] }}</div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="text-lg font-bold">{{ $efficiency['avg_resolution_time'] }}h</div>
+                    <div class="text-sm opacity-90">Tiempo Promedio</div>
+                    <div class="text-xs mt-1">{{ $efficiency['resolution_velocity'] }} tickets/día</div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="text-lg font-bold">{{ $quality['sla_compliance_rate'] }}%</div>
+                    <div class="text-sm opacity-90">Cumplimiento SLA</div>
+                    <div class="text-xs mt-1">FCR: {{ $quality['first_call_resolution_rate'] }}%</div>
                 </div>
             </div>
         </div>
 
-        <!-- Distribución por categorías -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribución por Categorías ITIL</h3>
-                @php
-                    $categories = $this->getViewData()['category_distribution'];
-                @endphp
+        <!-- Indicadores de Eficiencia -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Productividad por Técnico -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Productividad por Técnico</h3>
+                    <div class="text-sm text-gray-500">Top 10</div>
+                </div>
                 <div class="space-y-3">
-                    @foreach ($categories as $key => $category)
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <div class="text-sm font-medium text-gray-900">{{ $category['name'] }}</div>
-                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                    @php
-                                        $total = array_sum(array_column($categories, 'count'));
-                                        $percentage = $total > 0 ? ($category['count'] / $total) * 100 : 0;
-                                    @endphp
-                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $percentage }}%"></div>
+                    @foreach($efficiency['technician_productivity']->take(10) as $tech)
+                        <div class="border rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="font-medium text-gray-900">{{ $tech['technician'] }}</div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm font-bold
+                                        @if($tech['efficiency_rate'] >= 80) text-green-600
+                                        @elseif($tech['efficiency_rate'] >= 60) text-yellow-600
+                                        @else text-red-600 @endif">
+                                        {{ $tech['efficiency_rate'] }}%
+                                    </span>
+                                    <span class="text-xs px-2 py-1 rounded-full
+                                        @if($tech['workload_status'] == 'Alto') bg-red-100 text-red-800
+                                        @elseif($tech['workload_status'] == 'Medio') bg-yellow-100 text-yellow-800
+                                        @else bg-green-100 text-green-800 @endif">
+                                        {{ $tech['workload_status'] }}
+                                    </span>
                                 </div>
                             </div>
-                            <div class="ml-4 text-sm font-medium text-gray-900">
-                                {{ $category['count'] }}
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Asignados: {{ $tech['total_assigned'] }}</span>
+                                <span>Resueltos: {{ $tech['resolved'] }}</span>
+                                <span>Pendientes: {{ $tech['pending'] }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $tech['efficiency_rate'] }}%"></div>
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
 
-            <!-- Métricas de disponibilidad del servicio -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Disponibilidad del Servicio</h3>
-                @php
-                    $availability = $this->getViewData()['service_availability'];
-                @endphp
-                <div class="space-y-4">
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-green-600">{{ $availability['availability_percentage'] }}%</div>
-                        <div class="text-sm text-gray-600">Disponibilidad Total</div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 text-center">
-                        <div>
-                            <div class="text-2xl font-bold text-blue-600">{{ $availability['uptime_hours'] }}h</div>
-                            <div class="text-xs text-gray-600">Tiempo Activo</div>
+            <!-- Eficiencia por Categoría -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Eficiencia por Categoría ITIL</h3>
+                <div class="space-y-3">
+                    @foreach($efficiency['category_efficiency']->take(8) as $category)
+                        <div class="border rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="font-medium text-gray-900">{{ $category['category'] }}</div>
+                                <div class="text-sm font-bold text-blue-600">
+                                    Score: {{ $category['efficiency_score'] }}
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-xs text-gray-600">
+                                <div>Total: {{ $category['total_tickets'] }}</div>
+                                <div>Resueltos: {{ $category['resolved_tickets'] }}</div>
+                                <div>Tiempo: {{ $category['avg_resolution_time'] }}h</div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: {{ $category['resolution_rate'] }}%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">{{ $category['resolution_rate'] }}% resueltos</div>
                         </div>
-                        <div>
-                            <div class="text-2xl font-bold text-red-600">{{ $availability['downtime_hours'] }}h</div>
-                            <div class="text-xs text-gray-600">Tiempo Inactivo</div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 text-center pt-4 border-t">
-                        <div>
-                            <div class="text-lg font-bold text-indigo-600">{{ round($availability['mttr'], 2) }}h</div>
-                            <div class="text-xs text-gray-600">MTTR (Tiempo Medio Reparación)</div>
-                        </div>
-                        <div>
-                            <div class="text-lg font-bold text-purple-600">{{ $availability['mtbf'] }}h</div>
-                            <div class="text-xs text-gray-600">MTBF (Tiempo Medio Entre Fallos)</div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
 
-        <!-- Análisis de carga de trabajo detallado -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Análisis Detallado de Carga de Trabajo</h3>
-            @php
-                $workload = $this->getViewData()['workload_analysis'];
-            @endphp
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Técnico
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tickets Abiertos
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Total Tickets
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Resueltos
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tasa Resolución
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Estado
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach ($workload as $analyst)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-8 w-8">
-                                            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                                <span class="text-sm font-medium text-gray-700">
-                                                    {{ substr($analyst['user_name'], 0, 2) }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">{{ $analyst['user_name'] }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                        {{ $analyst['open_tickets'] > 10 ? 'bg-red-100 text-red-800' : 
-                                           ($analyst['open_tickets'] > 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800') }}">
-                                        {{ $analyst['open_tickets'] }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $analyst['total_tickets'] }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $analyst['resolved_tickets'] }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $analyst['resolution_rate'] }}%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-900">{{ $analyst['resolution_rate'] }}%</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if ($analyst['resolution_rate'] >= 80)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Excelente
-                                        </span>
-                                    @elseif ($analyst['resolution_rate'] >= 60)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            Bueno
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Necesita Mejora
-                                        </span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <!-- Indicadores de Calidad -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Calidad por Técnico -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Calidad por Técnico</h3>
+                <div class="space-y-3">
+                    @foreach($quality['technician_quality']->take(10) as $tech)
+                        <div class="border rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="font-medium text-gray-900">{{ $tech['technician'] }}</div>
+                                <div class="text-sm font-bold
+                                    @if($tech['quality_score'] >= 80) text-green-600
+                                    @elseif($tech['quality_score'] >= 60) text-yellow-600
+                                    @else text-red-600 @endif">
+                                    {{ $tech['quality_score'] }}/100
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-xs text-gray-600">
+                                <div>Satisfacción: {{ $tech['avg_satisfaction'] }}/5</div>
+                                <div>Tickets: {{ $tech['resolved_tickets'] }}</div>
+                                <div>Reaperturas: {{ $tech['reopen_rate'] }}%</div>
+                                <div>Escalaciones: {{ $tech['escalation_rate'] }}%</div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div class="
+                                    @if($tech['quality_score'] >= 80) bg-green-600
+                                    @elseif($tech['quality_score'] >= 60) bg-yellow-600
+                                    @else bg-red-600 @endif
+                                    h-2 rounded-full" style="width: {{ $tech['quality_score'] }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Análisis de Escalaciones -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Análisis de Escalaciones</h3>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-red-600">{{ $quality['escalation_analysis']['total_escalated'] }}</div>
+                            <div class="text-sm text-gray-600">Total Escalados</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-red-600">{{ $quality['escalation_analysis']['escalation_rate'] }}%</div>
+                            <div class="text-sm text-gray-600">Tasa de Escalación</div>
+                        </div>
+                    </div>
+                </div>
+                <h4 class="font-medium text-gray-900 mb-3">Escalaciones por Categoría</h4>
+                <div class="space-y-2">
+                    @foreach($quality['escalation_analysis']['escalation_by_category'] as $escalation)
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="text-sm text-gray-900">{{ $escalation['category'] }}</div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-600">{{ $escalation['escalated'] }}/{{ $escalation['total'] }}</span>
+                                <span class="text-sm font-medium
+                                    @if($escalation['escalation_rate'] > 15) text-red-600
+                                    @elseif($escalation['escalation_rate'] > 8) text-yellow-600
+                                    @else text-green-600 @endif">
+                                    {{ $escalation['escalation_rate'] }}%
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
 
-        <!-- Métricas de satisfacción del usuario -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Análisis de Satisfacción del Usuario</h3>
-            @php
-                $satisfaction = $this->getViewData()['user_satisfaction'];
-            @endphp
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ $satisfaction['satisfaction_score'] }}%</div>
-                    <div class="text-sm font-medium text-blue-800">Satisfacción General</div>
-                    <div class="mt-2 w-full bg-blue-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $satisfaction['satisfaction_score'] }}%"></div>
+        <!-- Satisfacción por Categoría -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Satisfacción del Cliente por Categoría</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                @foreach($quality['satisfaction_by_category']->take(8) as $satisfaction)
+                    <div class="border rounded-lg p-4 text-center">
+                        <div class="text-sm font-medium text-gray-900 mb-2">{{ $satisfaction['category'] }}</div>
+                        <div class="text-2xl font-bold
+                            @if($satisfaction['quality_score'] >= 80) text-green-600
+                            @elseif($satisfaction['quality_score'] >= 60) text-yellow-600
+                            @else text-red-600 @endif mb-1">
+                            {{ $satisfaction['quality_score'] }}%
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            {{ $satisfaction['avg_satisfaction'] }}/5 ⭐
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ $satisfaction['satisfaction_responses'] }}/{{ $satisfaction['total_tickets'] }} respuestas
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                            <div class="
+                                @if($satisfaction['quality_score'] >= 80) bg-green-600
+                                @elseif($satisfaction['quality_score'] >= 60) bg-yellow-600
+                                @else bg-red-600 @endif
+                                h-1 rounded-full" style="width: {{ $satisfaction['quality_score'] }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Resumen de Rendimiento -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Resumen de Productividad -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Resumen de Productividad</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Alto Rendimiento (≥80%)</span>
+                        <span class="font-bold text-green-600">{{ $efficiency['productivity_summary']['high_performers'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Rendimiento Promedio (60-79%)</span>
+                        <span class="font-bold text-yellow-600">{{ $efficiency['productivity_summary']['average_performers'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Bajo Rendimiento (<60%)</span>
+                        <span class="font-bold text-red-600">{{ $efficiency['productivity_summary']['low_performers'] }}</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                    <div class="text-3xl font-bold text-green-600 mb-2">{{ $satisfaction['total_surveys'] }}</div>
-                    <div class="text-sm font-medium text-green-800">Encuestas Totales</div>
-                    <div class="text-xs text-green-600 mt-1">Últimos 30 días</div>
-                </div>
-
-                <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ $satisfaction['response_rate'] }}%</div>
-                    <div class="text-sm font-medium text-purple-800">Tasa de Respuesta</div>
-                    <div class="mt-2 w-full bg-purple-200 rounded-full h-2">
-                        <div class="bg-purple-600 h-2 rounded-full" style="width: {{ $satisfaction['response_rate'] }}%"></div>
+            <!-- Resumen de Calidad -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Resumen de Calidad</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Calidad Excelente (≥80)</span>
+                        <span class="font-bold text-green-600">{{ $quality['quality_summary']['excellent_quality'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Buena Calidad (60-79)</span>
+                        <span class="font-bold text-yellow-600">{{ $quality['quality_summary']['good_quality'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Necesita Mejora (<60)</span>
+                        <span class="font-bold text-red-600">{{ $quality['quality_summary']['needs_improvement'] }}</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg">
-                    <div class="text-3xl font-bold text-indigo-600 mb-2">{{ $satisfaction['net_promoter_score'] }}</div>
-                    <div class="text-sm font-medium text-indigo-800">Net Promoter Score</div>
-                    <div class="text-xs text-indigo-600 mt-1">Escala 1-10</div>
+            <!-- KPIs Clave -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">KPIs Clave</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Tasa de Reapertura</span>
+                        <span class="font-bold text-red-600">{{ $quality['reopen_rate'] }}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Primera Resolución</span>
+                        <span class="font-bold text-green-600">{{ $quality['first_call_resolution_rate'] }}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Tiempo Promedio Respuesta</span>
+                        <span class="font-bold text-blue-600">{{ $efficiency['avg_first_response_time'] }}h</span>
+                    </div>
                 </div>
             </div>
         </div>
