@@ -256,26 +256,31 @@ class ItilDashboard extends Model
      */
     public static function getWorkloadAnalysis()
     {
-        $assignees = Ticket::select('asignado_a')
-            ->whereNotNull('asignado_a')
-            ->with('asignadoA:id,name')
-            ->get()
-            ->groupBy('asignado_a');
+        // Obtener todos los usuarios que tienen tickets asignados
+        $users = \App\Models\User::whereHas('ticketsAsignados')
+            ->with(['ticketsAsignados' => function ($query) {
+                $query->select('id', 'asignado_a', 'estado', 'escalado', 'created_at');
+            }])
+            ->get();
 
         $workload = [];
 
-        foreach ($assignees as $userId => $tickets) {
+        foreach ($users as $user) {
+            $tickets = $user->ticketsAsignados;
             $openTickets = $tickets->whereIn('estado', ['Abierto', 'En Progreso'])->count();
             $totalTickets = $tickets->count();
             $resolvedTickets = $tickets->where('estado', 'Cerrado')->count();
+            $escalatedTickets = $tickets->where('escalado', true)->count();
 
             $workload[] = [
-                'user_id' => $userId,
-                'user_name' => $tickets->first()->asignadoA->name ?? 'Sin asignar',
+                'user_id' => $user->id,
+                'user_name' => $user->name,
                 'open_tickets' => $openTickets,
                 'total_tickets' => $totalTickets,
                 'resolved_tickets' => $resolvedTickets,
+                'escalated_tickets' => $escalatedTickets,
                 'resolution_rate' => $totalTickets > 0 ? round(($resolvedTickets / $totalTickets) * 100, 2) : 0,
+                'escalation_rate' => $totalTickets > 0 ? round(($escalatedTickets / $totalTickets) * 100, 2) : 0,
             ];
         }
 
