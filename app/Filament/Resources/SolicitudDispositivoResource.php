@@ -33,7 +33,7 @@ class SolicitudDispositivoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Requerimientos';
 
-    protected static ?string $navigationGroup = '💻 Gestión de Dispositivos';
+    protected static ?string $navigationGroup = 'Gestión de Dispositivos';
 
     protected static ?int $navigationSort = 2;
 

@@ -24,7 +24,7 @@ class AreaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
     protected static ?string $navigationLabel = 'Áreas';
     protected static ?string $pluralModelLabel = 'Áreas';
-    protected static ?string $navigationGroup = '🏢 Administración Organizacional';
+    protected static ?string $navigationGroup = 'Administración Organizacional';
 
     protected static ?int $navigationSort = 2;
 

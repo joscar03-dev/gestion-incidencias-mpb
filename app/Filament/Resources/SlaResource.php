@@ -19,7 +19,7 @@ class SlaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clock';
 
-    protected static ?string $navigationGroup = '⚙️ Configuración';
+    protected static ?string $navigationGroup = 'Configuración';
 
     protected static ?int $navigationSort = 2;
 

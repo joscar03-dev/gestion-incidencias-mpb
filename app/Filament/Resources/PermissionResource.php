@@ -22,7 +22,7 @@ class PermissionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
 
-    protected static ?string $navigationGroup = '🔐 Seguridad';
+    protected static ?string $navigationGroup = 'Usuarios y Permisos';
 
     protected static ?int $navigationSort = 2;
 

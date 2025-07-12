@@ -21,7 +21,7 @@ class DispositivoResource extends Resource
 {
     protected static ?string $model = Dispositivo::class;
 
-    protected static ?string $navigationGroup = '💻 Gestión de Dispositivos';
+    protected static ?string $navigationGroup = 'Gestión de Dispositivos';
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
 

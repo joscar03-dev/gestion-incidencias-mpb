@@ -36,7 +36,7 @@ class CategoriaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = '📊 Centro de Soporte';
+    protected static ?string $navigationGroup = 'Centro de Soporte';
 
     protected static ?string $navigationLabel = 'Categorías';
 

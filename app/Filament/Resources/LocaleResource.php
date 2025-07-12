@@ -20,7 +20,7 @@ class LocaleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
-    protected static ?string $navigationGroup = '🏢 Administración Organizacional';
+    protected static ?string $navigationGroup = 'Administración Organizacional';
 
     protected static ?int $navigationSort = 3;
 

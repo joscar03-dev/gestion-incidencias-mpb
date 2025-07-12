@@ -43,7 +43,7 @@ class TicketResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationGroup = '📊 Centro de Soporte';
+    protected static ?string $navigationGroup = 'Centro de Soporte';
 
     protected static ?int $navigationSort = 1;
 

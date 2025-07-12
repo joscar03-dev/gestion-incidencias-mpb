@@ -31,7 +31,7 @@ class ItilDashboardResource extends Resource
 
     protected static ?string $navigationLabel = 'Dashboard ITIL';
 
-    protected static ?string $navigationGroup = '📊 ITIL Management';
+    protected static ?string $navigationGroup = 'ITIL Management';
 
     protected static ?int $navigationSort = 1;
 
