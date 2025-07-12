@@ -206,6 +206,24 @@ class ItilDashboardResource extends Resource
                     }),
             ])
             ->headerActions([
+                Action::make('sync_itil_priorities')
+                    ->label('Sincronizar Prioridades ITIL')
+                    ->icon('heroicon-m-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizar Prioridades ITIL')
+                    ->modalDescription('Esta acción actualizará las prioridades de todos los tickets basándose en sus categorías ITIL asignadas. ¿Desea continuar?')
+                    ->modalSubmitActionLabel('Sincronizar')
+                    ->action(function () {
+                        $updated = static::syncItilPriorities();
+
+                        Notification::make()
+                            ->title('Sincronización Completada')
+                            ->body("Se actualizaron {$updated} tickets con nuevas prioridades basadas en categorías ITIL.")
+                            ->success()
+                            ->send();
+                    }),
+
                 Action::make('export_excel')
                     ->label('Exportar Excel')
                     ->icon('heroicon-m-document-arrow-down')
@@ -334,6 +352,64 @@ class ItilDashboardResource extends Resource
             'fecha_hasta' => $filters['fecha_hasta'] ?? null,
             'generated_at' => now(),
         ];
+    }
+
+    /**
+     * Sincroniza las prioridades de los tickets basándose en sus categorías ITIL
+     */
+    public static function syncItilPriorities(): int
+    {
+        $updatedCount = 0;
+
+        // Obtener todos los tickets que tienen categorías ITIL
+        $tickets = Ticket::whereHas('categorias', function($query) {
+            $query->where('itil_category', true);
+        })->with('categorias')->get();
+
+        foreach ($tickets as $ticket) {
+            $maxPriority = 'Baja';
+
+            foreach ($ticket->categorias as $categoria) {
+                if ($categoria->itil_category) {
+                    $categoryPriority = static::mapItilPriorityToTicket($categoria->prioridad_default);
+
+                    if (static::isPriorityHigher($categoryPriority, $maxPriority)) {
+                        $maxPriority = $categoryPriority;
+                    }
+                }
+            }
+
+            // Solo actualizar si la prioridad cambió
+            if ($ticket->prioridad !== $maxPriority) {
+                $ticket->update(['prioridad' => $maxPriority]);
+                $updatedCount++;
+            }
+        }
+
+        return $updatedCount;
+    }
+
+    /**
+     * Mapea prioridades ITIL a prioridades de ticket
+     */
+    private static function mapItilPriorityToTicket($itilPriority): string
+    {
+        return match(strtolower($itilPriority)) {
+            'baja' => 'Baja',
+            'media' => 'Media',
+            'alta' => 'Alta',
+            'critica' => 'Critica',
+            default => 'Media'
+        };
+    }
+
+    /**
+     * Compara si una prioridad es mayor que otra
+     */
+    private static function isPriorityHigher($priority1, $priority2): bool
+    {
+        $hierarchy = ['Baja' => 1, 'Media' => 2, 'Alta' => 3, 'Critica' => 4];
+        return ($hierarchy[$priority1] ?? 0) > ($hierarchy[$priority2] ?? 0);
     }
 
     public static function getNavigationGroup(): ?string

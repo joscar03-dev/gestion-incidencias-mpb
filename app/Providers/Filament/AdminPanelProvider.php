@@ -56,6 +56,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\ItilWorkloadTableWidget::class,
                 \App\Filament\Widgets\ItilIncidentMetricsChart::class,
                 \App\Filament\Widgets\ItilSlaComplianceChart::class,
+                \App\Filament\Widgets\ItilCategoryStatsWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

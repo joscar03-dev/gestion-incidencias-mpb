@@ -7,6 +7,7 @@ use App\Filament\Resources\TicketResource\RelationManagers;
 use App\Filament\Resources\TicketResource\RelationManagers\CategoriasRelationManager;
 use App\Filament\Resources\TicketResource\RelationManagers\CommentsRelationManager;
 use App\Models\Area;
+use App\Models\Categoria;
 use App\Models\Rol;
 use App\Models\Ticket;
 use App\Models\User;
@@ -181,6 +182,60 @@ class TicketResource extends Resource
                     })
                     ->helperText('Selecciona el tipo que mejor describe la solicitud'),
 
+                // Categorías ITIL
+                Select::make('categorias')
+                    ->label('Categorías ITIL')
+                    ->multiple()
+                    ->options(function ($get) {
+                        $tipo = $get('tipo');
+                        $tipoCategoria = match($tipo) {
+                            'Incidente' => 'incidente',
+                            'Requerimiento' => 'solicitud_servicio',
+                            'Cambio' => 'cambio',
+                            default => null
+                        };
+
+                        $query = \App\Models\Categoria::query()
+                            ->where('is_active', true)
+                            ->where('itil_category', true);
+
+                        if ($tipoCategoria) {
+                            $query->where('tipo_categoria', $tipoCategoria);
+                        }
+
+                        return $query->pluck('nombre', 'id')->toArray();
+                    })
+                    ->searchable()
+                    ->relationship('categorias', 'nombre')
+                    ->preload()
+                    ->reactive()
+                    ->helperText(function ($get) {
+                        $tipo = $get('tipo');
+                        return match($tipo) {
+                            'Incidente' => '🔴 Categorías de incidentes ITIL disponibles',
+                            'Requerimiento' => '🔵 Categorías de solicitudes de servicio ITIL',
+                            'Cambio' => '🟡 Categorías de cambios ITIL',
+                            default => '⚪ Selecciona un tipo para ver categorías específicas'
+                        };
+                    })
+                    ->afterStateUpdated(function ($state, $set, $get) {
+                        // Auto-ajustar prioridad basada en categorías ITIL seleccionadas
+                        if ($state && is_array($state)) {
+                            $categorias = \App\Models\Categoria::whereIn('id', $state)->get();
+                            $prioridadMaxima = 'Baja';
+
+                            foreach ($categorias as $categoria) {
+                                $prioridadCategoria = $categoria->prioridad_default;
+                                if ($this->compararPrioridad($prioridadCategoria, $prioridadMaxima)) {
+                                    $prioridadMaxima = $this->mapearPrioridad($prioridadCategoria);
+                                }
+                            }
+
+                            $set('prioridad', $prioridadMaxima);
+                        }
+                    })
+                    ->columnSpan(2),
+
                 // Sección de Estado y Asignación
                 Select::make('estado')
                     ->label('Estado')
@@ -290,6 +345,15 @@ class TicketResource extends Resource
                         'Cambio' => 'heroicon-o-cog-6-tooth',
                         default => 'heroicon-o-question-mark-circle',
                     }),
+
+                TextColumn::make('categorias.nombre')
+                    ->label('Categorías ITIL')
+                    ->badge()
+                    ->separator(',')
+                    ->limit(2)
+                    ->color('info')
+                    ->icon('heroicon-o-tag')
+                    ->toggleable(),
 
                 TextColumn::make('estado')
                     ->badge()
@@ -406,6 +470,31 @@ class TicketResource extends Resource
                     ->label('Tipo de Ticket')
                     ->options(self::$model::TIPOS)
                     ->multiple(),
+
+                SelectFilter::make('categorias')
+                    ->label('Categorías ITIL')
+                    ->relationship('categorias', 'nombre')
+                    ->multiple()
+                    ->searchable()
+                    ->optionsLimit(50),
+
+                SelectFilter::make('categoria_tipo')
+                    ->label('Tipo de Categoría ITIL')
+                    ->options([
+                        'incidente' => '🔴 Incidentes',
+                        'solicitud_servicio' => '🔵 Solicitudes de Servicio',
+                        'cambio' => '🟡 Cambios',
+                        'problema' => '🟢 Problemas',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'],
+                            fn (Builder $query, $value): Builder => $query->whereHas(
+                                'categorias',
+                                fn (Builder $query): Builder => $query->where('tipo_categoria', $value)
+                            ),
+                        );
+                    }),
 
                 SelectFilter::make('area_id')
                     ->label('Área')
@@ -532,5 +621,28 @@ class TicketResource extends Resource
         } else {
             $set('sla_info', 'Selecciona prioridad y tipo para calcular SLA');
         }
+    }
+
+    /**
+     * Compara dos prioridades y devuelve true si la primera es mayor
+     */
+    private function compararPrioridad($prioridad1, $prioridad2): bool
+    {
+        $orden = ['baja' => 1, 'media' => 2, 'alta' => 3, 'critica' => 4];
+        return ($orden[strtolower($prioridad1)] ?? 0) > ($orden[strtolower($prioridad2)] ?? 0);
+    }
+
+    /**
+     * Mapea prioridades ITIL a prioridades del ticket
+     */
+    private function mapearPrioridad($prioridadItil): string
+    {
+        return match(strtolower($prioridadItil)) {
+            'baja' => 'Baja',
+            'media' => 'Media',
+            'alta' => 'Alta',
+            'critica' => 'Critica',
+            default => 'Media'
+        };
     }
 }
