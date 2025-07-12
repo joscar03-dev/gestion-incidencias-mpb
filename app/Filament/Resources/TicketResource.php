@@ -226,8 +226,8 @@ class TicketResource extends Resource
 
                             foreach ($categorias as $categoria) {
                                 $prioridadCategoria = $categoria->prioridad_default;
-                                if ($this->compararPrioridad($prioridadCategoria, $prioridadMaxima)) {
-                                    $prioridadMaxima = $this->mapearPrioridad($prioridadCategoria);
+                                if (self::compararPrioridad($prioridadCategoria, $prioridadMaxima)) {
+                                    $prioridadMaxima = self::mapearPrioridad($prioridadCategoria);
                                 }
                             }
 
@@ -626,7 +626,7 @@ class TicketResource extends Resource
     /**
      * Compara dos prioridades y devuelve true si la primera es mayor
      */
-    private function compararPrioridad($prioridad1, $prioridad2): bool
+    private static function compararPrioridad($prioridad1, $prioridad2): bool
     {
         $orden = ['baja' => 1, 'media' => 2, 'alta' => 3, 'critica' => 4];
         return ($orden[strtolower($prioridad1)] ?? 0) > ($orden[strtolower($prioridad2)] ?? 0);
@@ -635,7 +635,7 @@ class TicketResource extends Resource
     /**
      * Mapea prioridades ITIL a prioridades del ticket
      */
-    private function mapearPrioridad($prioridadItil): string
+    private static function mapearPrioridad($prioridadItil): string
     {
         return match(strtolower($prioridadItil)) {
             'baja' => 'Baja',

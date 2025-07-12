@@ -5,11 +5,11 @@ namespace App\Filament\Widgets;
 use App\Models\ItilDashboard;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class ItilIncidentMetricsChart extends ApexChartWidget
+class TestChart extends ApexChartWidget
 {
-    protected static ?string $chartId = 'itilIncidentMetricsChart';
-    protected static ?string $heading = 'Distribución de Incidentes ITIL';
-    protected static ?int $sort = 5;
+    protected static ?string $chartId = 'testChart';
+    protected static ?string $heading = 'Test Chart - Distribución de Tickets';
+    protected static ?int $sort = 10;
 
     protected function getOptions(): array
     {
@@ -17,7 +17,7 @@ class ItilIncidentMetricsChart extends ApexChartWidget
 
         return [
             'chart' => [
-                'type' => 'donut',
+                'type' => 'pie',
                 'height' => 300,
             ],
             'series' => [
@@ -27,17 +27,14 @@ class ItilIncidentMetricsChart extends ApexChartWidget
                 $metrics['cancelled_incidents'],
             ],
             'labels' => [
-                'Abiertos (' . $metrics['open_incidents'] . ')',
-                'Resueltos (' . $metrics['resolved_incidents'] . ')',
-                'Escalados (' . $metrics['escalated_incidents'] . ')',
-                'Cancelados (' . $metrics['cancelled_incidents'] . ')',
+                'Abiertos: ' . $metrics['open_incidents'],
+                'Resueltos: ' . $metrics['resolved_incidents'],
+                'Escalados: ' . $metrics['escalated_incidents'],
+                'Cancelados: ' . $metrics['cancelled_incidents'],
             ],
             'colors' => ['#f59e0b', '#10b981', '#ef4444', '#6b7280'],
             'legend' => [
                 'position' => 'bottom',
-            ],
-            'dataLabels' => [
-                'enabled' => true,
             ],
         ];
     }

@@ -104,35 +104,38 @@ class ItilDashboard extends Model
      */
     public static function getIncidentMetrics($period = 'month')
     {
-        $query = Ticket::query();
+        $baseQuery = Ticket::query();
 
         // Filtrar por período
         switch ($period) {
             case 'today':
-                $query->whereDate('created_at', today());
+                $baseQuery->whereDate('created_at', today());
                 break;
             case 'week':
-                $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                $baseQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
                 break;
             case 'month':
-                $query->whereMonth('created_at', now()->month);
+                $baseQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
                 break;
             case 'quarter':
-                $query->whereBetween('created_at', [now()->startOfQuarter(), now()->endOfQuarter()]);
+                $baseQuery->whereBetween('created_at', [now()->startOfQuarter(), now()->endOfQuarter()]);
                 break;
         }
 
-        $total = $query->count();
-        $resolved = $query->where('estado', 'Cerrado')->count();
-        $open = $query->whereIn('estado', ['Abierto', 'En Progreso'])->count();
-        $escalated = $query->where('escalado', true)->count();
-        $sla_breached = $query->where('sla_vencido', true)->count();
+        // Usar clones para evitar acumulación de filtros
+        $total = (clone $baseQuery)->count();
+        $resolved = (clone $baseQuery)->where('estado', 'Cerrado')->count();
+        $open = (clone $baseQuery)->whereIn('estado', ['Abierto', 'En Progreso'])->count();
+        $escalated = (clone $baseQuery)->where('escalado', true)->count(); // Usar propiedad booleana
+        $cancelled = (clone $baseQuery)->where('estado', 'Cancelado')->count();
+        $sla_breached = (clone $baseQuery)->where('sla_vencido', true)->count();
 
         return [
             'total_incidents' => $total,
             'resolved_incidents' => $resolved,
             'open_incidents' => $open,
             'escalated_incidents' => $escalated,
+            'cancelled_incidents' => $cancelled,
             'sla_breached' => $sla_breached,
             'resolution_rate' => $total > 0 ? round(($resolved / $total) * 100, 2) : 0,
             'escalation_rate' => $total > 0 ? round(($escalated / $total) * 100, 2) : 0,
