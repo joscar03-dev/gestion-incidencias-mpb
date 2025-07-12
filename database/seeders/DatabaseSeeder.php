@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             SlaSeeder::class,
             ItilCategoriasSeeder::class,
+            CategoriaDispositivoSeeder::class,
         ]);
     }
 }
