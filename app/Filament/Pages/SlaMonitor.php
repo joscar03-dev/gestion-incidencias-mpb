@@ -12,8 +12,9 @@ class SlaMonitor extends Page
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
     protected static ?string $navigationLabel = 'Monitor SLA';
     protected static ?string $title = 'Monitor de SLA';
+    protected static ?string $navigationGroup = '⚙️ Configuración';
     protected static string $view = 'filament.pages.sla-monitor';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 9;
 
     public function getHeading(): string
     {
