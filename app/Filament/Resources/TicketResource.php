@@ -133,7 +133,7 @@ class TicketResource extends Resource
                     ->reactive()
                     ->afterStateUpdated(function ($state, $set, $get) {
                         // Actualizar información de SLA cuando cambie la prioridad
-                        $this->actualizarSlaAdmin($state, $get('tipo'), $get('area_id'), $set);
+                        static::actualizarSlaAdmin($state, $get('tipo'), $get('area_id'), $set);
                     }),
 
                 Placeholder::make('sla_info')
@@ -178,7 +178,7 @@ class TicketResource extends Resource
                     ->reactive()
                     ->afterStateUpdated(function ($state, $set, $get) {
                         // Actualizar información de SLA cuando cambie el tipo
-                        $this->actualizarSlaAdmin($get('prioridad'), $state, $get('area_id'), $set);
+                        static::actualizarSlaAdmin($get('prioridad'), $state, $get('area_id'), $set);
                     })
                     ->helperText('Selecciona el tipo que mejor describe la solicitud'),
 
@@ -595,7 +595,7 @@ class TicketResource extends Resource
     /**
      * Método helper para actualizar la información de SLA en el formulario admin
      */
-    protected function actualizarSlaAdmin($prioridad, $tipo, $areaId, $set)
+    protected static function actualizarSlaAdmin($prioridad, $tipo, $areaId, $set)
     {
         if (!$areaId) {
             $areaId = Auth::user()?->area_id;
