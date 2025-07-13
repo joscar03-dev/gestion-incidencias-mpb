@@ -126,6 +126,7 @@ class DispositivoResource extends Resource
                                         if (!$areaId) {
                                             return [];
                                         }
+
                                         return User::where('area_id', $areaId)->pluck('name', 'id');
                                     })
                                     ->searchable()
