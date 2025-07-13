@@ -76,7 +76,6 @@ class SlaSeeder extends Seeder
                     'nivel' => $configSla['nivel'],
                     'tiempo_respuesta' => $configSla['tiempo_respuesta_min'],
                     'tiempo_resolucion' => $configSla['tiempo_resolucion_min'],
-                    'tipo_ticket' => 'General',
                     'canal' => 'Sistema',
                     'descripcion' => $configSla['descripcion'],
                     'activo' => true,
