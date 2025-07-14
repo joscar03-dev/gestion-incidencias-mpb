@@ -68,32 +68,54 @@
             <!-- Header con navegación por pestañas -->
             <div class="bg-white rounded-lg shadow">
                 <div class="border-b border-gray-200">
-                    <nav class="flex px-6">
+                    <!-- Navegación desktop -->
+                    <nav class="hidden md:flex px-6">
                         <button
-                            wire:click="$set('activeTab', 'mis-dispositivos')"
+                            wire:click="setActiveTab('mis-dispositivos')"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8 {{ $activeTab === 'mis-dispositivos' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                         >
                             Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})
                         </button>
                         <button
-                            wire:click="$set('activeTab', 'solicitar-dispositivo')"
+                            wire:click="setActiveTab('solicitar-dispositivo')"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8 {{ $activeTab === 'solicitar-dispositivo' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                         >
                             Solicitar Requerimiento
                         </button>
                         <button
-                            wire:click="$set('activeTab', 'mis-requerimientos')"
+                            wire:click="setActiveTab('mis-requerimientos')"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8 {{ $activeTab === 'mis-requerimientos' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                         >
                             Mis Requerimientos
                         </button>
                         <button
-                            wire:click="$set('activeTab', 'historial')"
+                            wire:click="setActiveTab('historial')"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm {{ $activeTab === 'historial' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                         >
                             Historial
                         </button>
                     </nav>
+
+                    <!-- Navegación móvil - Select Dropdown -->
+                    <div class="md:hidden px-4 py-3">
+                        <div class="relative">
+                            <select
+                                wire:model.live="activeTab"
+                                class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="mis-dispositivos">📱 Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})</option>
+                                <option value="solicitar-dispositivo">➕ Solicitar Requerimiento</option>
+                                <option value="mis-requerimientos">📋 Mis Requerimientos</option>
+                                <option value="historial">🕐 Historial</option>
+                            </select>
+                            <!-- Icono de flecha personalizado -->
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -201,7 +223,7 @@
                             <h3 class="text-lg font-medium text-gray-900 mb-2">No tienes dispositivos asignados</h3>
                             <p class="text-gray-500 mb-4">Solicita un dispositivo haciendo clic en la pestaña "Solicitar Requerimiento"</p>
                             <button
-                                wire:click="$set('activeTab', 'solicitar-dispositivo')"
+                                wire:click="setActiveTab('solicitar-dispositivo')"
                                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
                             >
                                 Solicitar Dispositivo
@@ -219,7 +241,7 @@
                     </div>
 
                     <form wire:submit="enviarRequerimiento" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
                                 <label for="categoria_solicitada" class="block text-sm font-medium text-gray-700 mb-2">
                                     Categoría de Dispositivo *
@@ -227,7 +249,7 @@
                                 <select
                                     wire:model="categoria_solicitada"
                                     id="categoria_solicitada"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                 >
                                     <option value="">Seleccione una categoría</option>
                                     @if(isset($categorias))
@@ -246,7 +268,7 @@
                                 <select
                                     wire:model="prioridad_requerimiento"
                                     id="prioridad_requerimiento"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                 >
                                     <option value="Baja">Baja</option>
                                     <option value="Media">Media</option>
@@ -264,16 +286,16 @@
                                 wire:model="justificacion_requerimiento"
                                 id="justificacion_requerimiento"
                                 rows="4"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                 placeholder="Explique por qué necesita este dispositivo y cómo lo utilizará..."
                             ></textarea>
                             @error('justificacion_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="flex justify-end">
+                        <div class="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 type="submit"
-                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             >
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
@@ -359,7 +381,7 @@
             <!-- Modal de Reporte -->
             @if(isset($showReporteModal) && $showReporteModal)
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+                    <div class="relative top-4 sm:top-20 mx-auto p-4 sm:p-5 border w-11/12 sm:w-10/12 md:w-1/2 shadow-lg rounded-md bg-white max-w-md sm:max-w-lg">
                         <div class="mt-3">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Reportar Problema</h3>
                             <form wire:submit="enviarReporte" class="space-y-4">
@@ -367,7 +389,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Tipo de Problema
                                     </label>
-                                    <select wire:model="tipo_problema" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <select wire:model="tipo_problema" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                         <option value="">Seleccione el tipo de problema</option>
                                         <option value="Hardware">Hardware</option>
                                         <option value="Software">Software</option>
@@ -385,18 +407,18 @@
                                     <textarea
                                         wire:model="descripcion_problema"
                                         rows="4"
-                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                         placeholder="Describe detalladamente el problema..."></textarea>
                                     @error('descripcion_problema') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
 
-                                <div class="flex justify-end space-x-3 pt-4">
-                                    <button type="button" wire:click="$set('showReporteModal', false)"
-                                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+                                    <button type="button" wire:click="cerrarReporteModal"
+                                            class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 justify-center inline-flex items-center">
                                         Cancelar
                                     </button>
                                     <button type="submit"
-                                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">
+                                            class="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 justify-center inline-flex items-center">
                                         Reportar Problema
                                     </button>
                                 </div>
