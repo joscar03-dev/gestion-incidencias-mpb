@@ -59,7 +59,11 @@ class TicketResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(3)
+            ->columns([
+                'sm' => 1,
+                'md' => 2,
+                'lg' => 3,
+            ])
             ->schema([
                 // Campo creado por solo para Super Admin al crear ticket (inmutable una vez creado)
                 Select::make('creado_por')
@@ -77,14 +81,23 @@ class TicketResource extends Resource
                         } else {
                             $set('area_id', null);
                         }
-                    }),
+                    })
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Mostrar quién creó el ticket (solo lectura durante edición)
                 Placeholder::make('creado_por_info')
                     ->label('Creado por')
                     ->content(fn($record) => $record?->creadoPor?->name ?? 'N/A')
                     ->visible(fn($record) => $record !== null)
-                    ->columnSpan(1),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Campo área oculto que se asigna automáticamente según el usuario
                 Forms\Components\Hidden::make('area_id')
@@ -110,18 +123,30 @@ class TicketResource extends Resource
                             }
                         }
                     })
-                    ->columnSpan(1),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 TextInput::make('titulo')
                     ->label('Título')
                     ->required()
                     ->autofocus()
-                    ->columnSpan(fn() => Auth::user()?->hasRole('Super Admin') ? 2 : 2),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => fn() => Auth::user()?->hasRole('Super Admin') ? 2 : 2,
+                    ]),
 
                 Textarea::make('descripcion')
                     ->label('Descripción')
                     ->rows(3)
-                    ->columnSpan(3),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 3,
+                    ]),
 
                 // Sección de Prioridad y SLA
                 Select::make('prioridad')
@@ -134,7 +159,12 @@ class TicketResource extends Resource
                     ->afterStateUpdated(function ($state, $set, $get) {
                         // Actualizar información de SLA cuando cambie la prioridad
                         static::actualizarSlaAdmin($state, $get('tipo'), $get('area_id'), $set);
-                    }),
+                    })
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Placeholder::make('sla_info')
                     ->label('SLA Calculado')
@@ -166,7 +196,12 @@ class TicketResource extends Resource
                         }
                         return 'Selecciona prioridad y tipo para ver SLA completo';
                     })
-                    ->visible(fn($get) => $get('prioridad')),
+                    ->visible(fn($get) => $get('prioridad'))
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 2,
+                    ]),
 
                 // Tipo de ticket (nuevo campo)
                 Select::make('tipo')
@@ -180,7 +215,12 @@ class TicketResource extends Resource
                         // Actualizar información de SLA cuando cambie el tipo
                         static::actualizarSlaAdmin($get('prioridad'), $state, $get('area_id'), $set);
                     })
-                    ->helperText('Selecciona el tipo que mejor describe la solicitud'),
+                    ->helperText('Selecciona el tipo que mejor describe la solicitud')
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Categorías ITIL
                 Select::make('categorias')
@@ -218,6 +258,11 @@ class TicketResource extends Resource
                             default => '⚪ Selecciona un tipo para ver categorías específicas'
                         };
                     })
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 2,
+                    ])
                     ->afterStateUpdated(function ($state, $set, $get) {
                         // Auto-ajustar prioridad basada en categorías ITIL seleccionadas
                         if ($state && is_array($state)) {
@@ -233,8 +278,7 @@ class TicketResource extends Resource
 
                             $set('prioridad', $prioridadMaxima);
                         }
-                    })
-                    ->columnSpan(2),
+                    }),
 
                 // Sección de Estado y Asignación
                 Select::make('estado')
@@ -243,30 +287,55 @@ class TicketResource extends Resource
                     ->default(self::$model::ESTADOS['Abierto'])
                     ->required()
                     ->in(array_keys(self::$model::ESTADOS))
-                    ->reactive(),
+                    ->reactive()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Select::make('asignado_a')
                     ->label('Asignado a')
                     ->options(
                         User::role(['Tecnico'])->pluck('name', 'id')->toArray()
                     )
-                    ->visible(fn() => Auth::user()?->hasRole(['Super Admin','Admin',])),
+                    ->visible(fn() => Auth::user()?->hasRole(['Super Admin','Admin',]))
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Sección de Escalamiento (solo visible en edición)
                 Toggle::make('escalado')
                     ->label('¿Escalado?')
                     ->visible(fn($record) => $record !== null)
-                    ->disabled(),
+                    ->disabled()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 DateTimePicker::make('fecha_escalamiento')
                     ->label('Fecha de Escalamiento')
                     ->visible(fn($record) => $record?->escalado)
-                    ->disabled(),
+                    ->disabled()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Toggle::make('sla_vencido')
                     ->label('SLA Vencido')
                     ->visible(fn($record) => $record !== null)
-                    ->disabled(),
+                    ->disabled()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Archivos y Comentarios
                 FileUpload::make('attachment')
@@ -277,14 +346,22 @@ class TicketResource extends Resource
                     ->directory('tickets')
                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                     ->maxSize(1024)
-                    ->columnSpan(2),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 2,
+                    ]),
 
                 Textarea::make('comentario')
                     ->label('Solución / Comentario')
                     ->rows(3)
                     ->visible(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
                     ->required(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
-                    ->columnSpan(3),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 3,
+                    ]),
             ])->statePath('data');
     }
 
