@@ -40,7 +40,11 @@ class SlaResource extends Resource
                     ->validationMessages([
                         'unique' => 'Ya existe un SLA para esta área. Cada área puede tener únicamente un SLA.',
                     ])
-                    ->columnSpan(2),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 2,
+                    ]),
 
                 Forms\Components\Select::make('nivel')
                     ->options([
@@ -49,7 +53,12 @@ class SlaResource extends Resource
                         'Bajo' => 'Bajo',
                     ])
                     ->required()
-                    ->default('Medio'),
+                    ->default('Medio')
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Forms\Components\TextInput::make('tiempo_respuesta')
                     ->label('Tiempo de Respuesta (minutos)')
@@ -57,7 +66,12 @@ class SlaResource extends Resource
                     ->numeric()
                     ->default(60)
                     ->suffix('minutos')
-                    ->helperText('Tiempo máximo para primera respuesta'),
+                    ->helperText('Tiempo máximo para primera respuesta')
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Forms\Components\TextInput::make('tiempo_resolucion')
                     ->label('Tiempo de Resolución (minutos)')
@@ -65,7 +79,12 @@ class SlaResource extends Resource
                     ->numeric()
                     ->default(480)
                     ->suffix('minutos')
-                    ->helperText('Tiempo máximo para resolver el ticket'),
+                    ->helperText('Tiempo máximo para resolver el ticket')
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Forms\Components\Select::make('canal')
                     ->label('Canal')
@@ -77,29 +96,53 @@ class SlaResource extends Resource
                         'Presencial' => 'Presencial',
                     ])
                     ->default('Sistema')
-                    ->required(),
+                    ->required()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Forms\Components\Textarea::make('descripcion')
                     ->label('Descripción')
                     ->rows(3)
-                    ->columnSpan(2),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 2,
+                    ]),
 
                 Forms\Components\Toggle::make('activo')
                     ->label('Activo')
                     ->default(true)
-                    ->helperText('SLA activo para nuevos tickets'),
+                    ->helperText('SLA activo para nuevos tickets')
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Campos para el sistema híbrido
                 Forms\Components\Toggle::make('override_area')
                     ->label('Permitir Override por Prioridad')
                     ->default(true)
                     ->helperText('Si está ACTIVADO: Los tiempos se ajustan según la prioridad del ticket. Si está DESACTIVADO: Todos los tickets usan los mismos tiempos base.')
-                    ->reactive(),
+                    ->reactive()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Forms\Components\Toggle::make('escalamiento_automatico')
                     ->label('Escalamiento Automático')
                     ->default(true)
-                    ->reactive(),
+                    ->reactive()
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 Forms\Components\TextInput::make('tiempo_escalamiento')
                     ->label('Tiempo para Escalamiento (minutos)')
@@ -107,7 +150,12 @@ class SlaResource extends Resource
                     ->default(120)
                     ->suffix('minutos')
                     ->visible(fn($get) => $get('escalamiento_automatico'))
-                    ->helperText('Tiempo después del cual se escala automáticamente'),
+                    ->helperText('Tiempo después del cual se escala automáticamente')
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 1,
+                        'lg' => 1,
+                    ]),
 
                 // Información del sistema híbrido simplificado
                 Forms\Components\Placeholder::make('info_hibrido')
@@ -159,9 +207,17 @@ class SlaResource extends Resource
                             ';
                         }
                     })
-                    ->columnSpan(2),
+                    ->columnSpan([
+                        'sm' => 1,
+                        'md' => 2,
+                        'lg' => 2,
+                    ]),
             ])
-            ->columns(2);
+            ->columns([
+                'sm' => 1,
+                'md' => 2,
+                'lg' => 2,
+            ]);
     }
 
     public static function table(Table $table): Table
