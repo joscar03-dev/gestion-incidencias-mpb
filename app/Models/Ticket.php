@@ -471,4 +471,44 @@ class Ticket extends Model implements Commentable
     {
         return $query->where('area_id', $areaId);
     }
+
+    /**
+     * Asignar automáticamente un técnico disponible basado en la carga de trabajo
+     *
+     * @return User|null El técnico asignado o null si no hay técnicos disponibles
+     */
+    public static function asignarTecnicoAutomaticamente()
+    {
+        // Estados que no se consideran como carga de trabajo activa
+        $estadosNoDisponibles = [
+            self::ESTADOS['Cerrado'],
+            self::ESTADOS['Archivado'],
+        ];
+
+        // Buscar usuarios con rol 'Técnico' o 'Tecnico' (por compatibilidad)
+        $tecnicos = User::role(['Técnico', 'Tecnico'])->get();
+
+        if ($tecnicos->isEmpty()) {
+            return null;
+        }
+
+        // Filtrar técnicos disponibles (<5 tickets no cerrados ni archivados)
+        $disponibles = $tecnicos->filter(function ($u) use ($estadosNoDisponibles) {
+            return $u->ticketsAsignados()
+                ->whereNotIn('estado', $estadosNoDisponibles)
+                ->count() < 5;
+        });
+
+        if ($disponibles->isEmpty()) {
+            // Si no hay técnicos disponibles, seleccionar aleatoriamente cualquier técnico
+            return $tecnicos->random();
+        } else {
+            // Seleccionar el técnico con menor número de tickets no cerrados ni archivados
+            return $disponibles->sortBy(function ($u) use ($estadosNoDisponibles) {
+                return $u->ticketsAsignados()
+                    ->whereNotIn('estado', $estadosNoDisponibles)
+                    ->count();
+            })->first();
+        }
+    }
 }
