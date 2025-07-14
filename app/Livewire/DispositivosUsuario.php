@@ -134,7 +134,10 @@ class DispositivosUsuario extends Component
             'requiere_reemplazo' => 'boolean',
         ]);
 
-        // Crear ticket
+        // Asignar un técnico disponible automáticamente
+        $tecnico = Ticket::asignarTecnicoAutomaticamente();
+
+        // Crear ticket con asignación automática
         $ticket = Ticket::create([
             'dispositivo_id' => $this->dispositivo_seleccionado,
             'area_id' => Auth::user()->area_id,
@@ -144,7 +147,8 @@ class DispositivosUsuario extends Component
             'titulo' => "Problema con dispositivo - {$this->tipo_problema}",
             'descripcion' => $this->descripcion_problema,
             'creado_por' => Auth::id(),
-            'asignado_a' => null,
+            'asignado_a' => $tecnico ? $tecnico->id : null,
+            'asignado_por' => null, // null indica asignación automática
             'fecha_creacion' => now(),
         ]);
 
@@ -157,6 +161,12 @@ class DispositivosUsuario extends Component
         $this->showReporteModal = false;
         $this->dispatch('notify', "Incidencia reportada correctamente. Ticket #{$ticket->id} creado.");
         $this->reset(['dispositivo_seleccionado', 'tipo_problema', 'descripcion_problema', 'requiere_reemplazo']);
+    }
+
+    // Enviar reporte de problema (alias de reportarProblema)
+    public function enviarReporte()
+    {
+        return $this->reportarProblema();
     }
 
     // Confirmar recepción de dispositivo asignado
