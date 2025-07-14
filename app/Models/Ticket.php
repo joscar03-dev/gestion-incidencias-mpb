@@ -8,8 +8,6 @@ use App\Models\TicketComment;
 use Kirschbaum\Commentions\Contracts\Commentable;
 use Kirschbaum\Commentions\HasComments;
 use Illuminate\Support\Facades\Log;
-use Filament\Notifications\Notification;
-use Filament\Notifications\Events\DatabaseNotificationsSent;
 
 class Ticket extends Model implements Commentable
 {
@@ -287,103 +285,17 @@ class Ticket extends Model implements Commentable
      */
     private function notificarEscalamiento($motivo, $prioridadAnterior, $nuevaPrioridad)
     {
-        // Obtener usuarios a notificar
-        $usuariosNotificar = $this->obtenerUsuariosParaNotificar();
-
-        // Enviar notificaciones personalizadas
-        foreach ($usuariosNotificar as $usuario) {
-            $this->enviarNotificacionPersonalizada($usuario, $motivo, $prioridadAnterior, $nuevaPrioridad);
-        }
-
         // Agregar comentario al ticket
         $this->agregarComentarioEscalado($motivo, $prioridadAnterior, $nuevaPrioridad);
-    }
 
-    /**
-     * Envía notificación personalizada según el tipo de usuario
-     */
-    private function enviarNotificacionPersonalizada($usuario, $motivo, $prioridadAnterior, $nuevaPrioridad)
-    {
-        try {
-            // Determinar el tipo de usuario
-            $esAdmin = $usuario->hasRole(['admin', 'super_admin']);
-            $esTecnicoAsignado = $this->asignado_a === $usuario->id;
-
-            // Personalizar mensaje según el tipo de usuario
-            if ($esTecnicoAsignado) {
-                $titulo = "🚨 Tu ticket #{$this->id} fue escalado";
-                $mensaje = "Tu ticket '{$this->titulo}' ha sido escalado automáticamente debido a que se venció el SLA.\n\n" .
-                          "⚠️ Acción requerida: Por favor, revisa el ticket inmediatamente.\n\n" .
-                          "📋 Detalles del escalado:\n" .
-                          "• Motivo: {$motivo}\n" .
-                          "• Prioridad: {$prioridadAnterior} → {$nuevaPrioridad}\n" .
-                          "• Área: {$this->area->nombre}\n" .
-                          "• Escalado: " . now()->format('d/m/Y H:i') . "\n\n" .
-                          "🔗 Revisa el ticket en el panel de administración.";
-            } else {
-                $titulo = "🚨 Ticket #{$this->id} escalado - Supervisión requerida";
-                $mensaje = "El ticket '{$this->titulo}' ha sido escalado automáticamente y requiere supervisión.\n\n" .
-                          "📋 Detalles del escalado:\n" .
-                          "• Motivo: {$motivo}\n" .
-                          "• Prioridad: {$prioridadAnterior} → {$nuevaPrioridad}\n" .
-                          "• Área: {$this->area->nombre}\n" .
-                          "• Técnico asignado: {$this->asignadoA->name}\n" .
-                          "• Creado: {$this->created_at->format('d/m/Y H:i')}\n" .
-                          "• Escalado: " . now()->format('d/m/Y H:i') . "\n\n" .
-                          "🔗 Revisa el ticket y toma las acciones necesarias.";
-            }
-
-            // Enviar notificación de Filament
-            Notification::make()
-                ->title($titulo)
-                ->body($mensaje)
-                ->icon('heroicon-o-exclamation-triangle')
-                ->iconColor('warning')
-                ->persistent() // Notificación persistente para escalados
-                ->sendToDatabase($usuario);
-
-            // Disparar evento para actualizar la UI
-            event(new DatabaseNotificationsSent($usuario));
-
-            // Log para debugging
-            Log::info("Notificación de escalado enviada", [
-                'usuario' => $usuario->name,
-                'email' => $usuario->email,
-                'ticket_id' => $this->id,
-                'tipo_usuario' => $esTecnicoAsignado ? 'tecnico_asignado' : 'admin',
-                'titulo' => $titulo
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error("Error al enviar notificación de escalado", [
-                'usuario' => $usuario->id,
-                'ticket_id' => $this->id,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-    /**
-     * Obtiene los usuarios que deben ser notificados del escalado
-     */
-    private function obtenerUsuariosParaNotificar()
-    {
-        $usuarios = collect();
-
-        // 1. Técnico asignado
-        if ($this->asignadoA) {
-            $usuarios->push($this->asignadoA);
-        }
-
-        // 2. Admin y Superadmin
-        $adminUsers = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['admin', 'super_admin']);
-        })->get();
-
-        $usuarios = $usuarios->merge($adminUsers);
-
-        // Remover duplicados
-        return $usuarios->unique('id');
+        // Log del escalamiento
+        Log::info("Ticket escalado", [
+            'ticket_id' => $this->id,
+            'motivo' => $motivo,
+            'prioridad_anterior' => $prioridadAnterior,
+            'nueva_prioridad' => $nuevaPrioridad,
+            'area' => $this->area->nombre ?? 'Sin área'
+        ]);
     }
 
     /**
@@ -396,7 +308,6 @@ class Ticket extends Model implements Commentable
                          "• Motivo: {$motivo}\n" .
                          "• Prioridad cambió de {$prioridadAnterior} a {$nuevaPrioridad}\n" .
                          "• Fecha: " . now()->format('d/m/Y H:i') . "\n" .
-                         "• Notificados: Técnico asignado, Admin y Superadmin\n" .
                          "• Sistema: Escalado automático por vencimiento de SLA";
 
             $this->comment($comentario, $this->creadoPor);
