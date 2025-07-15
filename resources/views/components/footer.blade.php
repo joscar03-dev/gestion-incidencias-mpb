@@ -32,8 +32,8 @@
                 <h4 class="font-semibold mb-4">Enlaces Rápidos</h4>
                 <ul class="space-y-2 text-sm text-gray-400">
                     @auth
-                        <li><a href="{{ url('/reportar') }}" class="hover:text-white transition-colors">Mis Tickets</a></li>
-                        <li><a href="{{ url('/reportar/tickets/create') }}" class="hover:text-white transition-colors">Crear Ticket</a></li>
+                        <li><a href="{{ url('/dashboard') }}" class="hover:text-white transition-colors">Mis Tickets</a></li>
+                      <li><a href="{{ url('/dashboard?view=create') }}" class="hover:text-white transition-colors">Crear Ticket</a></li>
                     @else
                         <li><a href="{{ url('/login') }}" class="hover:text-white transition-colors">Iniciar Sesión</a></li>
                         <li><a href="{{ url('/register') }}" class="hover:text-white transition-colors">Registrarse</a></li>
