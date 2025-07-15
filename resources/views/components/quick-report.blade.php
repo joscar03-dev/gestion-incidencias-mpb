@@ -91,7 +91,7 @@
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                     ¿Necesitas opciones más avanzadas o adjuntar archivos?
-                    <a href="{{ url('/reportar/tickets/create') }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium underline">
+                    <a href="{{ route('dashboard') }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium underline">
                         Usar el formulario completo
                     </a>
                 </p>
