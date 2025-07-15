@@ -9,6 +9,15 @@ class Dashboard extends Component
 {
     public $currentView = 'tickets'; // 'tickets', 'create', 'home'
 
+    public function mount()
+    {
+        // Verificar si hay un parámetro view en la URL
+        $view = request()->query('view');
+        if ($view && in_array($view, ['tickets', 'create', 'home', 'devices'])) {
+            $this->currentView = $view;
+        }
+    }
+
     protected $listeners = [
         'changeView' => 'setView',
         'ticket-created' => 'onTicketCreated'
