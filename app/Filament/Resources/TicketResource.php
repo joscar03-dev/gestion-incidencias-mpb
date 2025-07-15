@@ -381,13 +381,27 @@ class TicketResource extends Resource
                     ->columns(1)
                     ->schema([
                         FileUpload::make('attachment')
-                            ->label('Archivo')
+                            ->label('Archivos Adjuntos')
+                            ->multiple()
                             ->preserveFilenames()
                             ->downloadable()
-                            ->uploadingMessage('Subiendo archivo...')
+                            ->uploadingMessage('Subiendo archivos...')
                             ->directory('tickets')
-                            ->acceptedFileTypes(['application/pdf', 'image/*'])
-                            ->maxSize(1024)
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'image/*',
+                                'application/msword',
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                'application/vnd.ms-excel',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'application/vnd.ms-powerpoint',
+                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                'application/zip',
+                                'application/x-rar-compressed',
+                                'text/plain'
+                            ])
+                            ->maxSize(10240)
+                            ->maxFiles(5)
                             ->columnSpanFull(),
 
                         Textarea::make('comentario')
