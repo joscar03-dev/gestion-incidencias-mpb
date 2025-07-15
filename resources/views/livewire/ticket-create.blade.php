@@ -333,7 +333,7 @@
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('tipo') border-red-500 @enderror"
                                 >
                                     <option value="">Selecciona el tipo</option>
-                                    <option value="Incidencia">🚨 Incidencia</option>
+                                    <option value="Incidente">🚨 Incidencia</option>
                                     <option value="Problema">🔧 Problema</option>
                                     <option value="Requerimiento">📝 Requerimiento</option>
                                     <option value="Cambio">🔄 Cambio</option>

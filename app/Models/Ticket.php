@@ -45,7 +45,66 @@ class Ticket extends Model implements Commentable
         'escalado' => 'boolean',
         'sla_vencido' => 'boolean',
         'is_resolved' => 'boolean',
+        'attachment' => 'array',
     ];
+
+    /**
+     * Mutador para el campo attachment para compatibilidad hacia atrás
+     */
+    public function setAttachmentAttribute($value)
+    {
+        if (is_string($value)) {
+            // Si es string, intentar decodificar como JSON
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                // Si es el formato anterior con objetos, extraer solo las rutas
+                $rutas = [];
+                foreach ($decoded as $archivo) {
+                    if (is_array($archivo) && isset($archivo['ruta'])) {
+                        $rutas[] = $archivo['ruta'];
+                    } elseif (is_string($archivo)) {
+                        $rutas[] = $archivo;
+                    }
+                }
+                $this->attributes['attachment'] = json_encode($rutas);
+            } else {
+                $this->attributes['attachment'] = $value;
+            }
+        } elseif (is_array($value)) {
+            $this->attributes['attachment'] = json_encode($value);
+        } else {
+            $this->attributes['attachment'] = $value;
+        }
+    }
+
+    /**
+     * Accessor para el campo attachment
+     */
+    public function getAttachmentAttribute($value)
+    {
+        if (is_null($value)) {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                // Convertir formato anterior a nuevo formato si es necesario
+                $rutas = [];
+                foreach ($decoded as $archivo) {
+                    if (is_array($archivo) && isset($archivo['ruta'])) {
+                        $rutas[] = $archivo['ruta'];
+                    } elseif (is_string($archivo)) {
+                        $rutas[] = $archivo;
+                    }
+                }
+                return $rutas;
+            }
+            return [];
+        }
+
+        return is_array($value) ? $value : [];
+    }
 
     const PRIORIDAD =
     [

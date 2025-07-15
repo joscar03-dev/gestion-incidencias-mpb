@@ -273,6 +273,7 @@
                                     <option value="Baja">Baja</option>
                                     <option value="Media">Media</option>
                                     <option value="Alta">Alta</option>
+                                    <option value="Critica">Crítica</option>
                                 </select>
                                 @error('prioridad_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
