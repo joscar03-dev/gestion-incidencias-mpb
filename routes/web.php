@@ -15,7 +15,10 @@ use App\Http\Controllers\NotificationController;
 |
 */
 
-Route::view('/', 'welcome');
+Route::view('/', 'welcome')->name('welcome');
+
+// Dashboard para usuarios autenticados
+Route::middleware('auth')->group(function () {});
 
 // Ruta para crear ticket rápido desde la página de bienvenida
 Route::post('/reportar/tickets', function () {
@@ -43,7 +46,7 @@ Route::post('/reportar/tickets', function () {
         'asignado_por' => null,
     ]);
 
-    return redirect('/')->with('success', 'Incidencia reportada exitosamente. Ticket #' . $ticket->id);
+    return redirect('/dashboard')->with('success', 'Incidencia reportada exitosamente. Ticket #' . $ticket->id);
 })->name('tickets.quick-create');
 
 // Notification routes
@@ -51,9 +54,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/web/notifications', [NotificationController::class, 'index']);
     Route::patch('/web/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/web/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
-    
+
     // Rutas para dispositivos de usuario
-    Route::get('/dispositivos', App\Livewire\DispositivosUsuario::class)->name('dispositivos.usuario');
+    Route::get('/dashboard/dispositivos', App\Livewire\DispositivosUsuario::class)->name('dispositivos.usuario');
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

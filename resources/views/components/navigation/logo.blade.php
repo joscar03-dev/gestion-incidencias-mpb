@@ -1,4 +1,4 @@
-<div class="flex items-center space-x-3">
+<a href="{{ url('/') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
     <div class="relative">
         <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-30 pulse-ring"></div>
         <div class="relative bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="hidden sm:block">
-        <h1 class="text-xl font-bold gradient-text">Centro de Soporte</h1>
+        <h1 class="text-xl font-bold gradient-text">Centro de Soporte Local</h1>
         <p class="text-xs text-gray-600 dark:text-gray-400">Sistema de Gestión de Incidencias</p>
     </div>
-</div>
+</a>

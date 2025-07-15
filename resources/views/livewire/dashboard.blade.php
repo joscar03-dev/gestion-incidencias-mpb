@@ -38,7 +38,7 @@
                 </button>
 
                 <!-- Botón Dispositivos -->
-                <button
+                {{-- <button
                     wire:click="showDevices"
                     class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 {{ $currentView === 'devices' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
                 >
@@ -46,7 +46,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                     Dispositivos
-                </button>
+                </button> --}}
             </div>
         </div>
     </div>
