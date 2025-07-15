@@ -5,8 +5,8 @@
 @section('content')
     <!-- Landing Page para todos los usuarios -->
     <x-hero />
-    <x-quick-report />
-    <x-user-stats />
+    {{-- <x-quick-report /> --}}
+    {{-- <x-user-stats /> --}}
     <x-service-categories />
     <x-faq />
     <x-system-status />
