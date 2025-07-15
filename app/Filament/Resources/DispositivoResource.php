@@ -49,120 +49,244 @@ class DispositivoResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Grid::make(['default' => 1, 'lg' => 3])
+                Forms\Components\Section::make('Información Básica del Dispositivo')
+                    ->description('Datos principales del dispositivo')
+                    ->icon('heroicon-o-computer-desktop')
+                    ->columns(2)
                     ->schema([
-                        Forms\Components\Section::make('🖥️ Información del Dispositivo')
-                            ->description('Datos básicos del dispositivo')
-                            ->schema([
-                                Forms\Components\TextInput::make('nombre')
-                                    ->label('📱 Nombre del Dispositivo')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->placeholder('Ej: Laptop Dell Inspiron 15'),
+                        Forms\Components\TextInput::make('nombre')
+                            ->label('📱 Nombre del Dispositivo')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Ej: Laptop Dell Inspiron 15')
+                            ->columnSpanFull(),
 
-                                Forms\Components\Textarea::make('descripcion')
-                                    ->label('📝 Descripción')
-                                    ->rows(3)
-                                    ->placeholder('Descripción detallada del dispositivo...'),
+                        Forms\Components\Textarea::make('descripcion')
+                            ->label('📝 Descripción')
+                            ->rows(3)
+                            ->placeholder('Descripción detallada del dispositivo...')
+                            ->columnSpanFull(),
 
-                                Forms\Components\TextInput::make('numero_serie')
-                                    ->label('🔢 Número de Serie')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->unique(ignoreRecord: true)
-                                    ->placeholder('Ej: ABC123XYZ789'),
+                        Forms\Components\TextInput::make('numero_serie')
+                            ->label('🔢 Número de Serie')
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true)
+                            ->placeholder('Ej: ABC123XYZ789'),
 
-                                Forms\Components\Select::make('categoria_id')
-                                    ->label('🏷️ Categoría')
-                                    ->relationship('categoria_dispositivo', 'nombre')
-                                    ->required()
-                                    ->preload()
-                                    ->searchable()
-                                    ->placeholder('Seleccionar categoría'),
-                            ])
-                            ->columnSpan(['default' => 1, 'lg' => 2])
-                            ->collapsible(),
+                        Forms\Components\Select::make('categoria_id')
+                            ->label('🏷️ Categoría')
+                            ->relationship('categoria_dispositivo', 'nombre')
+                            ->required()
+                            ->preload()
+                            ->searchable()
+                            ->placeholder('Seleccionar categoría'),
 
-                        Forms\Components\Section::make('📸 Imagen del Dispositivo')
-                            ->description('Fotografía del dispositivo')
-                            ->schema([
-                                Forms\Components\FileUpload::make('imagen')
-                                    ->label('📷 Imagen')
-                                    ->disk('public')
-                                    ->directory('dispositivos')
-                                    ->image()
-                                    ->imageEditor()
-                                    ->imageResizeMode('cover')
-                                    ->imageCropAspectRatio('16:9')
-                                    ->imageResizeTargetWidth('800')
-                                    ->imageResizeTargetHeight('450')
-                                    ->maxSize(2048)
-                                    ->downloadable()
-                                    ->previewable()
-                                    ->uploadingMessage('Subiendo imagen...')
-                                    ->helperText('Formatos: JPG, PNG. Tamaño máximo: 2MB'),
-                            ])
-                            ->columnSpan(['default' => 1, 'lg' => 1])
-                            ->collapsible(),
+                        Forms\Components\FileUpload::make('imagen')
+                            ->label('📷 Imagen')
+                            ->disk('public')
+                            ->directory('dispositivos')
+                            ->image()
+                            ->imageEditor()
+                            ->imageResizeMode('cover')
+                            ->imageCropAspectRatio('16:9')
+                            ->imageResizeTargetWidth('800')
+                            ->imageResizeTargetHeight('450')
+                            ->maxSize(2048)
+                            ->downloadable()
+                            ->previewable()
+                            ->uploadingMessage('Subiendo imagen...')
+                            ->helperText('Formatos: JPG, PNG. Tamaño máximo: 2MB')
+                            ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Grid::make(['default' => 1, 'lg' => 2])
+                Forms\Components\Section::make('Información del Fabricante')
+                    ->description('Datos del fabricante y modelo')
+                    ->icon('heroicon-o-building-office')
+                    ->columns(2)
                     ->schema([
-                        Forms\Components\Section::make('🏢 Ubicación y Asignación')
-                            ->description('Área y usuario responsable')
-                            ->schema([
-                                Forms\Components\Select::make('area_id')
-                                    ->label('🏢 Área')
-                                    ->relationship('area', 'nombre')
-                                    ->live()
-                                    ->preload()
-                                    ->searchable()
-                                    ->placeholder('Seleccionar área'),
+                        Forms\Components\TextInput::make('marca')
+                            ->label('🏭 Marca')
+                            ->maxLength(255)
+                            ->placeholder('Ej: Dell, HP, Logitech'),
 
-                                Forms\Components\Select::make('usuario_id')
-                                    ->label('👤 Usuario Asignado')
-                                    ->options(function (callable $get) {
-                                        $areaId = $get('area_id');
-                                        if (!$areaId) {
-                                            return [];
-                                        }
+                        Forms\Components\TextInput::make('modelo')
+                            ->label('📦 Modelo')
+                            ->maxLength(255)
+                            ->placeholder('Ej: Inspiron 15 3000'),
 
-                                        return User::where('area_id', $areaId)->pluck('name', 'id');
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->placeholder('Sin asignar')
-                                    ->visible(fn (callable $get) => !empty($get('area_id')))
-                                    ->live(),
-                            ])
-                            ->collapsible(),
+                        Forms\Components\TextInput::make('codigo_activo')
+                            ->label('🏷️ Código de Activo')
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true)
+                            ->placeholder('Ej: ACT-2024-001'),
 
-                        Forms\Components\Section::make('📊 Estado y Compra')
-                            ->description('Estado actual y fecha de adquisición')
-                            ->schema([
-                                Forms\Components\Select::make('estado')
-                                    ->label('📊 Estado')
-                                    ->options(function (callable $get) {
-                                        if ($get('usuario_id')) {
-                                            return ['Asignado' => 'Asignado'];
-                                        }
-                                        return Dispositivo::ESTADOS;
-                                    })
-                                    ->required()
-                                    ->native(false)
-                                    ->default('Disponible')
-                                    ->live(),
-
-                                Forms\Components\DatePicker::make('fecha_compra')
-                                    ->label('📅 Fecha de Compra')
-                                    ->native(false)
-                                    ->displayFormat('d/m/Y')
-                                    ->placeholder('Seleccionar fecha'),
-                            ])
-                            ->collapsible(),
+                        Forms\Components\TextInput::make('etiqueta_inventario')
+                            ->label('🏷️ Etiqueta de Inventario')
+                            ->maxLength(255)
+                            ->placeholder('Ej: INV-001'),
                     ]),
-            ])
-            ->columns(1);
+
+                Forms\Components\Section::make('Información Financiera')
+                    ->description('Datos de adquisición y costo')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\DatePicker::make('fecha_compra')
+                            ->label('📅 Fecha de Compra')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->placeholder('Seleccionar fecha'),
+
+                        Forms\Components\TextInput::make('costo_adquisicion')
+                            ->label('💰 Costo de Adquisición')
+                            ->numeric()
+                            ->prefix('S/.')
+                            ->placeholder('0.00'),
+
+                        Forms\Components\Select::make('moneda')
+                            ->label('💱 Moneda')
+                            ->options([
+                                'PEN' => 'Soles (PEN)',
+                                'USD' => 'Dólares (USD)',
+                                'EUR' => 'Euros (EUR)',
+                            ])
+                            ->default('PEN')
+                            ->native(false),
+
+                        Forms\Components\TextInput::make('proveedor')
+                            ->label('🏪 Proveedor')
+                            ->maxLength(255)
+                            ->placeholder('Ej: Oechsle, Ripley, Distribuidora XYZ'),
+                    ]),
+
+                Forms\Components\Section::make('Información de Garantía')
+                    ->description('Datos de garantía y soporte')
+                    ->icon('heroicon-o-shield-check')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\DatePicker::make('fecha_garantia')
+                            ->label('🛡️ Fecha de Vencimiento de Garantía')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->placeholder('Seleccionar fecha'),
+
+                        Forms\Components\TextInput::make('tipo_garantia')
+                            ->label('🔧 Tipo de Garantía')
+                            ->maxLength(255)
+                            ->placeholder('Ej: Fabricante, Extendida, Comercial'),
+                    ]),
+
+                Forms\Components\Section::make('Ciclo de Vida del Dispositivo')
+                    ->description('Información sobre instalación y vida útil')
+                    ->icon('heroicon-o-calendar-days')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\DatePicker::make('fecha_instalacion')
+                            ->label('📅 Fecha de Instalación')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->placeholder('Seleccionar fecha'),
+
+                        Forms\Components\TextInput::make('vida_util_anos')
+                            ->label('⏳ Vida Útil (años)')
+                            ->numeric()
+                            ->suffix('años')
+                            ->placeholder('Ej: 5'),
+                    ]),
+
+                Forms\Components\Section::make('Especificaciones Técnicas')
+                    ->description('Detalles técnicos y características')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\KeyValue::make('especificaciones_tecnicas')
+                            ->label('🔧 Especificaciones Técnicas')
+                            ->keyLabel('Característica')
+                            ->valueLabel('Valor')
+                            ->addActionLabel('Agregar Especificación')
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('color')
+                            ->label('🎨 Color')
+                            ->maxLength(255)
+                            ->placeholder('Ej: Negro, Blanco, Gris'),
+
+                        Forms\Components\Select::make('tipo_conexion')
+                            ->label('🔌 Tipo de Conexión')
+                            ->options([
+                                'USB' => 'USB',
+                                'USB-C' => 'USB-C',
+                                'Bluetooth' => 'Bluetooth',
+                                'WiFi' => 'WiFi',
+                                'Ethernet' => 'Ethernet',
+                                'HDMI' => 'HDMI',
+                                'VGA' => 'VGA',
+                                'Inalámbrico' => 'Inalámbrico',
+                                'Cableado' => 'Cableado',
+                            ])
+                            ->searchable()
+                            ->native(false),
+                    ]),
+
+                Forms\Components\Section::make('Ubicación y Asignación')
+                    ->description('Área y usuario responsable')
+                    ->icon('heroicon-o-map-pin')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\Select::make('area_id')
+                            ->label('🏢 Área')
+                            ->relationship('area', 'nombre')
+                            ->live()
+                            ->preload()
+                            ->searchable()
+                            ->placeholder('Seleccionar área'),
+
+                        Forms\Components\Select::make('usuario_id')
+                            ->label('� Usuario Asignado')
+                            ->options(function (callable $get) {
+                                $areaId = $get('area_id');
+                                if (!$areaId) {
+                                    return [];
+                                }
+                                return User::where('area_id', $areaId)->pluck('name', 'id');
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Sin asignar')
+                            ->visible(fn(callable $get) => !empty($get('area_id')))
+                            ->live(),
+
+                        Forms\Components\Select::make('estado')
+                            ->label('📊 Estado')
+                            ->options(function (callable $get) {
+                                if ($get('usuario_id')) {
+                                    return ['Asignado' => 'Asignado'];
+                                }
+                                return Dispositivo::ESTADOS;
+                            })
+                            ->required()
+                            ->native(false)
+                            ->default('Disponible')
+                            ->live(),
+                    ]),
+
+                Forms\Components\Section::make('Observaciones y Accesorios')
+                    ->description('Notas adicionales y accesorios incluidos')
+                    ->icon('heroicon-o-document-text')
+                    ->columns(1)
+                    ->schema([
+                        Forms\Components\Textarea::make('observaciones')
+                            ->label('📝 Observaciones')
+                            ->rows(3)
+                            ->placeholder('Observaciones generales sobre el dispositivo...'),
+
+                        Forms\Components\Textarea::make('accesorios_incluidos')
+                            ->label('📦 Accesorios Incluidos')
+                            ->rows(3)
+                            ->placeholder('Ej: Cable USB, Cargador, Manual, Estuche...'),
+                    ]),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -181,8 +305,21 @@ class DispositivoResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::Bold)
-                    ->description(fn (Dispositivo $record): string => $record->numero_serie)
+                    ->description(function (Dispositivo $record): string {
+                        $info = [];
+                        if ($record->numero_serie) $info[] = "S/N: {$record->numero_serie}";
+                        if ($record->marca) $info[] = "Marca: {$record->marca}";
+                        if ($record->modelo) $info[] = "Modelo: {$record->modelo}";
+                        return implode(' | ', $info);
+                    })
                     ->wrap(),
+
+                Tables\Columns\TextColumn::make('codigo_activo')
+                    ->label('Código Activo')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('categoria_dispositivo.nombre')
                     ->label('Categoría')
@@ -194,7 +331,7 @@ class DispositivoResource extends Resource
                 Tables\Columns\TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn (Dispositivo $record): string => $record->estado_badge_color)
+                    ->color(fn(Dispositivo $record): string => $record->estado_badge_color)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('area.nombre')
@@ -209,8 +346,8 @@ class DispositivoResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->placeholder('Sin asignar')
-                    ->description(fn (Dispositivo $record): ?string =>
-                        $record->usuario ? $record->usuario->email : null)
+                    ->description(fn(Dispositivo $record): ?string =>
+                    $record->usuario ? $record->usuario->email : null)
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('fecha_compra')
@@ -218,6 +355,36 @@ class DispositivoResource extends Resource
                     ->date('d/m/Y')
                     ->sortable()
                     ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('costo_adquisicion')
+                    ->label('Costo')
+                    ->money('PEN')
+                    ->sortable()
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('proveedor')
+                    ->label('Proveedor')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-')
+                    ->limit(20)
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('fecha_garantia')
+                    ->label('Garantía')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->placeholder('-')
+                    ->color(function (Dispositivo $record): string {
+                        if (!$record->fecha_garantia) return 'gray';
+                        return $record->fecha_garantia->isFuture() ? 'success' : 'danger';
+                    })
+                    ->description(function (Dispositivo $record): ?string {
+                        if (!$record->fecha_garantia) return null;
+                        return $record->fecha_garantia->isFuture() ? 'Vigente' : 'Vencida';
+                    })
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -252,8 +419,8 @@ class DispositivoResource extends Resource
                     ->trueLabel('Con usuario asignado')
                     ->falseLabel('Sin usuario asignado')
                     ->queries(
-                        true: fn (Builder $query) => $query->whereNotNull('usuario_id'),
-                        false: fn (Builder $query) => $query->whereNull('usuario_id'),
+                        true: fn(Builder $query) => $query->whereNotNull('usuario_id'),
+                        false: fn(Builder $query) => $query->whereNull('usuario_id'),
                     ),
 
                 Tables\Filters\Filter::make('fecha_compra')
@@ -269,25 +436,49 @@ class DispositivoResource extends Resource
                         return $query
                             ->when(
                                 $data['desde'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_compra', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('fecha_compra', '>=', $date),
                             )
                             ->when(
                                 $data['hasta'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_compra', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('fecha_compra', '<=', $date),
                             );
                     }),
 
                 Tables\Filters\Filter::make('disponibles')
                     ->label('Solo Disponibles')
-                    ->query(fn (Builder $query): Builder => $query->where('estado', 'Disponible'))
+                    ->query(fn(Builder $query): Builder => $query->where('estado', 'Disponible'))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('reparacion')
                     ->label('En Reparación')
-                    ->query(fn (Builder $query): Builder => $query->where('estado', 'Reparación'))
+                    ->query(fn(Builder $query): Builder => $query->where('estado', 'Reparación'))
+                    ->toggle(),
+
+                Tables\Filters\SelectFilter::make('marca')
+                    ->label('Marca')
+                    ->options(fn() => Dispositivo::whereNotNull('marca')->distinct()->pluck('marca', 'marca'))
+                    ->searchable()
+                    ->multiple(),
+
+                Tables\Filters\SelectFilter::make('proveedor')
+                    ->label('Proveedor')
+                    ->options(fn() => Dispositivo::whereNotNull('proveedor')->distinct()->pluck('proveedor', 'proveedor'))
+                    ->searchable()
+                    ->multiple(),
+
+                Tables\Filters\Filter::make('garantia_vigente')
+                    ->label('Garantía Vigente')
+                    ->query(fn(Builder $query): Builder => $query->whereNotNull('fecha_garantia')
+                        ->where('fecha_garantia', '>', now()))
+                    ->toggle(),
+
+                Tables\Filters\Filter::make('garantia_vencida')
+                    ->label('Garantía Vencida')
+                    ->query(fn(Builder $query): Builder => $query->whereNotNull('fecha_garantia')
+                        ->where('fecha_garantia', '<=', now()))
                     ->toggle(),
             ], layout: FiltersLayout::AboveContentCollapsible)
-            ->filtersFormColumns(3)
+            ->filtersFormColumns(4)
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()
@@ -317,16 +508,16 @@ class DispositivoResource extends Resource
                         ->icon('heroicon-o-trash')
                         ->color('danger'),
                 ])
-                ->label('Acciones')
-                ->icon('heroicon-m-ellipsis-vertical')
-                ->size('sm')
-                ->color('gray'),
+                    ->label('Acciones')
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->size('sm')
+                    ->color('gray'),
 
                 Tables\Actions\Action::make('asignar')
                     ->label('Asignar')
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
-                    ->visible(fn (Dispositivo $record): bool => $record->estado === 'Disponible')
+                    ->visible(fn(Dispositivo $record): bool => $record->estado === 'Disponible')
                     ->form([
                         Forms\Components\Select::make('area_id')
                             ->label('Área')
@@ -359,7 +550,7 @@ class DispositivoResource extends Resource
                     ->label('Liberar')
                     ->icon('heroicon-o-user-minus')
                     ->color('warning')
-                    ->visible(fn (Dispositivo $record): bool => $record->estado === 'Asignado')
+                    ->visible(fn(Dispositivo $record): bool => $record->estado === 'Asignado')
                     ->requiresConfirmation()
                     ->modalHeading('Liberar Dispositivo')
                     ->modalDescription('¿Está seguro de que desea liberar este dispositivo?')
@@ -403,7 +594,7 @@ class DispositivoResource extends Resource
                         })
                         ->requiresConfirmation(),
                 ])
-                ->label('Acciones Masivas'),
+                    ->label('Acciones Masivas'),
             ])
             ->emptyStateHeading('No hay dispositivos')
             ->emptyStateDescription('Cuando agregues dispositivos al inventario, aparecerán aquí.')
