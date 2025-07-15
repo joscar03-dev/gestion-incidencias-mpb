@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.5s="refreshList">
     @if(auth()->check())
         <!-- Encabezado de la sección -->
         <div class="mb-8">
