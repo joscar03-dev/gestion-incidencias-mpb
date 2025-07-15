@@ -13,6 +13,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,7 +21,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Form;
-use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\Section as InfolistSection;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
@@ -65,302 +66,336 @@ class TicketResource extends Resource
                 'lg' => 3,
             ])
             ->schema([
-                // Campo creado por solo para Super Admin al crear ticket (inmutable una vez creado)
-                Select::make('creado_por')
-                    ->label('Creado por')
-                    ->options(User::pluck('name', 'id')->toArray())
-                    ->visible(fn($record) => Auth::user()?->hasRole('Super Admin') && $record === null)
-                    ->required(fn($record) => Auth::user()?->hasRole('Super Admin') && $record === null)
-                    ->default(fn() => Auth::id())
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, $set) {
-                        // Cuando Super Admin cambie el usuario, actualizar el área automáticamente
-                        $user = User::find($state);
-                        if ($user && $user->area_id) {
-                            $set('area_id', $user->area_id);
-                        } else {
-                            $set('area_id', null);
-                        }
-                    })
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
-                    ]),
-
-                // Mostrar quién creó el ticket (solo lectura durante edición)
-                Placeholder::make('creado_por_info')
-                    ->label('Creado por')
-                    ->content(fn($record) => $record?->creadoPor?->name ?? 'N/A')
-                    ->visible(fn($record) => $record !== null)
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
-                    ]),
-
-                // Campo área oculto que se asigna automáticamente según el usuario
-                Forms\Components\Hidden::make('area_id')
-                    ->default(fn() => Auth::user()?->area_id),
-
-                // Mostrar área del usuario que reportó el ticket (siempre solo lectura)
-                Placeholder::make('area_usuario')
-                    ->label('Área del Usuario que Reporta')
-                    ->content(function ($record, $get) {
-                        if ($record) {
-                            // Si estamos editando un ticket, siempre mostrar el área del usuario que lo creó
-                            return $record->creadoPor?->area?->nombre ?? 'Sin área asignada';
-                        } else {
-                            // Si estamos creando un ticket
-                            if (Auth::user()?->hasRole('Super Admin')) {
-                                // Para Super Admin, mostrar área del usuario seleccionado
-                                $userId = $get('creado_por') ?? Auth::id();
-                                $user = User::find($userId);
-                                return $user?->area?->nombre ?? 'Sin área asignada';
-                            } else {
-                                // Para usuarios normales, mostrar su propia área
-                                return Auth::user()?->area?->nombre ?? 'Sin área asignada';
-                            }
-                        }
-                    })
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
-                    ]),
-
-                TextInput::make('titulo')
-                    ->label('Título')
-                    ->required()
-                    ->autofocus()
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 2,
-                        'lg' => fn() => Auth::user()?->hasRole('Super Admin') ? 2 : 2,
-                    ]),
-
-                Textarea::make('descripcion')
-                    ->label('Descripción')
-                    ->rows(3)
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 2,
-                        'lg' => 3,
-                    ]),
-
-                // Sección de Prioridad y SLA
-                Select::make('prioridad')
-                    ->label('Prioridad')
-                    ->options(self::$model::PRIORIDAD)
-                    ->required()
-                    ->in(array_keys(self::$model::PRIORIDAD))
-                    ->default('Media')
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, $set, $get) {
-                        // Actualizar información de SLA cuando cambie la prioridad
-                        static::actualizarSlaAdmin($state, $get('tipo'), $get('area_id'), $set);
-                    })
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
-                    ]),
-
-                Placeholder::make('sla_info')
-                    ->label('SLA Calculado')
-                    ->content(function ($get) {
-                        $prioridad = $get('prioridad');
-                        $tipo = $get('tipo');
-                        $areaId = $get('area_id');
-
-                        if (!$areaId) {
-                            $areaId = Auth::user()?->area_id;
-                        }
-
-                        if ($prioridad && $tipo && $areaId) {
-                            $resultado = \App\Models\Sla::calcularParaTicket($areaId, $prioridad, $tipo);
-
-                            if ($resultado['encontrado']) {
-                                $horas_resp = floor($resultado['tiempo_respuesta'] / 60);
-                                $min_resp = $resultado['tiempo_respuesta'] % 60;
-                                $horas_resol = floor($resultado['tiempo_resolucion'] / 60);
-                                $min_resol = $resultado['tiempo_resolucion'] % 60;
-
-                                $overrideInfo = $resultado['override_aplicado'] ?
-                                    " (Sistema híbrido - Factor: " . round($resultado['factor_combinado'] * 100) . "%)" :
-                                    " (Tiempo fijo)";
-
-                                return "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m{$overrideInfo}";
-                            }
-                            return 'No hay SLA configurado para esta área';
-                        }
-                        return 'Selecciona prioridad y tipo para ver SLA completo';
-                    })
-                    ->visible(fn($get) => $get('prioridad'))
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 2,
-                    ]),
-
-                // Tipo de ticket (nuevo campo)
-                Select::make('tipo')
-                    ->label('Tipo de Ticket')
-                    ->options(self::$model::TIPOS)
-                    ->required()
-                    ->in(array_keys(self::$model::TIPOS))
-                    ->default('General')
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, $set, $get) {
-                        // Actualizar información de SLA cuando cambie el tipo
-                        static::actualizarSlaAdmin($get('prioridad'), $state, $get('area_id'), $set);
-                    })
-                    ->helperText('Selecciona el tipo que mejor describe la solicitud')
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
-                    ]),
-
-                // Categorías ITIL
-                Select::make('categorias')
-                    ->label('Categorías ITIL')
-                    ->multiple()
-                    ->options(function ($get) {
-                        $tipo = $get('tipo');
-                        $tipoCategoria = match($tipo) {
-                            'Incidente' => 'incidente',
-                            'Requerimiento' => 'solicitud_servicio',
-                            'Cambio' => 'cambio',
-                            default => null
-                        };
-
-                        $query = \App\Models\Categoria::query()
-                            ->where('is_active', true)
-                            ->where('itil_category', true);
-
-                        if ($tipoCategoria) {
-                            $query->where('tipo_categoria', $tipoCategoria);
-                        }
-
-                        return $query->pluck('nombre', 'id')->toArray();
-                    })
-                    ->searchable()
-                    ->relationship('categorias', 'nombre')
-                    ->preload()
-                    ->reactive()
-                    ->helperText(function ($get) {
-                        $tipo = $get('tipo');
-                        return match($tipo) {
-                            'Incidente' => '🔴 Categorías de incidentes ITIL disponibles',
-                            'Requerimiento' => '🔵 Categorías de solicitudes de servicio ITIL',
-                            'Cambio' => '🟡 Categorías de cambios ITIL',
-                            default => '⚪ Selecciona un tipo para ver categorías específicas'
-                        };
-                    })
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 2,
-                        'lg' => 2,
-                    ])
-                    ->afterStateUpdated(function ($state, $set, $get) {
-                        // Auto-ajustar prioridad basada en categorías ITIL seleccionadas
-                        if ($state && is_array($state)) {
-                            $categorias = \App\Models\Categoria::whereIn('id', $state)->get();
-                            $prioridadMaxima = 'Baja';
-
-                            foreach ($categorias as $categoria) {
-                                $prioridadCategoria = $categoria->prioridad_default;
-                                if (self::compararPrioridad($prioridadCategoria, $prioridadMaxima)) {
-                                    $prioridadMaxima = self::mapearPrioridad($prioridadCategoria);
+                Section::make('Información del Solicitante')
+                    ->description('Datos del usuario que reporta el ticket')
+                    ->icon('heroicon-o-user-circle')
+                    ->columns(2)
+                    ->schema([
+                        // Campo creado por solo para Super Admin al crear ticket (inmutable una vez creado)
+                        Select::make('creado_por')
+                            ->label('Creado por')
+                            ->options(User::pluck('name', 'id')->toArray())
+                            ->visible(fn($record) => Auth::user()?->hasRole('Super Admin') && $record === null)
+                            ->required(fn($record) => Auth::user()?->hasRole('Super Admin') && $record === null)
+                            ->default(fn() => Auth::id())
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, $set) {
+                                // Cuando Super Admin cambie el usuario, actualizar el área automáticamente
+                                $user = User::find($state);
+                                if ($user && $user->area_id) {
+                                    $set('area_id', $user->area_id);
+                                } else {
+                                    $set('area_id', null);
                                 }
-                            }
+                            }),
 
-                            $set('prioridad', $prioridadMaxima);
-                        }
-                    }),
+                        // Mostrar quién creó el ticket (solo lectura durante edición)
+                        Placeholder::make('creado_por_info')
+                            ->label('Creado por')
+                            ->content(fn($record) => $record?->creadoPor?->name ?? 'N/A')
+                            ->visible(fn($record) => $record !== null),
 
-                // Sección de Estado y Asignación
-                Select::make('estado')
-                    ->label('Estado')
-                    ->options(self::$model::ESTADOS)
-                    ->default(self::$model::ESTADOS['Abierto'])
-                    ->required()
-                    ->in(array_keys(self::$model::ESTADOS))
-                    ->reactive()
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
+                        // Campo área oculto que se asigna automáticamente según el usuario
+                        Forms\Components\Hidden::make('area_id')
+                            ->default(fn() => Auth::user()?->area_id),
+
+                        // Mostrar área del usuario que reportó el ticket (siempre solo lectura)
+                        Placeholder::make('area_usuario')
+                            ->label('Área del Usuario que Reporta')
+                            ->content(function ($record, $get) {
+                                if ($record) {
+                                    // Si estamos editando un ticket, siempre mostrar el área del usuario que lo creó
+                                    return $record->creadoPor?->area?->nombre ?? 'Sin área asignada';
+                                } else {
+                                    // Si estamos creando un ticket
+                                    if (Auth::user()?->hasRole('Super Admin')) {
+                                        // Para Super Admin, mostrar área del usuario seleccionado
+                                        $userId = $get('creado_por') ?? Auth::id();
+                                        $user = User::find($userId);
+                                        return $user?->area?->nombre ?? 'Sin área asignada';
+                                    } else {
+                                        // Para usuarios normales, mostrar su propia área
+                                        return Auth::user()?->area?->nombre ?? 'Sin área asignada';
+                                    }
+                                }
+                            }),
                     ]),
 
-                Select::make('asignado_a')
-                    ->label('Asignado a')
-                    ->options(
-                        User::role(['Tecnico'])->pluck('name', 'id')->toArray()
-                    )
-                    ->visible(fn() => Auth::user()?->hasRole(['Super Admin','Admin',]))
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
+                Section::make('Información Básica del Ticket')
+                    ->description('Datos principales del ticket')
+                    ->icon('heroicon-o-ticket')
+                    ->columns(2)
+                    ->schema([
+
+                        TextInput::make('titulo')
+                            ->label('Título')
+                            ->required()
+                            ->autofocus()
+                            ->columnSpanFull(),
+
+                        Textarea::make('descripcion')
+                            ->label('Descripción')
+                            ->rows(3)
+                            ->columnSpanFull(),
+
+                        // Sección de Prioridad y SLA
+                        Select::make('prioridad')
+                            ->label('Prioridad')
+                            ->options(self::$model::PRIORIDAD)
+                            ->required()
+                            ->in(array_keys(self::$model::PRIORIDAD))
+                            ->default('Media')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                // Actualizar información de SLA cuando cambie la prioridad
+                                static::actualizarSlaAdmin($state, $get('tipo'), $get('area_id'), $set);
+                            }),
+
+                        // Tipo de ticket (nuevo campo)
+                        Select::make('tipo')
+                            ->label('Tipo de Ticket')
+                            ->options(self::$model::TIPOS)
+                            ->required()
+                            ->in(array_keys(self::$model::TIPOS))
+                            ->default('General')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                // Actualizar información de SLA cuando cambie el tipo
+                                static::actualizarSlaAdmin($get('prioridad'), $state, $get('area_id'), $set);
+                            })
+                            ->helperText('Selecciona el tipo que mejor describe la solicitud'),
+
+                        Placeholder::make('sla_info')
+                            ->label('SLA Calculado')
+                            ->content(function ($get) {
+                                $prioridad = $get('prioridad');
+                                $tipo = $get('tipo');
+                                $areaId = $get('area_id');
+
+                                if (!$areaId) {
+                                    $areaId = Auth::user()?->area_id;
+                                }
+
+                                if ($prioridad && $tipo && $areaId) {
+                                    $resultado = \App\Models\Sla::calcularParaTicket($areaId, $prioridad, $tipo);
+
+                                    if ($resultado['encontrado']) {
+                                        $horas_resp = floor($resultado['tiempo_respuesta'] / 60);
+                                        $min_resp = $resultado['tiempo_respuesta'] % 60;
+                                        $horas_resol = floor($resultado['tiempo_resolucion'] / 60);
+                                        $min_resol = $resultado['tiempo_resolucion'] % 60;
+
+                                        $overrideInfo = $resultado['override_aplicado'] ?
+                                            " (Sistema híbrido - Factor: " . round($resultado['factor_combinado'] * 100) . "%)" :
+                                            " (Tiempo fijo)";
+
+                                        return "⏱️ Respuesta: {$horas_resp}h {$min_resp}m | 🔧 Resolución: {$horas_resol}h {$min_resol}m{$overrideInfo}";
+                                    }
+                                    return 'No hay SLA configurado para esta área';
+                                }
+                                return 'Selecciona prioridad y tipo para ver SLA completo';
+                            })
+                            ->visible(fn($get) => $get('prioridad'))
+                            ->columnSpanFull(),
+
+                        // Categorías ITIL
+                        Select::make('categorias')
+                            ->label('Categorías ITIL')
+                            ->multiple()
+                            ->options(function ($get) {
+                                $tipo = $get('tipo');
+                                $tipoCategoria = match ($tipo) {
+                                    'Incidente' => 'incidente',
+                                    'Requerimiento' => 'solicitud_servicio',
+                                    'Cambio' => 'cambio',
+                                    default => null
+                                };
+
+                                $query = \App\Models\Categoria::query()
+                                    ->where('is_active', true)
+                                    ->where('itil_category', true);
+
+                                if ($tipoCategoria) {
+                                    $query->where('tipo_categoria', $tipoCategoria);
+                                }
+
+                                return $query->pluck('nombre', 'id')->toArray();
+                            })
+                            ->searchable()
+                            ->relationship('categorias', 'nombre')
+                            ->preload()
+                            ->reactive()
+                            ->helperText(function ($get) {
+                                $tipo = $get('tipo');
+                                return match ($tipo) {
+                                    'Incidente' => '🔴 Categorías de incidentes ITIL disponibles',
+                                    'Requerimiento' => '🔵 Categorías de solicitudes de servicio ITIL',
+                                    'Cambio' => '🟡 Categorías de cambios ITIL',
+                                    default => '⚪ Selecciona un tipo para ver categorías específicas'
+                                };
+                            })
+                            ->columnSpanFull()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                // Auto-ajustar prioridad basada en categorías ITIL seleccionadas
+                                if ($state && is_array($state)) {
+                                    $categorias = \App\Models\Categoria::whereIn('id', $state)->get();
+                                    $prioridadMaxima = 'Baja';
+
+                                    foreach ($categorias as $categoria) {
+                                        $prioridadCategoria = $categoria->prioridad_default;
+                                        if (self::compararPrioridad($prioridadCategoria, $prioridadMaxima)) {
+                                            $prioridadMaxima = self::mapearPrioridad($prioridadCategoria);
+                                        }
+                                    }
+
+                                    $set('prioridad', $prioridadMaxima);
+                                }
+                            }),
                     ]),
 
-                // Sección de Escalamiento (solo visible en edición)
-                Toggle::make('escalado')
-                    ->label('¿Escalado?')
-                    ->visible(fn($record) => $record !== null)
-                    ->disabled()
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
+                Section::make('Estado y Asignación')
+                    ->description('Estado del ticket y asignación del técnico')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('estado')
+                            ->label('Estado')
+                            ->options(self::$model::ESTADOS)
+                            ->default(self::$model::ESTADOS['Abierto'])
+                            ->required()
+                            ->in(array_keys(self::$model::ESTADOS))
+                            ->reactive()
+                            ->columnSpan([
+                                'sm' => 1,
+                                'md' => 1,
+                                'lg' => 1,
+                            ]),
+
+                        Select::make('asignado_a')
+                            ->label('Asignado a')
+                            ->options(
+                                User::role(['Tecnico'])->pluck('name', 'id')->toArray()
+                            )
+                            ->visible(fn() => Auth::user()?->hasRole(['Super Admin', 'Admin',]))
+                            ->columnSpan([
+                                'sm' => 1,
+                                'md' => 1,
+                                'lg' => 1,
+                            ]),
+
+                        // Sección de Escalamiento (solo visible en edición)
+                        Toggle::make('escalado')
+                            ->label('¿Escalado?')
+                            ->visible(fn($record) => $record !== null)
+                            ->disabled()
+                            ->columnSpan([
+                                'sm' => 1,
+                                'md' => 1,
+                                'lg' => 1,
+                            ]),
+
+                        DateTimePicker::make('fecha_escalamiento')
+                            ->label('Fecha de Escalamiento')
+                            ->visible(fn($record) => $record?->escalado)
+                            ->disabled()
+                            ->columnSpan([
+                                'sm' => 1,
+                                'md' => 1,
+                                'lg' => 1,
+                            ]),
+
+                        Toggle::make('sla_vencido')
+                            ->label('SLA Vencido')
+                            ->visible(fn($record) => $record !== null)
+                            ->disabled(),
                     ]),
 
-                DateTimePicker::make('fecha_escalamiento')
-                    ->label('Fecha de Escalamiento')
-                    ->visible(fn($record) => $record?->escalado)
-                    ->disabled()
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
+                Section::make('Información del Dispositivo')
+                    ->description('Detalles del dispositivo asociado al ticket')
+                    ->icon('heroicon-o-computer-desktop')
+                    ->columns(3)
+                    ->visible(fn($record) => $record?->dispositivo_id !== null)
+                    ->schema([
+                        Placeholder::make('dispositivo_info')
+                            ->label('Dispositivo')
+                            ->content(function ($record) {
+                                if (!$record?->dispositivo) return 'Sin dispositivo asociado';
+                                return "🖥️ {$record->dispositivo->nombre}";
+                            }),
+
+                        Placeholder::make('dispositivo_tipo')
+                            ->label('Categoría')
+                            ->content(function ($record) {
+                                if (!$record?->dispositivo?->categoria_dispositivo) return 'Sin categoría';
+                                return "📂 {$record->dispositivo->categoria_dispositivo->nombre}";
+                            }),
+
+                        Placeholder::make('dispositivo_estado')
+                            ->label('Estado')
+                            ->content(function ($record) {
+                                if (!$record?->dispositivo) return 'Sin estado';
+
+                                $estado = $record->dispositivo->estado;
+                                $statusConfig = match ($estado) {
+                                    'Disponible' => ['emoji' => '🟢', 'text' => 'Disponible'],
+                                    'Asignado' => ['emoji' => '🟡', 'text' => 'Asignado'],
+                                    'Reparación' => ['emoji' => '🟠', 'text' => 'En Reparación'],
+                                    'Fuera de Servicio' => ['emoji' => '🔴', 'text' => 'Fuera de Servicio'],
+                                    'Dañado' => ['emoji' => '🔴', 'text' => 'Dañado'],
+                                    'Retirado' => ['emoji' => '⚫', 'text' => 'Retirado'],
+                                    default => ['emoji' => '⚪', 'text' => $estado]
+                                };
+
+                                return "{$statusConfig['emoji']} {$statusConfig['text']}";
+                            }),
+
+                        Placeholder::make('dispositivo_serie')
+                            ->label('N° de Serie')
+                            ->content(function ($record) {
+                                if (!$record?->dispositivo?->numero_serie) return 'Sin número de serie';
+                                return "🔢 {$record->dispositivo->numero_serie}";
+                            }),
+
+                        Placeholder::make('dispositivo_marca_modelo')
+                            ->label('Marca / Modelo')
+                            ->content(function ($record) {
+                                if (!$record?->dispositivo) return 'Sin información';
+
+                                $marca = $record->dispositivo->marca ?? 'Sin marca';
+                                $modelo = $record->dispositivo->modelo ?? 'Sin modelo';
+
+                                return "🏷️ {$marca} • {$modelo}";
+                            }),
+
+                        Placeholder::make('dispositivo_ubicacion')
+                            ->label('Ubicación')
+                            ->content(function ($record) {
+                                if (!$record?->dispositivo?->area) return 'Sin ubicación';
+                                return "📍 {$record->dispositivo->area->nombre}";
+                            }),
                     ]),
 
-                Toggle::make('sla_vencido')
-                    ->label('SLA Vencido')
-                    ->visible(fn($record) => $record !== null)
-                    ->disabled()
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 1,
-                        'lg' => 1,
-                    ]),
+                Section::make('Archivos y Comentarios')
+                    ->description('Archivos adjuntos y soluciones del ticket')
+                    ->icon('heroicon-o-document-text')
+                    ->columns(1)
+                    ->schema([
+                        FileUpload::make('attachment')
+                            ->label('Archivo')
+                            ->preserveFilenames()
+                            ->downloadable()
+                            ->uploadingMessage('Subiendo archivo...')
+                            ->directory('tickets')
+                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                            ->maxSize(1024)
+                            ->columnSpanFull(),
 
-                // Archivos y Comentarios
-                FileUpload::make('attachment')
-                    ->label('Archivo')
-                    ->preserveFilenames()
-                    ->downloadable()
-                    ->uploadingMessage('Subiendo archivo...')
-                    ->directory('tickets')
-                    ->acceptedFileTypes(['application/pdf', 'image/*'])
-                    ->maxSize(1024)
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 2,
-                        'lg' => 2,
-                    ]),
-
-                Textarea::make('comentario')
-                    ->label('Solución / Comentario')
-                    ->rows(3)
-                    ->visible(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
-                    ->required(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
-                    ->columnSpan([
-                        'sm' => 1,
-                        'md' => 2,
-                        'lg' => 3,
+                        Textarea::make('comentario')
+                            ->label('Solución / Comentario')
+                            ->rows(3)
+                            ->visible(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
+                            ->required(fn($get) => $get('estado') === Ticket::ESTADOS['Cerrado'])
+                            ->columnSpanFull(),
                     ]),
             ])->statePath('data');
     }
@@ -390,14 +425,14 @@ class TicketResource extends Resource
                 TextColumn::make('prioridad')
                     ->label('Prioridad')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'Critica' => 'danger',
                         'Alta' => 'warning',
                         'Media' => 'success',
                         'Baja' => 'secondary',
                         default => 'secondary',
                     })
-                    ->icon(fn (string $state): string => match ($state) {
+                    ->icon(fn(string $state): string => match ($state) {
                         'Critica' => 'heroicon-o-fire',
                         'Alta' => 'heroicon-o-exclamation-triangle',
                         'Media' => 'heroicon-o-information-circle',
@@ -408,14 +443,14 @@ class TicketResource extends Resource
                 TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'Incidente' => 'danger',
                         'General' => 'info',
                         'Requerimiento' => 'warning',
                         'Cambio' => 'success',
                         default => 'secondary',
                     })
-                    ->icon(fn (string $state): string => match ($state) {
+                    ->icon(fn(string $state): string => match ($state) {
                         'Incidente' => 'heroicon-o-exclamation-triangle',
                         'General' => 'heroicon-o-chat-bubble-left-right',
                         'Requerimiento' => 'heroicon-o-document-text',
@@ -434,7 +469,7 @@ class TicketResource extends Resource
 
                 TextColumn::make('estado')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'Abierto' => 'danger',
                         'En Progreso' => 'warning',
                         'Escalado' => 'danger',
@@ -442,7 +477,7 @@ class TicketResource extends Resource
                         'Archivado' => 'secondary',
                         default => 'secondary',
                     })
-                    ->icon(fn (string $state): string => match ($state) {
+                    ->icon(fn(string $state): string => match ($state) {
                         'Abierto' => 'heroicon-o-clock',
                         'En Progreso' => 'heroicon-o-cog',
                         'Escalado' => 'heroicon-o-arrow-trending-up',
@@ -458,7 +493,7 @@ class TicketResource extends Resource
                         return $record->getEstadoSla();
                     })
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'ok' => 'success',
                         'advertencia' => 'warning',
                         'vencido' => 'danger',
@@ -466,7 +501,7 @@ class TicketResource extends Resource
                         default => 'secondary',
                     })
                     ->formatStateUsing(function ($state) {
-                        return match($state) {
+                        return match ($state) {
                             'ok' => 'OK',
                             'advertencia' => 'Advertencia',
                             'vencido' => 'Vencido',
@@ -474,7 +509,7 @@ class TicketResource extends Resource
                             default => 'Desconocido'
                         };
                     })
-                    ->icon(fn (string $state): string => match ($state) {
+                    ->icon(fn(string $state): string => match ($state) {
                         'ok' => 'heroicon-o-check-circle',
                         'advertencia' => 'heroicon-o-exclamation-triangle',
                         'vencido' => 'heroicon-o-x-circle',
@@ -508,10 +543,10 @@ class TicketResource extends Resource
 
                 TextColumn::make('escalado')
                     ->label('Escalado')
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Sí' : 'No')
+                    ->formatStateUsing(fn(bool $state): string => $state ? 'Sí' : 'No')
                     ->badge()
-                    ->color(fn (bool $state): string => $state ? 'danger' : 'success')
-                    ->icon(fn (bool $state): string => $state ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-minus'),
+                    ->color(fn(bool $state): string => $state ? 'danger' : 'success')
+                    ->icon(fn(bool $state): string => $state ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-minus'),
 
                 TextColumn::make('asignadoA.name')
                     ->label('Asignado a')
@@ -566,9 +601,9 @@ class TicketResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'],
-                            fn (Builder $query, $value): Builder => $query->whereHas(
+                            fn(Builder $query, $value): Builder => $query->whereHas(
                                 'categorias',
-                                fn (Builder $query): Builder => $query->where('tipo_categoria', $value)
+                                fn(Builder $query): Builder => $query->where('tipo_categoria', $value)
                             ),
                         );
                     }),
@@ -714,7 +749,7 @@ class TicketResource extends Resource
      */
     private static function mapearPrioridad($prioridadItil): string
     {
-        return match(strtolower($prioridadItil)) {
+        return match (strtolower($prioridadItil)) {
             'baja' => 'Baja',
             'media' => 'Media',
             'alta' => 'Alta',

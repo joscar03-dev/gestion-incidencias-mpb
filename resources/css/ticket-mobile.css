@@ -1,0 +1,143 @@
+/* Estilos personalizados para mejorar la vista de tickets en móviles */
+
+/* Mejoras para placeholders en formularios */
+.fi-fo-placeholder .fi-fo-placeholder-content {
+    @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+    @apply bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700;
+}
+
+/* Espaciado mejorado para móviles */
+@media (max-width: 640px) {
+    .fi-fo-placeholder {
+        @apply mb-4;
+    }
+
+    .fi-fo-placeholder .fi-fo-placeholder-label {
+        @apply text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+    }
+
+    .fi-fo-placeholder .fi-fo-placeholder-content {
+        @apply text-sm leading-relaxed;
+    }
+}
+
+/* Mejoras para la vista de detalles del ticket */
+.fi-in-text-entry {
+    @apply break-words;
+}
+
+/* Estilos para badges en móviles */
+@media (max-width: 640px) {
+    .fi-badge {
+        @apply text-xs px-2 py-1;
+    }
+}
+
+/* Mejoras para secciones colapsables */
+.fi-section-header {
+    @apply bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700;
+    @apply border border-blue-200 dark:border-gray-600 rounded-lg;
+}
+
+/* Iconos mejorados */
+.fi-in-text-entry-icon {
+    @apply text-blue-500 dark:text-blue-400;
+}
+
+/* Responsive grid mejorado */
+@media (max-width: 768px) {
+    .fi-fo-field-wrp {
+        @apply mb-4;
+    }
+
+    .fi-fo-field-wrp .fi-fo-field-wrp-label {
+        @apply text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+    }
+}
+
+/* Mejoras para el estado del dispositivo */
+.device-status-available {
+    @apply bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200;
+}
+
+.device-status-assigned {
+    @apply bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-200;
+}
+
+.device-status-repair {
+    @apply bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200;
+}
+
+.device-status-outofservice {
+    @apply bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200;
+}
+
+/* Animaciones suaves */
+.fi-fo-placeholder,
+.fi-in-text-entry {
+    @apply transition-all duration-200 ease-in-out;
+}
+
+.fi-fo-placeholder:hover {
+    @apply shadow-sm scale-[1.02];
+}
+
+/* Mejoras para el header de dispositivo */
+.device-header {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white;
+    @apply rounded-lg p-4 mb-4 shadow-lg;
+}
+
+/* Espaciado consistente */
+.fi-fo-field-wrp + .fi-fo-field-wrp {
+    @apply mt-4;
+}
+
+/* Mejoras para texto largo */
+.fi-fo-placeholder-content {
+    @apply leading-relaxed;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+    .fi-fo-placeholder-content {
+        @apply text-sm;
+    }
+
+    .fi-in-text-entry-content {
+        @apply text-sm;
+    }
+}
+
+/* Mejoras para iconos en badges */
+.fi-badge-icon {
+    @apply mr-1 flex-shrink-0;
+}
+
+/* Separador visual mejorado */
+.device-info-separator {
+    @apply border-t border-gray-200 dark:border-gray-700 my-4;
+}
+
+/* Mejoras para copiado de serie */
+.copyable-field {
+    @apply cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-2 py-1 transition-colors;
+}
+
+/* Loading states */
+.fi-fo-placeholder[data-loading="true"] {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700;
+}
+
+/* Mejoras para formularios en pantallas pequeñas */
+@media (max-width: 640px) {
+    .fi-fo-component-ctn {
+        @apply space-y-4;
+    }
+
+    .fi-fo-field-wrp {
+        @apply w-full;
+    }
+}
