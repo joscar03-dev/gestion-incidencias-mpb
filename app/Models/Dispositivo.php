@@ -19,10 +19,32 @@ class Dispositivo extends Model
         'area_id',
         'usuario_id',
         'fecha_compra',
+        // Nuevos campos agregados
+        'marca',
+        'modelo',
+        'codigo_activo',
+        'etiqueta_inventario',
+        'costo_adquisicion',
+        'moneda',
+        'proveedor',
+        'fecha_garantia',
+        'tipo_garantia',
+        'fecha_instalacion',
+        'vida_util_anos',
+        'especificaciones_tecnicas',
+        'color',
+        'tipo_conexion',
+        'observaciones',
+        'accesorios_incluidos',
     ];
 
     protected $casts = [
         'fecha_compra' => 'date',
+        'fecha_garantia' => 'date',
+        'fecha_instalacion' => 'date',
+        'especificaciones_tecnicas' => 'array',
+        'costo_adquisicion' => 'decimal:2',
+        'vida_util_anos' => 'integer',
     ];
 
     const ESTADOS = [
@@ -100,6 +122,59 @@ class Dispositivo extends Model
         return $this->asignaciones()->whereNull('fecha_desasignacion')->first();
     }
 
+    // Nuevos métodos para los campos agregados
+    public function getInformacionCompletaAttribute()
+    {
+        $info = [];
+
+        if ($this->marca) $info[] = "Marca: {$this->marca}";
+        if ($this->modelo) $info[] = "Modelo: {$this->modelo}";
+        if ($this->numero_serie) $info[] = "S/N: {$this->numero_serie}";
+        if ($this->codigo_activo) $info[] = "Código: {$this->codigo_activo}";
+
+        return implode(' | ', $info);
+    }
+
+    public function getGarantiaVigentAttribute()
+    {
+        if (!$this->fecha_garantia) return null;
+
+        return $this->fecha_garantia->isFuture();
+    }
+
+    public function getDiasRestantesGarantiaAttribute()
+    {
+        if (!$this->fecha_garantia) return null;
+
+        return max(0, now()->diffInDays($this->fecha_garantia, false));
+    }
+
+    public function getVidaUtilRestanteAttribute()
+    {
+        if (!$this->fecha_instalacion || !$this->vida_util_anos) return null;
+
+        $fechaVencimiento = $this->fecha_instalacion->addYears($this->vida_util_anos);
+        return max(0, now()->diffInDays($fechaVencimiento, false));
+    }
+
+    public function getEspecificacionPorClaveAttribute()
+    {
+        return function($clave) {
+            if (!$this->especificaciones_tecnicas || !is_array($this->especificaciones_tecnicas)) {
+                return null;
+            }
+
+            return $this->especificaciones_tecnicas[$clave] ?? null;
+        };
+    }
+
+    public function getCostoFormateadoAttribute()
+    {
+        if (!$this->costo_adquisicion) return null;
+
+        return $this->moneda . ' ' . number_format($this->costo_adquisicion, 2);
+    }
+
     public function estaDisponible()
     {
         return $this->estado === 'Disponible';
@@ -108,5 +183,28 @@ class Dispositivo extends Model
     public function estaAsignado()
     {
         return $this->estado === 'Asignado' && $this->usuario_id !== null;
+    }
+
+    // Scopes adicionales
+    public function scopeConGarantiaVigente($query)
+    {
+        return $query->whereNotNull('fecha_garantia')
+                    ->where('fecha_garantia', '>', now());
+    }
+
+    public function scopeConGarantiaVencida($query)
+    {
+        return $query->whereNotNull('fecha_garantia')
+                    ->where('fecha_garantia', '<=', now());
+    }
+
+    public function scopePorMarca($query, $marca)
+    {
+        return $query->where('marca', $marca);
+    }
+
+    public function scopePorProveedor($query, $proveedor)
+    {
+        return $query->where('proveedor', $proveedor);
     }
 }
