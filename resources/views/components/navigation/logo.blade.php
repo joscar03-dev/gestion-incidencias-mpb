@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="hidden sm:block">
-        <h1 class="text-xl font-bold gradient-text">Centro de Soporte Local</h1>
+        <h1 class="text-xl font-bold gradient-text">Centro de Soporte</h1>
         <p class="text-xs text-gray-600 dark:text-gray-400">Sistema de Gestión de Incidencias</p>
     </div>
 </a>
