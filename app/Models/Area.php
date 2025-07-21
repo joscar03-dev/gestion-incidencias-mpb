@@ -32,11 +32,6 @@ class Area extends Model
     {
         return $this->hasMany(User::class, 'area_id');
     }
-    // Relación con el área padre (recursiva)
-    public function parent()
-    {
-        return $this->belongsTo(Area::class, 'parent_id');
-    }
     // Relación con el local
     public function locale()
     {
