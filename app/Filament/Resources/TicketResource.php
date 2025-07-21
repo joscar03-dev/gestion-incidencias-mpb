@@ -202,7 +202,7 @@ class TicketResource extends Resource
                         Select::make('categorias')
                             ->label('Categorías ITIL')
                             ->multiple()
-                            ->options(function ($get) {
+                            ->relationship('categorias', 'nombre', function ($query, $get) {
                                 $tipo = $get('tipo');
                                 $tipoCategoria = match ($tipo) {
                                     'Incidente' => 'incidente',
@@ -211,18 +211,16 @@ class TicketResource extends Resource
                                     default => null
                                 };
 
-                                $query = \App\Models\Categoria::query()
-                                    ->where('is_active', true)
+                                $query = $query->where('is_active', true)
                                     ->where('itil_category', true);
 
                                 if ($tipoCategoria) {
                                     $query->where('tipo_categoria', $tipoCategoria);
                                 }
 
-                                return $query->pluck('nombre', 'id')->toArray();
+                                return $query;
                             })
                             ->searchable()
-                            ->relationship('categorias', 'nombre')
                             ->preload()
                             ->reactive()
                             ->helperText(function ($get) {
