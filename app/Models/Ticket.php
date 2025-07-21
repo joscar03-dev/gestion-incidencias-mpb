@@ -234,7 +234,7 @@ class Ticket extends Model implements Commentable
         $slaArea = $area->slas->first();
 
         // Mapear prioridad del ticket al formato esperado por el SLA
-        $prioridadParaSla = match($this->prioridad) {
+        $prioridadParaSla = match ($this->prioridad) {
             'Critica' => 'critico',
             'Alta' => 'alto',
             'Media' => 'medio',
@@ -294,7 +294,7 @@ class Ticket extends Model implements Commentable
         $tiempoTranscurrido = $this->created_at->diffInMinutes(now());
 
         // Mapear prioridad del ticket al formato esperado por el SLA
-        $prioridadParaSla = match($this->prioridad) {
+        $prioridadParaSla = match ($this->prioridad) {
             'Critica' => 'critico',
             'Alta' => 'alto',
             'Media' => 'medio',
@@ -339,7 +339,8 @@ class Ticket extends Model implements Commentable
         ];
 
         return $escalaPrioridad[$this->prioridad] ?? 'Media';
-    }    /**
+    }
+    /**
      * Notifica el escalamiento a los usuarios correspondientes
      */
     private function notificarEscalamiento($motivo, $prioridadAnterior, $nuevaPrioridad)
@@ -364,13 +365,12 @@ class Ticket extends Model implements Commentable
     {
         try {
             $comentario = "🚨 ESCALADO AUTOMÁTICO\n\n" .
-                         "• Motivo: {$motivo}\n" .
-                         "• Prioridad cambió de {$prioridadAnterior} a {$nuevaPrioridad}\n" .
-                         "• Fecha: " . now()->format('d/m/Y H:i') . "\n" .
-                         "• Sistema: Escalado automático por vencimiento de SLA";
+                "• Motivo: {$motivo}\n" .
+                "• Prioridad cambió de {$prioridadAnterior} a {$nuevaPrioridad}\n" .
+                "• Fecha: " . now()->format('d/m/Y H:i') . "\n" .
+                "• Sistema: Escalado automático por vencimiento de SLA";
 
             $this->comment($comentario, $this->creadoPor);
-
         } catch (\Exception $e) {
             Log::error("Error al agregar comentario de escalado", [
                 'ticket_id' => $this->id,
