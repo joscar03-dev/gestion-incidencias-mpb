@@ -34,6 +34,31 @@ class Sla extends Model
         'tiempo_escalamiento' => 'integer',
     ];
 
+    /**
+     * Factores base para prioridades de tickets
+     */
+    protected static $factoresPrioridadBase = [
+        'critico' => 0.2,   // 20% del tiempo normal - MUY URGENTE
+        'critica' => 0.2,   // 20% del tiempo normal (alternativa)
+        'urgente' => 0.2,   // 20% del tiempo normal (alternativa)
+        'alto' => 0.5,      // 50% del tiempo normal - URGENTE
+        'alta' => 0.5,      // 50% del tiempo normal (alternativa)
+        'medio' => 1.0,     // 100% del tiempo normal - NORMAL
+        'media' => 1.0,     // 100% del tiempo normal (alternativa)
+        'bajo' => 1.5,      // 150% del tiempo normal - MENOS URGENTE
+        'baja' => 1.5       // 150% del tiempo normal (alternativa)
+    ];
+
+    /**
+     * Factores base para tipos de tickets
+     */
+    protected static $factoresTipoBase = [
+        'incidente' => 0.6,      // 60% - Los incidentes requieren respuesta rápida
+        'general' => 0.8,        // 80% - Consultas generales son importantes
+        'requerimiento' => 1.2,  // 120% - Los requerimientos pueden tomar más tiempo
+        'cambio' => 1.5          // 150% - Los cambios requieren planificación y más tiempo
+    ];
+
     public function area()
     {
         return $this->belongsTo(Area::class, 'area_id');
@@ -59,7 +84,7 @@ class Sla extends Model
         // Obtener factores individuales
         $factorPrioridad = $this->obtenerFactorPrioridad($prioridadTicket);
         $factorTipo = $this->obtenerFactorTipo($tipoTicket);
-        
+
         // Calcular factor combinado
         $factorCombinado = $factorPrioridad * $factorTipo;
 
@@ -88,21 +113,8 @@ class Sla extends Model
             return 1.0;
         }
 
-        // Mapeo de prioridades a factores de tiempo (normalizar a minúsculas)
-        $factoresPrioridad = [
-            'critico' => 0.2,   // 20% del tiempo normal - MUY URGENTE
-            'critica' => 0.2,   // 20% del tiempo normal (alternativa)
-            'urgente' => 0.2,   // 20% del tiempo normal (alternativa)
-            'alto' => 0.5,      // 50% del tiempo normal - URGENTE
-            'alta' => 0.5,      // 50% del tiempo normal (alternativa)
-            'medio' => 1.0,     // 100% del tiempo normal - NORMAL
-            'media' => 1.0,     // 100% del tiempo normal (alternativa)
-            'bajo' => 1.5,      // 150% del tiempo normal - MENOS URGENTE
-            'baja' => 1.5       // 150% del tiempo normal (alternativa)
-        ];
-
         $prioridadNormalizada = strtolower($prioridadTicket);
-        return $factoresPrioridad[$prioridadNormalizada] ?? 1.0;
+        return self::$factoresPrioridadBase[$prioridadNormalizada] ?? 1.0;
     }
 
     /**
@@ -114,16 +126,8 @@ class Sla extends Model
             return 1.0;
         }
 
-        // Mapeo de tipos de ticket a factores de tiempo
-        $factoresTipo = [
-            'incidente' => 0.6,      // 60% - Los incidentes requieren respuesta rápida
-            'general' => 0.8,        // 80% - Consultas generales son importantes
-            'requerimiento' => 1.2,  // 120% - Los requerimientos pueden tomar más tiempo
-            'cambio' => 1.5          // 150% - Los cambios requieren planificación y más tiempo
-        ];
-
         $tipoNormalizado = strtolower($tipoTicket);
-        return $factoresTipo[$tipoNormalizado] ?? 1.0;
+        return self::$factoresTipoBase[$tipoNormalizado] ?? 1.0;
     }
 
     /**
@@ -197,10 +201,10 @@ class Sla extends Model
     public static function getFactoresPrioridad()
     {
         return [
-            'critico' => ['factor' => 0.2, 'label' => 'Crítica', 'descripcion' => 'Muy Urgente - 20% del tiempo'],
-            'alto' => ['factor' => 0.5, 'label' => 'Alta', 'descripcion' => 'Urgente - 50% del tiempo'],
-            'medio' => ['factor' => 1.0, 'label' => 'Media', 'descripcion' => 'Normal - 100% del tiempo'],
-            'bajo' => ['factor' => 1.5, 'label' => 'Baja', 'descripcion' => 'Menos Urgente - 150% del tiempo'],
+            'critico' => ['factor' => self::$factoresPrioridadBase['critico'], 'label' => 'Crítica', 'descripcion' => 'Muy Urgente - 20% del tiempo'],
+            'alto' => ['factor' => self::$factoresPrioridadBase['alto'], 'label' => 'Alta', 'descripcion' => 'Urgente - 50% del tiempo'],
+            'medio' => ['factor' => self::$factoresPrioridadBase['medio'], 'label' => 'Media', 'descripcion' => 'Normal - 100% del tiempo'],
+            'bajo' => ['factor' => self::$factoresPrioridadBase['bajo'], 'label' => 'Baja', 'descripcion' => 'Menos Urgente - 150% del tiempo'],
         ];
     }
 
@@ -210,10 +214,10 @@ class Sla extends Model
     public static function getFactoresTipo()
     {
         return [
-            'incidente' => ['factor' => 0.6, 'label' => 'Incidente', 'descripcion' => 'Respuesta rápida - 60% del tiempo'],
-            'general' => ['factor' => 0.8, 'label' => 'General', 'descripcion' => 'Consulta importante - 80% del tiempo'],
-            'requerimiento' => ['factor' => 1.2, 'label' => 'Requerimiento', 'descripcion' => 'Planificación - 120% del tiempo'],
-            'cambio' => ['factor' => 1.5, 'label' => 'Cambio', 'descripcion' => 'Requiere análisis - 150% del tiempo'],
+            'incidente' => ['factor' => self::$factoresTipoBase['incidente'], 'label' => 'Incidente', 'descripcion' => 'Respuesta rápida - 60% del tiempo'],
+            'general' => ['factor' => self::$factoresTipoBase['general'], 'label' => 'General', 'descripcion' => 'Consulta importante - 80% del tiempo'],
+            'requerimiento' => ['factor' => self::$factoresTipoBase['requerimiento'], 'label' => 'Requerimiento', 'descripcion' => 'Planificación - 120% del tiempo'],
+            'cambio' => ['factor' => self::$factoresTipoBase['cambio'], 'label' => 'Cambio', 'descripcion' => 'Requiere análisis - 150% del tiempo'],
         ];
     }
 
@@ -223,7 +227,7 @@ class Sla extends Model
     public function calcularEjemploSla($prioridad, $tipo)
     {
         $sla = $this->calcularSlaEfectivo($prioridad, $tipo);
-        
+
         return [
             'respuesta_horas' => round($sla['tiempo_respuesta'] / 60, 1),
             'resolucion_horas' => round($sla['tiempo_resolucion'] / 60, 1),
@@ -235,15 +239,23 @@ class Sla extends Model
     }
 
     /**
+     * Método privado para obtener el SLA activo de un área
+     */
+    private static function getSlaActivoPorArea($areaId)
+    {
+        return static::where('area_id', $areaId)
+                    ->where('activo', true)
+                    ->first();
+    }
+
+    /**
      * Obtiene el SLA de un área y calcula los tiempos efectivos
      * Este es el método principal para usar el sistema híbrido
      */
     public static function calcularParaTicket($areaId, $prioridadTicket = null, $tipoTicket = null)
     {
-        $sla = static::where('area_id', $areaId)
-                    ->where('activo', true)
-                    ->first();
-        
+        $sla = self::getSlaActivoPorArea($areaId);
+
         if (!$sla) {
             return [
                 'encontrado' => false,
@@ -254,7 +266,7 @@ class Sla extends Model
         }
 
         $tiemposCalculados = $sla->calcularSlaEfectivo($prioridadTicket, $tipoTicket);
-        
+
         return array_merge([
             'encontrado' => true,
             'sla_id' => $sla->id,
@@ -267,10 +279,8 @@ class Sla extends Model
      */
     public static function verificarEscalamiento($areaId, $tiempoTranscurrido, $prioridadTicket = null, $tipoTicket = null)
     {
-        $sla = static::where('area_id', $areaId)
-                    ->where('activo', true)
-                    ->first();
-        
+        $sla = self::getSlaActivoPorArea($areaId);
+
         if (!$sla) {
             return false;
         }
