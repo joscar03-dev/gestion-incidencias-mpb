@@ -94,12 +94,12 @@ class PermissionResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn() => auth()->user()?->hasRole('Admin')),
+                    ->visible(fn() => auth()->user()?->hasRole(['Admin', 'Super Admin'])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn() => auth()->user()?->hasRole('Admin')),
+                        ->visible(fn() => auth()->user()?->hasRole(['Admin', 'Super Admin'])),
                 ]),
             ]);
     }
@@ -124,12 +124,12 @@ class PermissionResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (auth()->user()?->hasRole('Admin')) {
+        if (auth()->user()?->hasRole('Super Admin')) {
             // El admin ve todos los usuarios
             return $query;
         }
 
-        if (auth()->user()?->hasRole('Moderador')) {
+        if (auth()->user()?->hasRole('Admin')) {
             // El moderador ve todos menos el admin
             return $query->whereDoesntHave('roles', function ($q) {
                 $q->where('name', 'Admin');
