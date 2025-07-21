@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Ticket;
 use App\Models\User;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
@@ -18,7 +19,7 @@ class TicketObserver
             // 1. Notificar al técnico asignado si está asignado
             if ($ticket->asignado_a) {
                 $agent = $ticket->asignadoA;
-                
+
                 if ($agent) {
                     $this->sendNotificationToUser(
                         $agent,
@@ -27,7 +28,7 @@ class TicketObserver
                         'heroicon-o-ticket',
                         'success'
                     );
-                    
+
                     Log::info("Notificación de ticket creado enviada", [
                         'ticket_id' => $ticket->id,
                         'agent_id' => $agent->id,
@@ -38,7 +39,6 @@ class TicketObserver
 
             // 2. Notificar a todos los administradores
             $this->notificarAdministradores($ticket, 'creado');
-
         } catch (\Exception $e) {
             Log::error("Error enviando notificación en ticket creado", [
                 'ticket_id' => $ticket->id,
@@ -65,7 +65,7 @@ class TicketObserver
                         'heroicon-o-arrow-path',
                         'warning'
                     );
-                    
+
                     Log::info("Notificación de reasignación enviada", [
                         'ticket_id' => $ticket->id,
                         'agent_id' => $agent->id,
@@ -89,7 +89,7 @@ class TicketObserver
                         'heroicon-o-check-circle',
                         'success'
                     );
-                    
+
                     Log::info("Notificación de cierre enviada", [
                         'ticket_id' => $ticket->id,
                         'creator_id' => $creador->id,
@@ -107,7 +107,7 @@ class TicketObserver
             if ($ticket->isDirty('prioridad')) {
                 $prioridadAnterior = $ticket->getOriginal('prioridad');
                 $nuevaPrioridad = $ticket->prioridad;
-                
+
                 // Solo notificar si aumentó a crítica
                 if ($nuevaPrioridad === 'Critica' && $prioridadAnterior !== 'Critica') {
                     $this->notificarCambioPrioridad($ticket, $prioridadAnterior, $nuevaPrioridad);
@@ -123,7 +123,6 @@ class TicketObserver
                     $this->notificarCambioEstado($ticket, $estadoAnterior, $nuevoEstado);
                 }
             }
-
         } catch (\Exception $e) {
             Log::error("Error enviando notificación en ticket actualizado", [
                 'ticket_id' => $ticket->id,
@@ -157,7 +156,6 @@ class TicketObserver
                 'ticket_id' => $ticket->id,
                 'tecnico_asignado' => $ticket->asignadoA->name ?? 'Sin asignar'
             ]);
-
         } catch (\Exception $e) {
             Log::error("Error notificando escalado", [
                 'ticket_id' => $ticket->id,
@@ -192,7 +190,6 @@ class TicketObserver
                 'prioridad_anterior' => $prioridadAnterior,
                 'nueva_prioridad' => $nuevaPrioridad
             ]);
-
         } catch (\Exception $e) {
             Log::error("Error notificando cambio de prioridad", [
                 'ticket_id' => $ticket->id,
@@ -249,7 +246,6 @@ class TicketObserver
                 'estado_anterior' => $estadoAnterior,
                 'nuevo_estado' => $nuevoEstado
             ]);
-
         } catch (\Exception $e) {
             Log::error("Error notificando cambio de estado", [
                 'ticket_id' => $ticket->id,
@@ -310,13 +306,6 @@ class TicketObserver
                     in_array($accion, ['escalado', 'prioridad_critica']) // persistente para acciones críticas
                 );
             }
-
-            Log::info("Notificaciones enviadas a administradores", [
-                'ticket_id' => $ticket->id,
-                'accion' => $accion,
-                'admins_notificados' => $administradores->count()
-            ]);
-
         } catch (\Exception $e) {
             Log::error("Error notificando a administradores", [
                 'ticket_id' => $ticket->id,
@@ -330,9 +319,9 @@ class TicketObserver
      * Helper method to send notifications to users
      */
     private function sendNotificationToUser(
-        User $user, 
-        string $title, 
-        string $body, 
+        User $user,
+        string $title,
+        string $body,
         string $icon = 'heroicon-o-information-circle',
         string $color = 'info',
         bool $persistent = false
@@ -341,6 +330,7 @@ class TicketObserver
             $notification = Notification::make()
                 ->title($title)
                 ->body($body)
+                ->actions([])
                 ->icon($icon)
                 ->iconColor($color);
 
@@ -350,7 +340,6 @@ class TicketObserver
 
             // Enviar a la base de datos y hacer broadcast en tiempo real
             $notification->sendToDatabase($user)->broadcast($user);
-
         } catch (\Exception $e) {
             Log::error("Error enviando notificación a usuario {$user->id}: " . $e->getMessage());
         }
@@ -361,7 +350,7 @@ class TicketObserver
      */
     public function deleted(Ticket $ticket): void
     {
-        // Opcional: notificar cuando se elimina un ticket
+
     }
 
     /**
