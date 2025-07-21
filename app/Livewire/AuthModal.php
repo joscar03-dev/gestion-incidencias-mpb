@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class AuthModal extends Component
@@ -76,13 +75,13 @@ class AuthModal extends Component
             'email' => $this->loginEmail,
             'password' => $this->loginPassword
         ], $this->remember)) {
-            
+
             // Simplemente redirigir a la página de inicio
             return redirect('/');
         } else {
             $this->addError('loginEmail', 'Las credenciales no coinciden con nuestros registros.');
         }
-    }    public function register()
+    }   public function register()
     {
         $this->validate();
 
@@ -93,7 +92,7 @@ class AuthModal extends Component
         ]);
 
         Auth::login($user);
-        
+
         // Simplemente redirigir a la página de inicio
         return redirect('/');
     }
