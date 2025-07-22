@@ -3,7 +3,7 @@
     use Illuminate\Support\Str;
 @endphp
 
-<div class="py-5">
+<div class="py-5 bg-white dark:bg-gray-900">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <!-- Page Title -->
         <div class="mb-8">
@@ -17,10 +17,10 @@
 
         <!-- Mensajes de feedback -->
         @if (session()->has('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+            <div class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-4" role="alert">
                 <div class="flex">
                     <div class="py-1">
-                        <svg class="fill-current h-6 w-6 text-green-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <svg class="fill-current h-6 w-6 text-green-500 dark:text-green-300 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                             <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
                         </svg>
                     </div>
@@ -33,10 +33,10 @@
         @endif
 
         @if (session()->has('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4" role="alert">
                 <div class="flex">
                     <div class="py-1">
-                        <svg class="fill-current h-6 w-6 text-red-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <svg class="fill-current h-6 w-6 text-red-500 dark:text-red-300 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                             <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
                         </svg>
                     </div>
@@ -49,10 +49,10 @@
         @endif
 
         @if (session()->has('info'))
-            <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4" role="alert">
+            <div class="bg-blue-100 dark:bg-blue-900 border border-blue-400 dark:border-blue-700 text-blue-700 dark:text-blue-300 px-4 py-3 rounded mb-4" role="alert">
                 <div class="flex">
                     <div class="py-1">
-                        <svg class="fill-current h-6 w-6 text-blue-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <svg class="fill-current h-6 w-6 text-blue-500 dark:text-blue-300 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                             <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
                         </svg>
                     </div>
@@ -66,8 +66,8 @@
 
         <div class="space-y-6">
             <!-- Header con navegación por pestañas -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="border-b border-gray-200">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="border-b border-gray-200 dark:border-gray-700">
                     <div class="flex justify-between items-center px-6">
                         <!-- Navegación desktop -->
                         <nav class="hidden md:flex">
@@ -102,7 +102,7 @@
                             wire:click="sincronizar"
                             type="button"
                             title="Actualizar vista"
-                            class="hidden md:flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                            class="hidden md:flex items-center px-3 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-white bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
                         >
                             <svg class="h-4 w-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -115,7 +115,7 @@
                             <div class="w-full mr-2">
                                 <select
                                     wire:model.live="activeTab"
-                                    class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    class="w-full appearance-none bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
                                     <option value="mis-dispositivos">📱 Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})</option>
                                     <option value="solicitar-dispositivo">➕ Solicitar Requerimiento</option>
@@ -127,7 +127,7 @@
                                 wire:click="sincronizar"
                                 type="button"
                                 title="Actualizar vista"
-                                class="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+                                class="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -194,9 +194,9 @@
                     @if($misDispositivos && $misDispositivos->count() > 0)
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($misDispositivos as $dispositivo)
-                                <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                                     <!-- Imagen del dispositivo -->
-                                    <div class="h-48 bg-gray-50 relative overflow-hidden">
+                                    <div class="h-48 bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
                                         @if($dispositivo->imagen)
                                             <img
                                                 src="{{ asset('storage/' . $dispositivo->imagen) }}"
@@ -204,12 +204,12 @@
                                                 class="w-full h-full object-cover"
                                             >
                                         @else
-                                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+                                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900">
                                                 <div class="text-center">
-                                                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                                     </svg>
-                                                    <p class="mt-2 text-sm text-gray-500">Sin imagen</p>
+                                                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Sin imagen</p>
                                                 </div>
                                             </div>
                                         @endif
@@ -217,8 +217,8 @@
                                         <!-- Badge de estado superpuesto -->
                                         <div class="absolute top-3 right-3">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shadow-sm
-                                                {{ $dispositivo->estado === 'Asignado' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                                   ($dispositivo->estado === 'Reparación' ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-gray-100 text-gray-800 border border-gray-200') }}">
+                                                {{ $dispositivo->estado === 'Asignado' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700' :
+                                                   ($dispositivo->estado === 'Reparación' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-600') }}">
                                                 {{ $dispositivo->estado }}
                                             </span>
                                         </div>
@@ -228,27 +228,27 @@
                                     <div class="p-6">
                                         <div class="flex items-start justify-between mb-3">
                                             <div class="flex-1">
-                                                <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ $dispositivo->nombre }}</h3>
-                                                <p class="text-sm text-indigo-600 font-medium">{{ $dispositivo->categoria_dispositivo->nombre ?? 'Sin categoría' }}</p>
-                                                <p class="text-xs text-gray-500 mt-1 font-mono">S/N: {{ $dispositivo->numero_serie }}</p>
+                                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{{ $dispositivo->nombre }}</h3>
+                                                <p class="text-sm text-indigo-600 dark:text-indigo-300 font-medium">{{ $dispositivo->categoria_dispositivo->nombre ?? 'Sin categoría' }}</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">S/N: {{ $dispositivo->numero_serie }}</p>
                                             </div>
                                         </div>
 
                                         @if($dispositivo->descripcion)
-                                            <p class="text-sm text-gray-600 mb-4 leading-relaxed">{{ Str::limit($dispositivo->descripcion, 100) }}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">{{ Str::limit($dispositivo->descripcion, 100) }}</p>
                                         @endif
 
                                         <!-- Información adicional -->
                                         <div class="space-y-2 mb-4">
-                                            <div class="flex items-center text-xs text-gray-500">
-                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                                <svg class="w-4 h-4 mr-2 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                                 </svg>
                                                 <span>{{ $dispositivo->area->nombre ?? 'Sin área asignada' }}</span>
                                             </div>
                                             @if($dispositivo->fecha_compra)
-                                                <div class="flex items-center text-xs text-gray-500">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                                    <svg class="w-4 h-4 mr-2 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                     </svg>
                                                     <span>Compra: {{ \Carbon\Carbon::parse($dispositivo->fecha_compra)->format('d/m/Y') }}</span>
@@ -260,14 +260,14 @@
                                                 $asignacion = $dispositivo->asignaciones()->where('user_id', Auth::id())->whereNull('fecha_desasignacion')->first();
                                             @endphp
                                             @if($asignacion)
-                                                <div class="flex items-center text-xs {{ $asignacion->confirmado ? 'text-green-600' : 'text-amber-600' }}">
+                                                <div class="flex items-center text-xs {{ $asignacion->confirmado ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400' }}">
                                                     @if($asignacion->confirmado)
-                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg class="w-4 h-4 mr-2 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                         </svg>
                                                         <span>Recepción confirmada el {{ \Carbon\Carbon::parse($asignacion->fecha_confirmacion)->format('d/m/Y') }}</span>
                                                     @else
-                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg class="w-4 h-4 mr-2 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                                         </svg>
                                                         <span>Pendiente de confirmar recepción</span>
@@ -281,17 +281,17 @@
                                             @if($dispositivo->estado !== 'Reparación')
                                                 <button
                                                     wire:click="abrirReporteModal({{ $dispositivo->id }})"
-                                                    class="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                                                    class="inline-flex items-center px-3 py-1.5 border border-red-300 dark:border-red-700 shadow-sm text-xs font-medium rounded-md text-red-700 dark:text-red-300 bg-white dark:bg-gray-900 hover:bg-red-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-red-700 transition-colors duration-200"
                                                     title="Reportar problema"
                                                 >
-                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-4 h-4 mr-1 text-red-700 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                                     </svg>
                                                     Reportar Problema
                                                 </button>
                                             @else
-                                                <span class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-100 rounded-md">
-                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <span class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900 rounded-md">
+                                                    <svg class="w-4 h-4 mr-1 text-orange-700 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     </svg>
@@ -322,22 +322,22 @@
 
             @elseif($activeTab === 'solicitar-dispositivo')
                 <!-- Solicitar Requerimiento -->
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Solicitar Dispositivo</h3>
-                        <p class="text-sm text-gray-600">Complete el formulario para solicitar un dispositivo. Su requerimiento será revisado por el administrador.</p>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Solicitar Dispositivo</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Complete el formulario para solicitar un dispositivo. Su requerimiento será revisado por el administrador.</p>
                     </div>
 
                     <form wire:submit="enviarRequerimiento" class="space-y-6">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
-                                <label for="categoria_solicitada" class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="categoria_solicitada" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                     Categoría de Dispositivo *
                                 </label>
                                 <select
                                     wire:model.live="categoria_solicitada"
                                     id="categoria_solicitada"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                    class="w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-white"
                                 >
                                     <option value="">Seleccione una categoría</option>
                                     @if(isset($categorias))
@@ -350,13 +350,13 @@
                             </div>
 
                             <div>
-                                <label for="prioridad_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="prioridad_requerimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                     Prioridad *
                                 </label>
                                 <select
                                     wire:model.live="prioridad_requerimiento"
                                     id="prioridad_requerimiento"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                    class="w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-white"
                                 >
                                     <option value="Baja">Baja</option>
                                     <option value="Media">Media</option>
@@ -368,27 +368,27 @@
                         </div>
 
                         <div>
-                            <label for="justificacion_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="justificacion_requerimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                 Justificación del Requerimiento *
                             </label>
                             <textarea
                                 wire:model.live="justificacion_requerimiento"
                                 id="justificacion_requerimiento"
                                 rows="4"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                class="w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-white"
                                 placeholder="Explique por qué necesita este dispositivo y cómo lo utilizará..."
                             ></textarea>
                             @error('justificacion_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
-                            <label for="documento_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
-                                Documento de Respaldo <span class="text-xs text-gray-500">(Opcional - Max. 2MB)</span>
+                            <label for="documento_requerimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                Documento de Respaldo <span class="text-xs text-gray-500 dark:text-gray-400">(Opcional - Max. 2MB)</span>
                             </label>
                             <div class="flex items-center space-x-2">
-                                <label class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
-                                    <span class="border border-gray-300 rounded-md py-2 px-3 text-sm inline-flex items-center">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <label class="relative cursor-pointer bg-white dark:bg-gray-900 rounded-md font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 focus-within:outline-none">
+                                    <span class="border border-gray-300 dark:border-gray-700 rounded-md py-2 px-3 text-sm inline-flex items-center bg-white dark:bg-gray-900 text-gray-700 dark:text-white">
+                                        <svg class="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
                                         </svg>
                                         {{ $documento_requerimiento ? 'Cambiar archivo' : 'Seleccionar archivo' }}
@@ -402,11 +402,11 @@
                                     >
                                 </label>
                                 @if($documento_requerimiento)
-                                    <span class="text-sm text-gray-500">{{ $documento_requerimiento->getClientOriginalName() }}</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $documento_requerimiento->getClientOriginalName() }}</span>
                                     <button
                                         type="button"
                                         wire:click="$set('documento_requerimiento', null)"
-                                        class="text-red-600 hover:text-red-800"
+                                        class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                                         title="Eliminar archivo"
                                     >
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -415,7 +415,7 @@
                                     </button>
                                 @endif
                             </div>
-                            <p class="mt-1 text-xs text-gray-500">PDF, Word, JPG, JPEG, PNG (máximo 2MB)</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PDF, Word, JPG, JPEG, PNG (máximo 2MB)</p>
                             @error('documento_requerimiento') <span class="text-red-500 text-sm block mt-1">{{ $message }}</span> @enderror
                         </div>
 
@@ -435,71 +435,71 @@
 
             @elseif($activeTab === 'mis-requerimientos')
                 <!-- Mis Requerimientos -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Mis Requerimientos</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Mis Requerimientos</h3>
                     @if(isset($misRequerimientos) && $misRequerimientos->count() > 0)
                         <div class="space-y-4">
                             @foreach($misRequerimientos as $requerimiento)
-                                <div class="border rounded-lg p-4">
+                                <div class="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
                                     <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-medium">{{ $requerimiento->categoria_dispositivo->nombre ?? 'Categoría no disponible' }}</h4>
+                                        <h4 class="font-medium text-gray-900 dark:text-white">{{ $requerimiento->categoria_dispositivo->nombre ?? 'Categoría no disponible' }}</h4>
                                         <div class="flex space-x-2">
                                             <span class="px-2 py-1 text-xs rounded-full
-                                                {{ $requerimiento->prioridad === 'Alta' ? 'bg-red-100 text-red-800' :
-                                                   ($requerimiento->prioridad === 'Media' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800') }}">
+                                                {{ $requerimiento->prioridad === 'Alta' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300' :
+                                                   ($requerimiento->prioridad === 'Media' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300') }}">
                                                 {{ $requerimiento->prioridad }}
                                             </span>
                                             <span class="px-2 py-1 text-xs rounded-full
-                                                {{ $requerimiento->estado === 'Aprobado' ? 'bg-green-100 text-green-800' :
-                                                   ($requerimiento->estado === 'Rechazado' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                                {{ $requerimiento->estado === 'Aprobado' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300' :
+                                                   ($requerimiento->estado === 'Rechazado' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300') }}">
                                                 {{ $requerimiento->estado }}
                                             </span>
                                         </div>
                                     </div>
-                                    <p class="text-sm text-gray-600 mb-2">{{ $requerimiento->justificacion }}</p>
-                                    <p class="text-xs text-gray-500">Solicitado el: {{ $requerimiento->created_at->format('d/m/Y H:i') }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">{{ $requerimiento->justificacion }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Solicitado el: {{ $requerimiento->created_at->format('d/m/Y H:i') }}</p>
                                 </div>
                             @endforeach
                         </div>
                     @else
-                        <div class="text-center py-8">
-                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="text-center py-8 bg-white dark:bg-gray-900 rounded-lg">
+                            <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p class="text-gray-500">No tienes requerimientos registrados</p>
+                            <p class="text-gray-500 dark:text-gray-400">No tienes requerimientos registrados</p>
                         </div>
                     @endif
                 </div>
 
             @else
                 <!-- Historial -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Historial de Asignaciones</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Historial de Asignaciones</h3>
                     @if(isset($historialAsignaciones) && $historialAsignaciones->count() > 0)
                         <div class="space-y-4">
                             @foreach($historialAsignaciones as $asignacion)
-                                <div class="border rounded-lg p-4">
+                                <div class="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
                                     <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-medium">{{ $asignacion->dispositivo->nombre ?? 'Dispositivo no disponible' }}</h4>
-                                        <span class="text-xs text-gray-500">
+                                        <h4 class="font-medium text-gray-900 dark:text-white">{{ $asignacion->dispositivo->nombre ?? 'Dispositivo no disponible' }}</h4>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $asignacion->fecha_asignacion ? \Carbon\Carbon::parse($asignacion->fecha_asignacion)->format('d/m/Y') : 'Fecha no disponible' }}
                                         </span>
                                     </div>
-                                    <p class="text-sm text-gray-600">{{ $asignacion->dispositivo->categoria_dispositivo->nombre ?? 'Sin categoría' }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300">{{ $asignacion->dispositivo->categoria_dispositivo->nombre ?? 'Sin categoría' }}</p>
                                     @if($asignacion->fecha_desasignacion)
-                                        <p class="text-xs text-red-600">Desasignado el: {{ \Carbon\Carbon::parse($asignacion->fecha_desasignacion)->format('d/m/Y') }}</p>
+                                        <p class="text-xs text-red-600 dark:text-red-400">Desasignado el: {{ \Carbon\Carbon::parse($asignacion->fecha_desasignacion)->format('d/m/Y') }}</p>
                                     @else
-                                        <p class="text-xs text-green-600">Actualmente asignado</p>
+                                        <p class="text-xs text-green-600 dark:text-green-400">Actualmente asignado</p>
                                     @endif
                                 </div>
                             @endforeach
                         </div>
                     @else
-                        <div class="text-center py-8">
-                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="text-center py-8 bg-white dark:bg-gray-900 rounded-lg">
+                            <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p class="text-gray-500">No hay historial de asignaciones</p>
+                            <p class="text-gray-500 dark:text-gray-400">No hay historial de asignaciones</p>
                         </div>
                     @endif
                 </div>
@@ -516,7 +516,7 @@
                                 <div class="sm:flex sm:items-start">
                                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                                         <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m-1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
                                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -699,7 +699,6 @@
                     </div>
                 </div>
             @endif
-
         </div>
     </div>
 </div>
