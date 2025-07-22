@@ -21,7 +21,9 @@ class DispositivosUsuario extends Component
 
     public $activeTab = 'mis-dispositivos';
     public $showRequerimientoModal = false;
+    public $showExitoModal = false;
     public $showReporteModal = false;
+    public $ticketCreado;
 
     // Variables para requerimientos de dispositivos
     public $categoria_solicitada;
@@ -44,6 +46,12 @@ class DispositivosUsuario extends Component
 
     public function setActiveTab($tab)
     {
+        // Si está saliendo de la pestaña de solicitar dispositivo, limpiar el formulario
+        if ($this->activeTab === 'solicitar-dispositivo' && $tab !== 'solicitar-dispositivo') {
+            $this->reset(['categoria_solicitada', 'justificacion_requerimiento', 'documento_requerimiento']);
+            $this->prioridad_requerimiento = 'Media';
+        }
+
         $this->activeTab = $tab;
         $this->resetPage();
     }
@@ -56,16 +64,29 @@ class DispositivosUsuario extends Component
         $this->showRequerimientoModal = true;
     }
 
-    // Enviar requerimiento de dispositivo
+    // Cerrar modal para requerimiento de dispositivo
+    public function cerrarRequerimientoModal()
+    {
+        $this->showRequerimientoModal = false;
+    }
+
+    // Validar formulario antes de mostrar el modal de confirmación
     public function enviarRequerimiento()
     {
         $this->validate([
             'categoria_solicitada' => 'required|exists:categoria_dispositivos,id',
             'justificacion_requerimiento' => 'required|min:10|max:500',
             'documento_requerimiento' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048',
-            'prioridad_requerimiento' => 'required|in:Alta,Media,Baja',
+            'prioridad_requerimiento' => 'required|in:Alta,Media,Baja,Critica',
         ]);
 
+        // Mostrar modal de confirmación
+        $this->showRequerimientoModal = true;
+    }
+
+    // Método para confirmar y procesar el envío del requerimiento
+    public function confirmarEnvioRequerimiento()
+    {
         $documentoPath = null;
         if ($this->documento_requerimiento) {
             $documentoPath = $this->documento_requerimiento->store('requerimientos', 'public');
@@ -81,7 +102,7 @@ class DispositivosUsuario extends Component
             $jefeAdministracion = User::role(['Administrador', 'Admin'])->first();
         }
 
-        // Crear la solicitud de dispositivo (como antes)
+        // Crear la solicitud de dispositivo
         $solicitud = SolicitudDispositivo::create([
             'user_id' => Auth::id(),
             'categoria_dispositivo_id' => $this->categoria_solicitada,
@@ -111,9 +132,39 @@ class DispositivosUsuario extends Component
         // Actualizar la solicitud con el ticket_id para establecer la relación bidireccional
         $solicitud->update(['ticket_id' => $ticket->id]);
 
+        // Guarda el ID del ticket creado para mostrarlo en el modal de éxito
+        $this->ticketCreado = $ticket->id;
+
+        // Limpia el formulario inmediatamente después de procesar
+        $this->limpiarFormularioRequerimiento();
+
+        // Muestra el modal de éxito
         $this->showRequerimientoModal = false;
-        $this->dispatch('notify', "Requerimiento enviado correctamente. Ticket #{$ticket->id} creado automáticamente y será revisado por el administrador.");
-        $this->reset(['categoria_solicitada', 'justificacion_requerimiento', 'documento_requerimiento', 'prioridad_requerimiento']);
+        $this->showExitoModal = true;
+    }
+
+    // Método auxiliar para limpiar el formulario de requerimiento
+    private function limpiarFormularioRequerimiento()
+    {
+        $this->reset([
+            'categoria_solicitada',
+            'justificacion_requerimiento',
+            'documento_requerimiento'
+        ]);
+        $this->prioridad_requerimiento = 'Media';
+    }
+
+    // Método para cerrar el modal de éxito y limpiar el formulario
+    public function cerrarExitoModal()
+    {
+        $this->showExitoModal = false;
+        $this->activeTab = 'mis-requerimientos'; // Cambiamos a la pestaña de mis requerimientos para ver el nuevo requerimiento
+
+        // Limpiamos el formulario usando nuestro método auxiliar
+        $this->limpiarFormularioRequerimiento();
+
+        // También limpiamos el ID del ticket creado
+        $this->reset(['ticketCreado']);
     }
 
     // Abrir modal para reportar problema
