@@ -551,13 +551,36 @@ class DispositivoResource extends Resource
                             })
                             ->required()
                             ->searchable(),
+
+                        Forms\Components\Textarea::make('motivo_asignacion')
+                            ->label('Motivo de Asignación')
+                            ->placeholder('Indicar el motivo de la asignación')
+                            ->maxLength(255)
+                            ->default('Asignación desde panel administrativo'),
                     ])
                     ->action(function (Dispositivo $record, array $data): void {
+                        // Actualizar el dispositivo
                         $record->update([
                             'area_id' => $data['area_id'],
                             'usuario_id' => $data['usuario_id'],
                             'estado' => 'Asignado'
                         ]);
+
+                        // Crear registro en dispositivo_asignacions
+                        \App\Models\DispositivoAsignacion::create([
+                            'dispositivo_id' => $record->id,
+                            'user_id' => $data['usuario_id'],
+                            'fecha_asignacion' => now(),
+                            'asignado_por' => auth()->id(), // ID del administrador que hace la asignación
+                            'motivo_asignacion' => $data['motivo_asignacion'] ?? 'Asignación desde panel administrativo',
+                        ]);
+
+                        // Notificar éxito
+                        \Filament\Notifications\Notification::make()
+                            ->title('Dispositivo asignado correctamente')
+                            ->body('El dispositivo ha sido asignado al usuario y se ha registrado en el historial.')
+                            ->success()
+                            ->send();
                     }),
 
                 Tables\Actions\Action::make('liberar')
