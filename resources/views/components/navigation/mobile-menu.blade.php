@@ -29,7 +29,7 @@
                 </div>
             </a>
 
-            @if(auth()->user()->hasRole(['Super Admin', 'Admin']))
+            @if(auth()->user()->hasRole(['Super Admin', 'Admin', 'Técnico']))
                 @if(request()->is('admin*'))
                     <a href="{{ url('/dashboard') }}" class="block px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
                         <div class="flex items-center space-x-2">

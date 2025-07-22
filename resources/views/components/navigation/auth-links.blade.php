@@ -14,7 +14,7 @@
     Mis Dispositivos
 </a>
 
-@if(auth()->user()->hasRole(['Super Admin', 'Admin']))
+@if(auth()->user()->hasRole(['Super Admin', 'Admin', 'Técnico']))
     @if(request()->is('admin*'))
         <a href="{{ url('/dashboard') }}"
            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
