@@ -207,4 +207,43 @@ class Dispositivo extends Model
     {
         return $query->where('proveedor', $proveedor);
     }
+
+    /**
+     * Desasigna el dispositivo, cerrando todas las asignaciones activas
+     *
+     * @param string|null $motivo Motivo de la desasignación
+     * @param int|null $adminId ID del usuario que realiza la desasignación
+     * @return bool True si se realizaron desasignaciones, False si no había asignaciones activas
+     */
+    public function desasignar($motivo = null, $adminId = null)
+    {
+        $asignacionesActivas = $this->asignaciones()->whereNull('fecha_desasignacion')->get();
+
+        if ($asignacionesActivas->isEmpty()) {
+            // No hay asignaciones activas, solo actualizamos el estado
+            $this->update([
+                'usuario_id' => null,
+                'estado' => 'Disponible'
+            ]);
+            return false;
+        }
+
+        foreach ($asignacionesActivas as $asignacion) {
+            $asignacion->desasignar($motivo, $adminId);
+        }
+
+        // La actualización del dispositivo ya se hace en el método desasignar de DispositivoAsignacion
+        // pero lo hacemos aquí también para asegurar consistencia
+        $this->refresh(); // Recargamos el modelo por si las actualizaciones en DispositivoAsignacion no se reflejan inmediatamente
+
+        // Verificamos que el usuario_id sea null
+        if ($this->usuario_id !== null || $this->estado !== 'Disponible') {
+            $this->update([
+                'usuario_id' => null,
+                'estado' => 'Disponible'
+            ]);
+        }
+
+        return true;
+    }
 }
