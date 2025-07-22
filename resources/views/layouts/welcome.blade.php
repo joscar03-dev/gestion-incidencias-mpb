@@ -25,6 +25,7 @@
 
     <main class="pt-16 min-h-screen bg-pattern">
         @include('components.success-message')
+        @include('components.error-message')
 
         @yield('content')
     </main>
