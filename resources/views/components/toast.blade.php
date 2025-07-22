@@ -11,6 +11,7 @@
     }
 }"
 x-on:new-notification.window="addToast($event.detail.message, 'info')"
+@new-notification="addToast($event.detail.message, 'info')"
 class="fixed bottom-4 right-4 z-50 space-y-2">
     <template x-for="toast in toasts" :key="toast.id">
         <div x-show="true"
