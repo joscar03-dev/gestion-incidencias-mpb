@@ -68,14 +68,15 @@
             <!-- Header con navegación por pestañas -->
             <div class="bg-white rounded-lg shadow">
                 <div class="border-b border-gray-200">
-                    <!-- Navegación desktop -->
-                    <nav class="hidden md:flex px-6">
-                        <button
-                            wire:click="setActiveTab('mis-dispositivos')"
-                            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8 {{ $activeTab === 'mis-dispositivos' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
-                        >
-                            Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})
-                        </button>
+                    <div class="flex justify-between items-center px-6">
+                        <!-- Navegación desktop -->
+                        <nav class="hidden md:flex">
+                            <button
+                                wire:click="setActiveTab('mis-dispositivos')"
+                                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8 {{ $activeTab === 'mis-dispositivos' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+                            >
+                                Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})
+                            </button>
                         <button
                             wire:click="setActiveTab('solicitar-dispositivo')"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8 {{ $activeTab === 'solicitar-dispositivo' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
@@ -88,26 +89,52 @@
                         >
                             Mis Requerimientos
                         </button>
-                        <button
-                            wire:click="setActiveTab('historial')"
-                            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm {{ $activeTab === 'historial' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
-                        >
-                            Historial
-                        </button>
-                    </nav>
+                            <button
+                                wire:click="setActiveTab('historial')"
+                                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm {{ $activeTab === 'historial' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+                            >
+                                Historial
+                            </button>
+                        </nav>
 
+                        <!-- Botón de sincronización -->
+                        <button
+                            wire:click="sincronizar"
+                            type="button"
+                            title="Actualizar vista"
+                            class="hidden md:flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                        >
+                            <svg class="h-4 w-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Actualizar
+                        </button>                    </div>
                     <!-- Navegación móvil - Select Dropdown -->
                     <div class="md:hidden px-4 py-3">
-                        <div class="relative">
-                            <select
-                                wire:model.live="activeTab"
-                                class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="w-full mr-2">
+                                <select
+                                    wire:model.live="activeTab"
+                                    class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                                    <option value="mis-dispositivos">📱 Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})</option>
+                                    <option value="solicitar-dispositivo">➕ Solicitar Requerimiento</option>
+                                    <option value="mis-requerimientos">📋 Mis Requerimientos</option>
+                                    <option value="historial">🕐 Historial</option>
+                                </select>
+                            </div>
+                            <button
+                                wire:click="sincronizar"
+                                type="button"
+                                title="Actualizar vista"
+                                class="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
                             >
-                                <option value="mis-dispositivos">📱 Mis Dispositivos ({{ $misDispositivos->count() ?? 0 }})</option>
-                                <option value="solicitar-dispositivo">➕ Solicitar Requerimiento</option>
-                                <option value="mis-requerimientos">📋 Mis Requerimientos</option>
-                                <option value="historial">🕐 Historial</option>
-                            </select>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="relative">
                             <!-- Icono de flecha personalizado -->
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +149,48 @@
             <!-- Contenido según pestaña activa -->
             @if($activeTab === 'mis-dispositivos')
                 <!-- Mis Dispositivos -->
-                <div class="space-y-4">
+                <div class="space-y-6">
+                    <!-- Dispositivos pendientes de confirmar recepción -->
+                    @if(isset($asignacionesPendientes) && $asignacionesPendientes->count() > 0)
+                        <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-4">
+                            <h4 class="text-base font-medium text-yellow-800 flex items-center mb-3">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                Dispositivos pendientes de confirmación
+                            </h4>
+                            <p class="text-sm text-yellow-700 mb-4">
+                                Los siguientes dispositivos te han sido asignados recientemente. Por favor, confirma su recepción:
+                            </p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @foreach($asignacionesPendientes as $asignacion)
+                                    <div class="bg-white border border-yellow-200 rounded-lg p-4 shadow-sm">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h5 class="font-medium text-gray-900">{{ $asignacion->dispositivo->nombre ?? 'Dispositivo' }}</h5>
+                                                <p class="text-sm text-gray-600">{{ $asignacion->dispositivo->categoria_dispositivo->nombre ?? 'Sin categoría' }}</p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    Asignado el: {{ $asignacion->fecha_asignacion ? \Carbon\Carbon::parse($asignacion->fecha_asignacion)->format('d/m/Y') : 'Fecha no disponible' }}
+                                                </p>
+                                            </div>
+                                            <button
+                                                wire:click="confirmarRecepcion({{ $asignacion->id }})"
+                                                class="inline-flex items-center px-3 py-1.5 border border-green-500 shadow-sm text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                                            >
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Confirmar recepción
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Lista de dispositivos asignados -->
                     @if($misDispositivos && $misDispositivos->count() > 0)
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($misDispositivos as $dispositivo)
@@ -184,6 +252,26 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                     </svg>
                                                     <span>Compra: {{ \Carbon\Carbon::parse($dispositivo->fecha_compra)->format('d/m/Y') }}</span>
+                                                </div>
+                                            @endif
+
+                                            <!-- Estado de confirmación (si aplica) -->
+                                            @php
+                                                $asignacion = $dispositivo->asignaciones()->where('user_id', Auth::id())->whereNull('fecha_desasignacion')->first();
+                                            @endphp
+                                            @if($asignacion)
+                                                <div class="flex items-center text-xs {{ $asignacion->confirmado ? 'text-green-600' : 'text-amber-600' }}">
+                                                    @if($asignacion->confirmado)
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span>Recepción confirmada el {{ \Carbon\Carbon::parse($asignacion->fecha_confirmacion)->format('d/m/Y') }}</span>
+                                                    @else
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                                        </svg>
+                                                        <span>Pendiente de confirmar recepción</span>
+                                                    @endif
                                                 </div>
                                             @endif
                                         </div>
@@ -524,6 +612,46 @@
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Modal de Éxito para Confirmación de Recepción -->
+            @if(session()->has('success') && str_contains(session('success'), 'Recepción confirmada'))
+                <div class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div class="sm:flex sm:items-start">
+                                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                                        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                            ¡Recepción Confirmada!
+                                        </h3>
+                                        <div class="mt-2">
+                                            <p class="text-sm text-gray-500">
+                                                {{ session('success') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button
+                                    wire:click="$refresh"
+                                    type="button"
+                                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                >
+                                    OK
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
