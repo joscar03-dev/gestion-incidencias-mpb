@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('sla:verificar-escalado')->everyFiveMinutes();
+        
+        // Sincronizar dispositivos y asignaciones diariamente a la medianoche
+        $schedule->command('dispositivos:sincronizar --fix')->dailyAt('00:00');
     }
 
     /**
