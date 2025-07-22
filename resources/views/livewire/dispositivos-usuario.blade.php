@@ -293,6 +293,44 @@
                             @error('justificacion_requerimiento') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
+                        <div>
+                            <label for="documento_requerimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                                Documento de Respaldo <span class="text-xs text-gray-500">(Opcional - Max. 2MB)</span>
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <label class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
+                                    <span class="border border-gray-300 rounded-md py-2 px-3 text-sm inline-flex items-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                        </svg>
+                                        {{ $documento_requerimiento ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        id="documento_requerimiento"
+                                        wire:model.live="documento_requerimiento"
+                                        class="sr-only"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    >
+                                </label>
+                                @if($documento_requerimiento)
+                                    <span class="text-sm text-gray-500">{{ $documento_requerimiento->getClientOriginalName() }}</span>
+                                    <button
+                                        type="button"
+                                        wire:click="$set('documento_requerimiento', null)"
+                                        class="text-red-600 hover:text-red-800"
+                                        title="Eliminar archivo"
+                                    >
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">PDF, Word, JPG, JPEG, PNG (máximo 2MB)</p>
+                            @error('documento_requerimiento') <span class="text-red-500 text-sm block mt-1">{{ $message }}</span> @enderror
+                        </div>
+
                         <div class="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 type="submit"
@@ -408,6 +446,11 @@
                                                     <li><span class="font-medium">Categoría:</span> {{ $categorias[$categoria_solicitada] ?? 'No seleccionada' }}</li>
                                                     <li><span class="font-medium">Prioridad:</span> {{ $prioridad_requerimiento }}</li>
                                                     <li><span class="font-medium">Justificación:</span> {{ Str::limit($justificacion_requerimiento, 100) }}</li>
+                                                    @if($documento_requerimiento)
+                                                    <li><span class="font-medium">Documento:</span> {{ $documento_requerimiento->getClientOriginalName() }}</li>
+                                                    @else
+                                                    <li><span class="font-medium">Documento:</span> No adjuntado</li>
+                                                    @endif
                                                 </ul>
                                             </div>
                                             @endif
