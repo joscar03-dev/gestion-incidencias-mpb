@@ -44,6 +44,11 @@ class DispositivosUsuario extends Component
         $this->activeTab = 'mis-dispositivos';
     }
 
+    public function sincronizar()
+    {
+        $this->dispatch('notify', 'Vista actualizada correctamente.');
+    }
+
     public function setActiveTab($tab)
     {
         // Si está saliendo de la pestaña de solicitar dispositivo, limpiar el formulario
@@ -265,7 +270,14 @@ class DispositivosUsuario extends Component
     // Obtener dispositivos asignados al usuario
     public function getMisDispositivosProperty()
     {
-        return Dispositivo::where('usuario_id', Auth::id())
+        // Obtenemos los IDs de dispositivos con asignaciones activas para el usuario actual
+        $asignacionesActivasIds = \App\Models\DispositivoAsignacion::where('user_id', Auth::id())
+            ->whereNull('fecha_desasignacion')
+            ->pluck('dispositivo_id')
+            ->toArray();
+
+        // Consultamos los dispositivos que están asignados al usuario según esas asignaciones activas
+        return Dispositivo::whereIn('id', $asignacionesActivasIds)
             ->with(['categoria_dispositivo', 'area'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -305,6 +317,16 @@ class DispositivosUsuario extends Component
         return CategoriaDispositivo::pluck('nombre', 'id');
     }
 
+    // Obtener asignaciones pendientes de confirmación
+    public function getAsignacionesPendientesProperty()
+    {
+        return DispositivoAsignacion::where('user_id', Auth::id())
+            ->pendientesConfirmacion()
+            ->with(['dispositivo', 'dispositivo.categoria_dispositivo'])
+            ->orderBy('fecha_asignacion', 'desc')
+            ->get();
+    }
+
     public function render()
     {
         return view('livewire.dispositivos-usuario', [
@@ -312,6 +334,7 @@ class DispositivosUsuario extends Component
             'misRequerimientos' => $this->misRequerimientos,
             'misTicketsDispositivos' => $this->misTicketsDispositivos,
             'historialAsignaciones' => $this->historialAsignaciones,
+            'asignacionesPendientes' => $this->asignacionesPendientes,
             'categorias' => $this->categorias,
         ]);
     }
