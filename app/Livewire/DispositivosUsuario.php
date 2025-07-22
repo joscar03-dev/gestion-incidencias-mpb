@@ -219,6 +219,12 @@ class DispositivosUsuario extends Component
         $this->reset(['dispositivo_seleccionado', 'tipo_problema', 'descripcion_problema', 'requiere_reemplazo']);
     }
 
+    // Cerrar modal de reporte de problema
+    public function cerrarReporteModal()
+    {
+        $this->showReporteModal = false;
+        $this->reset(['dispositivo_seleccionado', 'tipo_problema', 'descripcion_problema', 'requiere_reemplazo']);
+    }
     // Enviar reporte de problema (alias de reportarProblema)
     public function enviarReporte()
     {
