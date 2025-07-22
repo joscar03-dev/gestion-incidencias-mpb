@@ -20,6 +20,9 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Kirschbaum\Commentions\CommentionsPlugin;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
+use Filament\Facades\Filament;
+use Filament\Navigation\MenuItem;
+use Filament\Navigation\UserMenuItem;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -71,5 +74,18 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    public function boot()
+    {
+        Filament::serving(function () {
+            Filament::registerUserMenuItems([
+                MenuItem::make()
+                    ->label('Cambiar vista')
+                    ->url(fn () => request()->is('admin*') ? url('/dashboard') : url('/admin'))
+                    ->icon('heroicon-o-user-group')
+                    ->visible(fn () => auth()->user()?->hasRole(['Super Admin', 'Admin'])),
+            ]);
+        });
     }
 }
