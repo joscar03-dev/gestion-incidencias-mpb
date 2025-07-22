@@ -575,7 +575,19 @@ class DispositivoResource extends Resource
                             'motivo_asignacion' => $data['motivo_asignacion'] ?? 'Asignación desde panel administrativo',
                         ]);
 
-                        // Notificar éxito
+                        // Notificar al usuario asignado
+                        $user = \App\Models\User::find($data['usuario_id']);
+                        if ($user) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('📱 Dispositivo asignado')
+                                ->body("Se te ha asignado el dispositivo #{$record->id}: {$record->nombre}")
+                                ->icon('heroicon-o-device-phone-mobile')
+                                ->iconColor('success')
+                                ->sendToDatabase($user)
+                                ->broadcast($user);
+                        }
+
+                        // Notificar éxito al admin
                         \Filament\Notifications\Notification::make()
                             ->title('Dispositivo asignado correctamente')
                             ->body('El dispositivo ha sido asignado al usuario y se ha registrado en el historial.')
