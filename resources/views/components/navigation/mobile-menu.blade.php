@@ -29,6 +29,28 @@
                 </div>
             </a>
 
+            @if(auth()->user()->hasRole(['Super Admin', 'Admin']))
+                @if(request()->is('admin*'))
+                    <a href="{{ url('/dashboard') }}" class="block px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                            </svg>
+                            <span>Ir al Panel de Usuario</span>
+                        </div>
+                    </a>
+                @elseif(request()->is('dashboard*'))
+                    <a href="{{ url('/admin') }}" class="block px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                            </svg>
+                            <span>Ir al Panel de Admin</span>
+                        </div>
+                    </a>
+                @endif
+            @endif
+
             <!-- Notifications Section -->
             <div class="py-2" x-data="{
                 showNotifications: false,

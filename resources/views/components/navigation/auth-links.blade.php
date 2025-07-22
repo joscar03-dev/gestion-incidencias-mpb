@@ -14,6 +14,26 @@
     Mis Dispositivos
 </a>
 
+@if(auth()->user()->hasRole(['Super Admin', 'Admin']))
+    @if(request()->is('admin*'))
+        <a href="{{ url('/dashboard') }}"
+           class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            Ir al Panel de Usuario
+        </a>
+    @elseif(request()->is('dashboard*'))
+        <a href="{{ url('/admin') }}"
+           class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            Ir al Panel de Admin
+        </a>
+    @endif
+@endif
+
 <form method="POST" action="{{ route('logout') }}" class="inline">
     @csrf
     <button type="submit" class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-200">
