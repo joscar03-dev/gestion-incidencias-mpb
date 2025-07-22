@@ -268,7 +268,14 @@ class DispositivoResource extends Resource
                             ->required()
                             ->native(false)
                             ->default('Disponible')
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, callable $get, $record) {
+                                // Si cambia a Disponible y hay un registro existente
+                                if ($state === 'Disponible' && $record && isset($record->id) && $record->estado === 'Asignado') {
+                                    // Al cambiar a disponible, limpiar el usuario asignado
+                                    $set('usuario_id', null);
+                                }
+                            }),
                     ]),
 
                 Forms\Components\Section::make('Observaciones y Accesorios')
@@ -501,7 +508,14 @@ class DispositivoResource extends Resource
                                 ->native(false),
                         ])
                         ->action(function (Dispositivo $record, array $data): void {
-                            $record->update(['estado' => $data['nuevo_estado']]);
+                            // Si cambia a disponible, primero desasignar usando el nuevo método del modelo
+                            if ($data['nuevo_estado'] === 'Disponible' && $record->estado === 'Asignado') {
+                                // Usar el nuevo método desasignar que maneja todo correctamente
+                                $record->desasignar('Liberado por cambio de estado');
+                            } else {
+                                // Para otros cambios de estado, actualizar normalmente
+                                $record->update(['estado' => $data['nuevo_estado']]);
+                            }
                         }),
 
                     Tables\Actions\DeleteAction::make()
@@ -555,21 +569,8 @@ class DispositivoResource extends Resource
                     ->modalHeading('Liberar Dispositivo')
                     ->modalDescription('¿Está seguro de que desea liberar este dispositivo?')
                     ->action(function (Dispositivo $record): void {
-                        // Cerrar todas las asignaciones activas del dispositivo usando el método del modelo
-                        $asignacionesActivas = \App\Models\DispositivoAsignacion::where('dispositivo_id', $record->id)
-                            ->whereNull('fecha_desasignacion')
-                            ->get();
-
-                        foreach ($asignacionesActivas as $asignacion) {
-                            $asignacion->desasignar('Liberado manualmente desde el sistema');
-                        }
-
-                        // Actualizar el dispositivo (el método desasignar ya actualiza el dispositivo,
-                        // pero lo hacemos aquí por si acaso para asegurar consistencia)
-                        $record->update([
-                            'usuario_id' => null,
-                            'estado' => 'Disponible'
-                        ]);
+                        // Usar el nuevo método desasignar del modelo Dispositivo que maneja todo correctamente
+                        $record->desasignar('Liberado manualmente desde el sistema');
                     }),
             ])
             ->bulkActions([
@@ -589,7 +590,14 @@ class DispositivoResource extends Resource
                         ])
                         ->action(function (Collection $records, array $data): void {
                             $records->each(function (Dispositivo $record) use ($data) {
-                                $record->update(['estado' => $data['estado_bulk']]);
+                                // Si cambia a disponible, primero desasignar usando el nuevo método del modelo
+                                if ($data['estado_bulk'] === 'Disponible' && $record->estado === 'Asignado') {
+                                    // Usar el nuevo método desasignar que maneja todo correctamente
+                                    $record->desasignar('Liberado por cambio de estado masivo');
+                                } else {
+                                    // Para otros cambios de estado, actualizar normalmente
+                                    $record->update(['estado' => $data['estado_bulk']]);
+                                }
                             });
                         })
                         ->requiresConfirmation(),
