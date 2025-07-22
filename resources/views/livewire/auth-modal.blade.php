@@ -153,7 +153,7 @@
                             </div>
 
                             <!-- Confirm Password -->
-                            <div class="mb-6">
+                            <div class="mb-4">
                                 <label for="register_password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Confirmar Contraseña
                                 </label>
@@ -167,10 +167,38 @@
                                 >
                             </div>
 
+                            <!-- Área -->
+                            <div class="mb-6">
+                                <label for="register_area" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Área
+                                </label>
+                                <select
+                                    id="register_area"
+                                    wire:model="area_id"
+                                    class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent @error('area_id') border-red-500 @else border-gray-300 @enderror"
+                                    required
+                                >
+                                    <option value="">Seleccione su área</option>
+                                    @foreach($areas as $area)
+                                        <option value="{{ $area->id }}">{{ $area->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('area_id')
+                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Mensaje de error general -->
+                            @error('general')
+                                <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+
                             <!-- Register Button -->
                             <button
                                 type="submit"
-                                class="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                                class="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
                                 wire:loading.attr="disabled"
                                 wire:loading.class="opacity-50 cursor-not-allowed"
                             >
