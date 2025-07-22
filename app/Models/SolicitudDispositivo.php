@@ -41,6 +41,7 @@ class SolicitudDispositivo extends Model
     ];
 
     const PRIORIDADES = [
+        'Critica' => 'Critica',
         'Alta' => 'Alta',
         'Media' => 'Media',
         'Baja' => 'Baja',
