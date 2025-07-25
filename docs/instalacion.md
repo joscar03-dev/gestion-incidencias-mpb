@@ -78,6 +78,11 @@ wget https://github.com/tu-usuario/gestion-incidencias/archive/main.zip
 unzip main.zip
 cd gestion-incidencias-main
 ```
+### Configurar Variables de Entorno
+
+```bash
+# Copiar el archivo de configuración
+cp .env.example .env
 
 ### 2. Instalar Dependencias PHP
 
@@ -102,19 +107,13 @@ npm run dev
 npm run build
 ```
 
-### 4. Configurar Variables de Entorno
-
-```bash
-# Copiar el archivo de configuración
-cp .env.example .env
-
 # Generar la clave de aplicación
 php artisan key:generate
 ```
 
 ### 5. Editar Configuración
 
-Edita el archivo `.env` con la configuración de tu entorno:
+Edita el archivo `.env` con la configuración de tu entorno (NO QUITAR variables de REVERB):
 
 ```env
 # Configuración de la aplicación
@@ -220,17 +219,12 @@ php artisan migrate --force
 # Ejecutar todos los seeders
 php artisan db:seed
 
-# Ejecutar seeder específico
-php artisan db:seed --class=RoleSeeder
-php artisan db:seed --class=UserSeeder
-php artisan db:seed --class=AreaSeeder
-php artisan db:seed --class=SlaSeeder
 
 # Refrescar base de datos completa (CUIDADO: borra datos)
 php artisan migrate:fresh --seed
 ```
 
-### 4. Verificar Datos Iniciales
+### 4. Verificar Datos Iniciales (OPCIONAL)
 
 ```bash
 # Verificar usuarios creados
@@ -283,11 +277,11 @@ php artisan cache:clear
 ### 3. Configurar Colas de Trabajo
 
 ```bash
-# Configurar las tablas de colas
+# Configurar las tablas de colas (SI SALE EISTENTE OBVIAR ESTE PASO)
 php artisan queue:table
 php artisan migrate
 
-# Configurar trabajos fallidos
+# Configurar trabajos fallidos (SI SALE EISTENTE OBVIAR ESTE PASO)
 php artisan queue:failed-table
 php artisan migrate
 
@@ -632,7 +626,7 @@ Agregar al crontab:
 
 ---
 
-## 🔧 Optimizaciones
+## 🔧 Optimizacion
 
 ### 1. Configurar Redis (Opcional)
 
@@ -702,9 +696,6 @@ git pull origin main
 # Actualizar dependencias
 composer install --optimize-autoloader --no-dev
 npm install && npm run build
-
-# Ejecutar migraciones
-php artisan migrate --force
 
 # Limpiar cachés
 php artisan optimize:clear
@@ -833,14 +824,11 @@ tail -f /var/log/syslog
 ## 📞 Soporte
 
 ### Contacto
-- **Email:** soporte@tu-empresa.com
-- **Teléfono:** +XX XXX-XXX-XXXX
-- **Documentación:** https://docs.tu-empresa.com
+- **Email:** locomancocapac@gmail.com
+- **Teléfono:** +51 927885314
 
 ### Recursos Adicionales
-- **Repositorio:** https://github.com/tu-usuario/gestion-incidencias
-- **Issues:** https://github.com/tu-usuario/gestion-incidencias/issues
-- **Wiki:** https://github.com/tu-usuario/gestion-incidencias/wiki
+- **Repositorio:** https://github.com/joscar03-dev/gestion-incidencias-mpb.git
 
 ---
 

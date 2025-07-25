@@ -84,8 +84,11 @@ gestion-incidencias/
 git clone https://github.com/joscar03-dev/gestion-incidencias-mpb.git
 cd gestion-incidencias-mpb
 ```
-
-2. **Instalar dependencias de PHP**
+2. **Configurar variables de entorno**
+```bash
+cp .env.example .env
+```
+3. **Instalar dependencias de PHP**
 ```bash
 composer install
 ```
@@ -95,12 +98,7 @@ composer install
 npm install
 ```
 
-4. **Configurar variables de entorno**
-```bash
-cp .env.example .env
-```
-
-5. **Configurar base de datos en `.env`**
+4. **Configurar base de datos en `.env`**
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -110,52 +108,53 @@ DB_USERNAME=tu_usuario
 DB_PASSWORD=tu_contraseña
 ```
 
-6. **Generar clave de aplicación**
+5. **Generar clave de aplicación**
 ```bash
 php artisan key:generate
 ```
 
-7. **Ejecutar migraciones y seeders**
+6. **Ejecutar migraciones y seeders**
 ```bash
 php artisan migrate --seed
 ```
 
-8. **Crear enlace simbólico para storage**
+7. **Crear enlace simbólico para storage**
 ```bash
 php artisan storage:link
 ```
 
-9. **Compilar assets**
+8. **Compilar assets**
 ```bash
 npm run build
 ```
 
-10. **Iniciar el servidor**
+9. **Iniciar el servidor**
 ```bash
 php artisan serve
 ```
 
 ### Configuración Adicional
 
-**Configurar colas de trabajo:**
+**Configurar colas de trabajo y notificaciones en tiempo real:**
 ```bash
 php artisan queue:work
+```
+```bash
+php artisan reverb:start
 ```
 
 **Configurar tareas programadas (cron):**
 ```bash
 * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
 ```
+    -Nota: para producción es otra configuración
 
 ## 👥 Usuarios por Defecto
 
-Después de ejecutar los seeders, tendrás estos usuarios:
+Después de ejecutar los seeders, tendrás este usuario:
 
-- **Super Admin**: admin@admin.com / password
-- **Admin**: admin2@admin.com / password
-- **Técnico**: tecnico@tecnico.com / password
-- **Usuario**: user@user.com / password
-
+- **Super Admin**: superadmin@superadmin.com / password
+- 
 ## 🎯 Características Detalladas
 
 ### Sistema de Tickets
@@ -227,14 +226,7 @@ Después de ejecutar los seeders, tendrás estos usuarios:
 5. **Resolución** → Cierre con comentarios
 6. **Métricas** → Actualización de dashboard
 
-## 📋 Roadmap
 
-- [ ] API REST completa
-- [ ] App móvil nativa
-- [ ] Integración con sistemas externos
-- [ ] Chatbot automático
-- [ ] Análisis predictivo con IA
-- [ ] Modo offline
 
 ## 🤝 Contribuciones
 
@@ -253,7 +245,7 @@ Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
 ## 📞 Soporte
 
 Para soporte técnico, contacta:
-- Email: locomancocapac@gmail.co
+- Email: locomancocapac@gmail.com
 
 ---
 
@@ -263,8 +255,7 @@ Para soporte técnico, contacta:
 
 Para más detalles técnicos, consulta la documentación específica en la carpeta `docs/`:
 
-- 📖 [Guía de Instalación](docs/installation.md)
-- 🔌 [Documentación de API](docs/api.md)
+- 📖 [Guía de Instalación](docs/instalacion.md)
 - 🗄️ [Modelos y Base de Datos](docs/models.md)
 - 🎛️ [Panel Administrativo Filament](docs/filament.md)
 - 🎨 [Interfaz de Usuario](docs/frontend.md)

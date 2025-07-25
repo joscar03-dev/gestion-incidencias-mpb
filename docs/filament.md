@@ -1,6 +1,6 @@
 # 🎛️ Documentación del Panel Administrativo Filament
 
-Esta documentación detalla la implementación completa del panel administrativo usando Filament 3, incluyendo todos los recursos, widgets, páginas y funcionalidades.
+Esta documentación detalla la implementación completa del panel administrativo usando Filament 3, incluyendo todos los recursos, widgets, páginas y funcionalidades. (NO USAR, SOLO EN CASO DE EMERGENCIA)
 
 ## 📋 Índice
 
