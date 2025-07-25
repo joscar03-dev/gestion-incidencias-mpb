@@ -125,7 +125,7 @@ class PermissionSeeder extends Seeder
         }
 
         // Crear usuario Super Admin si no existe
-        $superAdminUser = User::where('email', 'locomancocapac@gmail.com')->first();
+        $superAdminUser = User::where('email', 'superadmin@superadmin.com')->first();
 
         if (!$superAdminUser) {
             // Crear área de administración para el Super Admin
@@ -137,13 +137,13 @@ class PermissionSeeder extends Seeder
 
             $superAdminUser = User::create([
                 'name' => 'Super Administrador',
-                'email' => 'locomancocapac@gmail.com',
-                'password' => Hash::make('verano8080'),
+                'email' => 'superadmin@superadmin.com',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
                 'area_id' => $areaAdmin->id,
             ]);
 
-            $this->command->info("Usuario Super Admin creado: locomancocapac@gmail.com");
+            $this->command->info("Usuario Super Admin creado: superadmin@superadmin.com");
         }
 
         // Asignar el rol Super Admin al usuario
