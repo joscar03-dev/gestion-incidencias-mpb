@@ -417,7 +417,7 @@ class TicketResource extends Resource
         return $table
             ->modifyQueryUsing(
                 fn(Builder $query) =>
-                Auth::user()->hasRole('Super Admin') ?
+                Auth::user()->hasRole('Admin') ?
                     $query : $query->where('asignado_a', Auth::id())
             )
             ->defaultSort('created_at', 'desc')
