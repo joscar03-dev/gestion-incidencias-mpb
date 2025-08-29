@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
+// Importar los nuevos modelos para factores administrables
+use App\Models\SlaPrioridadFactor;
+use App\Models\SlaTipoFactor;
+
 class Sla extends Model
 {
     use HasFactory;
@@ -35,22 +39,20 @@ class Sla extends Model
     ];
 
     /**
-     * Factores base para prioridades de tickets
+     * Factores base para prioridades de tickets (DEPRECATED - Usar SlaPrioridadFactor)
+     * Se mantiene para compatibilidad hacia atrás
+     * Valores estandarizados del sistema: critica, alta, media, baja
      */
     protected static $factoresPrioridadBase = [
-        'critico' => 0.2,   // 20% del tiempo normal - MUY URGENTE
-        'critica' => 0.2,   // 20% del tiempo normal (alternativa)
-        'urgente' => 0.2,   // 20% del tiempo normal (alternativa)
-        'alto' => 0.5,      // 50% del tiempo normal - URGENTE
-        'alta' => 0.5,      // 50% del tiempo normal (alternativa)
-        'medio' => 1.0,     // 100% del tiempo normal - NORMAL
-        'media' => 1.0,     // 100% del tiempo normal (alternativa)
-        'bajo' => 1.5,      // 150% del tiempo normal - MENOS URGENTE
-        'baja' => 1.5       // 150% del tiempo normal (alternativa)
+        'critica' => 0.2,   // 20% del tiempo normal - MUY URGENTE
+        'alta' => 0.5,      // 50% del tiempo normal - URGENTE  
+        'media' => 1.0,     // 100% del tiempo normal - NORMAL
+        'baja' => 1.5       // 150% del tiempo normal - MENOS URGENTE
     ];
 
     /**
-     * Factores base para tipos de tickets
+     * Factores base para tipos de tickets (DEPRECATED - Usar SlaTipoFactor)
+     * Se mantiene para compatibilidad hacia atrás
      */
     protected static $factoresTipoBase = [
         'incidente' => 0.6,      // 60% - Los incidentes requieren respuesta rápida
@@ -106,6 +108,7 @@ class Sla extends Model
 
     /**
      * Obtiene el factor multiplicador para la prioridad del ticket
+     * Ahora usa la tabla administrable SlaPrioridadFactor
      */
     public function obtenerFactorPrioridad($prioridadTicket = null)
     {
@@ -113,12 +116,26 @@ class Sla extends Model
             return 1.0;
         }
 
+        // Intentar obtener desde la tabla administrable primero
+        try {
+            $factor = SlaPrioridadFactor::obtenerFactorPorCodigo($prioridadTicket);
+
+            // Si se encontró un factor válido, usarlo
+            if ($factor !== 1.0) {
+                return $factor;
+            }
+        } catch (\Exception $e) {
+            // Si hay error con la BD, usar fallback
+        }
+
+        // Fallback: usar factores estáticos para compatibilidad hacia atrás
         $prioridadNormalizada = strtolower($prioridadTicket);
         return self::$factoresPrioridadBase[$prioridadNormalizada] ?? 1.0;
     }
 
     /**
      * Obtiene el factor multiplicador para el tipo de ticket
+     * Ahora usa la tabla administrable SlaTipoFactor
      */
     public function obtenerFactorTipo($tipoTicket = null)
     {
@@ -126,6 +143,19 @@ class Sla extends Model
             return 1.0;
         }
 
+        // Intentar obtener desde la tabla administrable primero
+        try {
+            $factor = SlaTipoFactor::obtenerFactorPorCodigo($tipoTicket);
+
+            // Si se encontró un factor válido, usarlo
+            if ($factor !== 1.0) {
+                return $factor;
+            }
+        } catch (\Exception $e) {
+            // Si hay error con la BD, usar fallback
+        }
+
+        // Fallback: usar factores estáticos para compatibilidad hacia atrás
         $tipoNormalizado = strtolower($tipoTicket);
         return self::$factoresTipoBase[$tipoNormalizado] ?? 1.0;
     }
@@ -197,22 +227,50 @@ class Sla extends Model
 
     /**
      * Obtiene todos los factores de prioridad disponibles
+     * Ahora usa la tabla administrable SlaPrioridadFactor
      */
     public static function getFactoresPrioridad()
     {
+        try {
+            // Intentar obtener desde la tabla administrable
+            $factores = SlaPrioridadFactor::obtenerFactoresArray();
+
+            // Si hay factores en la BD, usarlos
+            if (!empty($factores)) {
+                return $factores;
+            }
+        } catch (\Exception $e) {
+            // Si hay error con la BD, usar fallback
+        }
+
+        // Fallback: usar factores estáticos para compatibilidad hacia atrás
         return [
-            'critico' => ['factor' => self::$factoresPrioridadBase['critico'], 'label' => 'Crítica', 'descripcion' => 'Muy Urgente - 20% del tiempo'],
-            'alto' => ['factor' => self::$factoresPrioridadBase['alto'], 'label' => 'Alta', 'descripcion' => 'Urgente - 50% del tiempo'],
-            'medio' => ['factor' => self::$factoresPrioridadBase['medio'], 'label' => 'Media', 'descripcion' => 'Normal - 100% del tiempo'],
-            'bajo' => ['factor' => self::$factoresPrioridadBase['bajo'], 'label' => 'Baja', 'descripcion' => 'Menos Urgente - 150% del tiempo'],
+            'critica' => ['factor' => self::$factoresPrioridadBase['critica'], 'label' => 'Crítica', 'descripcion' => 'Muy Urgente - 20% del tiempo'],
+            'alta' => ['factor' => self::$factoresPrioridadBase['alta'], 'label' => 'Alta', 'descripcion' => 'Urgente - 50% del tiempo'],
+            'media' => ['factor' => self::$factoresPrioridadBase['media'], 'label' => 'Media', 'descripcion' => 'Normal - 100% del tiempo'],
+            'baja' => ['factor' => self::$factoresPrioridadBase['baja'], 'label' => 'Baja', 'descripcion' => 'Menos Urgente - 150% del tiempo'],
         ];
     }
 
     /**
      * Obtiene todos los factores de tipo disponibles
+     * Ahora usa la tabla administrable SlaTipoFactor
      */
     public static function getFactoresTipo()
     {
+        try {
+            // Intentar obtener desde la tabla administrable
+            $factores = SlaTipoFactor::obtenerFactoresArray();
+
+            // Si hay factores en la BD, usarlos
+            if (!empty($factores)) {
+                return $factores;
+            }
+        } catch (\Exception $e) {
+            // Si hay error con la BD, usar fallback
+        }
+
+        // Fallback: usar factores estáticos para compatibilidad hacia atrás
         return [
             'incidente' => ['factor' => self::$factoresTipoBase['incidente'], 'label' => 'Incidente', 'descripcion' => 'Respuesta rápida - 60% del tiempo'],
             'general' => ['factor' => self::$factoresTipoBase['general'], 'label' => 'General', 'descripcion' => 'Consulta importante - 80% del tiempo'],
@@ -244,8 +302,8 @@ class Sla extends Model
     private static function getSlaActivoPorArea($areaId)
     {
         return static::where('area_id', $areaId)
-                    ->where('activo', true)
-                    ->first();
+            ->where('activo', true)
+            ->first();
     }
 
     /**
