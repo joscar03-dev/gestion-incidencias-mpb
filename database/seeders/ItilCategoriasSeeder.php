@@ -64,7 +64,6 @@ class ItilCategoriasSeeder extends Seeder
                     'tipo_categoria' => 'incidente',
                     'itil_category' => true,
                     'prioridad_default' => $this->getPrioridadDefault($nombre),
-                    'sla_horas' => $this->getSlaHoras($nombre),
                     'is_active' => true,
                 ]
             );
@@ -80,7 +79,6 @@ class ItilCategoriasSeeder extends Seeder
                     'tipo_categoria' => 'solicitud_servicio',
                     'itil_category' => true,
                     'prioridad_default' => 'media',
-                    'sla_horas' => 24,
                     'is_active' => true,
                 ]
             );
@@ -96,7 +94,6 @@ class ItilCategoriasSeeder extends Seeder
                     'tipo_categoria' => 'cambio',
                     'itil_category' => true,
                     'prioridad_default' => $this->getPrioridadCambio($nombre),
-                    'sla_horas' => $this->getSlaHorasCambio($nombre),
                     'is_active' => true,
                 ]
             );
@@ -112,7 +109,6 @@ class ItilCategoriasSeeder extends Seeder
                     'tipo_categoria' => 'problema',
                     'itil_category' => true,
                     'prioridad_default' => 'alta',
-                    'sla_horas' => 48,
                     'is_active' => true,
                 ]
             );
@@ -142,25 +138,6 @@ class ItilCategoriasSeeder extends Seeder
     }
 
     /**
-     * Obtiene las horas SLA según la categoría de incidente
-     */
-    private function getSlaHoras($categoria): int
-    {
-        $slaHoras = [
-            'Seguridad' => 2,
-            'Disponibilidad del Servicio' => 4,
-            'Hardware' => 4,
-            'Red' => 4,
-            'Software' => 8,
-            'Rendimiento' => 24,
-            'Derechos de Acceso' => 8,
-            'Datos' => 2
-        ];
-
-        return $slaHoras[$categoria] ?? 24;
-    }
-
-    /**
      * Obtiene la prioridad por defecto para cambios
      */
     private function getPrioridadCambio($categoria): string
@@ -173,20 +150,5 @@ class ItilCategoriasSeeder extends Seeder
         ];
 
         return $prioridades[$categoria] ?? 'media';
-    }
-
-    /**
-     * Obtiene las horas SLA para cambios
-     */
-    private function getSlaHorasCambio($categoria): int
-    {
-        $slaHoras = [
-            'Cambio de Emergencia' => 2,
-            'Cambio Normal' => 72,
-            'Cambio Estándar' => 24,
-            'Mantenimiento Programado' => 168 // 7 días
-        ];
-
-        return $slaHoras[$categoria] ?? 72;
     }
 }
