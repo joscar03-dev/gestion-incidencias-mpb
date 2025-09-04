@@ -16,7 +16,6 @@ class Categoria extends Model
         'tipo_categoria',
         'itil_category',
         'prioridad_default',
-        'sla_horas',
         'color',
         'icono',
         'is_active'
@@ -25,7 +24,6 @@ class Categoria extends Model
     protected $casts = [
         'itil_category' => 'boolean',
         'is_active' => 'boolean',
-        'sla_horas' => 'integer',
     ];
 
     public function tickets()
@@ -59,13 +57,5 @@ class Categoria extends Model
         ];
 
         return $colors[$this->prioridad_default] ?? '#6B7280';
-    }
-
-    public function getSlaStatusAttribute()
-    {
-        return [
-            'horas' => $this->sla_horas,
-            'tipo' => $this->sla_horas <= 4 ? 'urgente' : ($this->sla_horas <= 24 ? 'normal' : 'extendido')
-        ];
     }
 }

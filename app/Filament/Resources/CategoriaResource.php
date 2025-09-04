@@ -106,16 +106,7 @@ class CategoriaResource extends Resource
                                     ])
                                     ->default('media')
                                     ->required()
-                                    ->columnSpan(1),
-
-                                TextInput::make('sla_horas')
-                                    ->label('SLA (Horas)')
-                                    ->numeric()
-                                    ->default(24)
-                                    ->required()
-                                    ->suffix('horas')
-                                    ->helperText('Tiempo límite para resolución')
-                                    ->columnSpan(1),
+                                    ->columnSpan(2),
                             ]),
 
                         Grid::make(3)
@@ -175,7 +166,7 @@ class CategoriaResource extends Resource
                         'heroicon-o-bug-ant' => 'problema',
                         'heroicon-o-tag' => 'general',
                     ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
                         'incidente' => 'Incidente',
                         'solicitud_servicio' => 'Solicitud',
                         'cambio' => 'Cambio',
@@ -192,20 +183,13 @@ class CategoriaResource extends Resource
                         'danger' => 'alta',
                         'danger' => 'critica',
                     ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
                         'baja' => '🟢 Baja',
                         'media' => '🟡 Media',
                         'alta' => '🟠 Alta',
                         'critica' => '🔴 Crítica',
                         default => $state,
                     }),
-
-                TextColumn::make('sla_horas')
-                    ->label('SLA')
-                    ->suffix(' h')
-                    ->sortable()
-                    ->alignCenter()
-                    ->color(fn ($record) => $record->sla_horas <= 4 ? 'danger' : ($record->sla_horas <= 24 ? 'warning' : 'success')),
 
                 ColorColumn::make('color')
                     ->label('Color')
