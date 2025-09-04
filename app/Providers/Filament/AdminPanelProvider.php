@@ -52,9 +52,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+
                 TicketsTiempoResolucionChart::class,
-                \App\Filament\Widgets\ItilOverviewWidget::class,
-                \App\Filament\Widgets\ItilCategoryDistributionWidget::class,
                 \App\Filament\Widgets\ItilTrendAnalysisWidget::class,
                 \App\Filament\Widgets\ItilWorkloadTableWidget::class,
                 \App\Filament\Widgets\ItilIncidentMetricsChart::class,
