@@ -195,7 +195,6 @@ class Ticket extends Model implements Commentable
                 ($ticket->estado === self::ESTADOS['Cerrado'] || $ticket->estado === self::ESTADOS['Cancelado'])
             ) {
                 $ticket->fecha_cierre = now();
-                // Si no tiene fecha_resolucion, asignarla también
                 if (!$ticket->fecha_resolucion) {
                     $ticket->fecha_resolucion = now();
                 }
@@ -265,7 +264,12 @@ class Ticket extends Model implements Commentable
             return false;
         }
 
-        $tiempoTranscurrido = abs(now()->diffInMinutes($this->created_at));
+        // Usar fecha de resolución para tickets cerrados, o 'now()' para activos
+        $fechaFin = (in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado'], self::ESTADOS['Archivado']]))
+            ? ($this->fecha_resolucion ?? $this->fecha_cierre ?? now())
+            : now();
+
+        $tiempoTranscurrido = abs($fechaFin->diffInMinutes($this->created_at));
         $tiempoLimite = $tipo === 'respuesta'
             ? $slaEfectivo['tiempo_respuesta']
             : $slaEfectivo['tiempo_resolucion'];
@@ -389,7 +393,15 @@ class Ticket extends Model implements Commentable
             return null;
         }
 
-        $tiempoTranscurrido = abs(now()->diffInMinutes($this->created_at));
+        // Si el ticket está cerrado, calcular con la fecha de resolución
+        $fechaFin = $this->fecha_resolucion ?? $this->fecha_cierre ?? now();
+
+        // Si está cerrado/cancelado, no hay tiempo "restante"
+        if (in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado'], self::ESTADOS['Archivado']])) {
+            return null; // Tickets cerrados no tienen tiempo restante
+        }
+
+        $tiempoTranscurrido = abs($fechaFin->diffInMinutes($this->created_at));
         $tiempoLimite = $tipo === 'respuesta'
             ? $slaEfectivo['tiempo_respuesta']
             : $slaEfectivo['tiempo_resolucion'];
@@ -408,19 +420,32 @@ class Ticket extends Model implements Commentable
             return 'sin_sla';
         }
 
+        // Si el ticket está cerrado/cancelado, verificar si se cumplió el SLA
+        if (in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado'], self::ESTADOS['Archivado']])) {
+            $fechaResolucion = $this->fecha_resolucion ?? $this->fecha_cierre;
+            if ($fechaResolucion) {
+                $tiempoReal = abs($fechaResolucion->diffInMinutes($this->created_at));
+                $slaEfectivo = $this->getSlaEfectivo();
+                $tiempoLimite = $slaEfectivo['tiempo_respuesta'];
+
+                return $tiempoReal <= $tiempoLimite ? 'ok' : 'vencido';
+            }
+        }
+
         $tiempoRestanteRespuesta = $this->getTiempoRestanteSla('respuesta');
-        $tiempoRestanteResolucion = $this->getTiempoRestanteSla('resolucion');
 
         if ($this->estaVencido('respuesta')) {
             return 'vencido';
         }
 
-        // Advertencia si queda menos del 25% del tiempo
-        $slaEfectivo = $this->getSlaEfectivo();
-        $umbralAdvertencia = $slaEfectivo['tiempo_respuesta'] * 0.25;
+        // Para tickets activos, verificar advertencia si queda menos del 25% del tiempo
+        if ($tiempoRestanteRespuesta !== null) {
+            $slaEfectivo = $this->getSlaEfectivo();
+            $umbralAdvertencia = $slaEfectivo['tiempo_respuesta'] * 0.25;
 
-        if ($tiempoRestanteRespuesta <= $umbralAdvertencia) {
-            return 'advertencia';
+            if ($tiempoRestanteRespuesta <= $umbralAdvertencia) {
+                return 'advertencia';
+            }
         }
 
         return 'ok';
@@ -577,5 +602,41 @@ class Ticket extends Model implements Commentable
                     ->count();
             })->first();
         }
+    }
+
+    /**
+     * Formatea el tiempo en minutos a un formato legible
+     * Ej: 1456 minutos -> "1d 0h 16m" en lugar de "1456h"
+     */
+    public static function formatTiempo($minutos)
+    {
+        if ($minutos < 0) {
+            return 'Vencido';
+        }
+
+        if ($minutos == 0) {
+            return '0m';
+        }
+
+        // Convertir minutos a días, horas y minutos
+        $dias = floor($minutos / (24 * 60));
+        $horasRestantes = floor(($minutos % (24 * 60)) / 60);
+        $minutosRestantes = $minutos % 60;
+
+        $resultado = [];
+
+        if ($dias > 0) {
+            $resultado[] = "{$dias}d";
+        }
+
+        if ($horasRestantes > 0) {
+            $resultado[] = "{$horasRestantes}h";
+        }
+
+        if ($minutosRestantes > 0 || empty($resultado)) {
+            $resultado[] = "{$minutosRestantes}m";
+        }
+
+        return implode(' ', $resultado);
     }
 }
