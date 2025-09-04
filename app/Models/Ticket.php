@@ -180,6 +180,12 @@ class Ticket extends Model implements Commentable
         return $this->belongsTo(Sla::class, 'sla_id');
     }
 
+    // Relación con encuesta de satisfacción
+    public function satisfaction()
+    {
+        return $this->hasOne(TicketSatisfaction::class);
+    }
+
     protected static function booted()
     {
         // Al crear un ticket, asignar área automáticamente si no tiene
