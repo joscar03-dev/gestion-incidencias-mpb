@@ -118,6 +118,9 @@
                 </div>
             </div>
 
+            <!-- Encuestas de Satisfacción Pendientes (Componente Reactivo) -->
+            @livewire('pending-surveys', [], key('pending-surveys-dashboard'))
+
             <!-- Acciones rápidas -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -163,4 +166,50 @@
             </div>
         @endif
     </div>
+    
+    <!-- Script para notificaciones simples -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Escuchar eventos de encuestas enviadas
+            window.addEventListener('survey-submitted', function(event) {
+                console.log('Encuesta enviada:', event.detail);
+                showToast('Encuesta enviada exitosamente', 'success');
+            });
+            
+            function showToast(message, type = 'info') {
+                // Crear elemento toast
+                const toast = document.createElement('div');
+                toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white transition-all duration-300 ${
+                    type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                }`;
+                toast.style.transform = 'translateX(100%)';
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                // Animar entrada
+                setTimeout(() => {
+                    toast.style.transform = 'translateX(0)';
+                }, 100);
+                
+                // Remover después de 3 segundos
+                setTimeout(() => {
+                    toast.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (document.body.contains(toast)) {
+                            document.body.removeChild(toast);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
 </div>
