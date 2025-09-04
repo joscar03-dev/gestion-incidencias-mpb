@@ -38,7 +38,7 @@ class SolicitudDispositivoResource extends Resource
     protected static ?int $navigationSort = 2;
 
     // Configuración adicional
-    protected static ?string $recordTitleAttribute = 'justificacion';
+    protected static ?string $recordTitleAttribute = null;
 
     protected static int $globalSearchResultsLimit = 20;
 
@@ -115,14 +115,14 @@ class SolicitudDispositivoResource extends Resource
                                 Forms\Components\DateTimePicker::make('fecha_aprobacion')
                                     ->label('✅ Fecha de Aprobación')
                                     ->readonly()
-                                    ->visible(fn ($record) => $record && $record->estado === 'Aprobado')
+                                    ->visible(fn($record) => $record && $record->estado === 'Aprobado')
                                     ->displayFormat('d/m/Y H:i')
                                     ->native(false),
 
                                 Forms\Components\DateTimePicker::make('fecha_rechazo')
                                     ->label('❌ Fecha de Rechazo')
                                     ->readonly()
-                                    ->visible(fn ($record) => $record && $record->estado === 'Rechazado')
+                                    ->visible(fn($record) => $record && $record->estado === 'Rechazado')
                                     ->displayFormat('d/m/Y H:i')
                                     ->native(false),
                             ])
@@ -185,7 +185,7 @@ class SolicitudDispositivoResource extends Resource
                             ->schema([
                                 Forms\Components\Placeholder::make('ticket_info')
                                     ->label('🎫 Información del Ticket')
-                                    ->visible(fn ($record) => $record && $record->ticket_id)
+                                    ->visible(fn($record) => $record && $record->ticket_id)
                                     ->content(function ($record) {
                                         if (!$record || !$record->ticket) {
                                             return 'Sin ticket asociado';
@@ -234,7 +234,7 @@ class SolicitudDispositivoResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::Medium)
-                    ->description(fn (SolicitudDispositivo $record): string => $record->user->email ?? '')
+                    ->description(fn(SolicitudDispositivo $record): string => $record->user->email ?? '')
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('categoria_dispositivo.nombre')
@@ -258,13 +258,13 @@ class SolicitudDispositivoResource extends Resource
                 Tables\Columns\TextColumn::make('prioridad')
                     ->label('Prioridad')
                     ->badge()
-                    ->color(fn (SolicitudDispositivo $record): string => $record->prioridad_badge_color)
+                    ->color(fn(SolicitudDispositivo $record): string => $record->prioridad_badge_color)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn (SolicitudDispositivo $record): string => $record->estado_badge_color)
+                    ->color(fn(SolicitudDispositivo $record): string => $record->estado_badge_color)
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('documento_requerimiento')
@@ -274,16 +274,16 @@ class SolicitudDispositivoResource extends Resource
                     ->falseIcon('heroicon-o-document')
                     ->trueColor('success')
                     ->falseColor('gray')
-                    ->tooltip(fn (SolicitudDispositivo $record): string =>
-                        $record->documento_requerimiento ? 'Documento adjunto' : 'Sin documento'),
+                    ->tooltip(fn(SolicitudDispositivo $record): string =>
+                    $record->documento_requerimiento ? 'Documento adjunto' : 'Sin documento'),
 
                 Tables\Columns\TextColumn::make('fecha_solicitud')
                     ->label('Fecha')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->since()
-                    ->description(fn (SolicitudDispositivo $record): string =>
-                        $record->fecha_solicitud->format('H:i')),
+                    ->description(fn(SolicitudDispositivo $record): string =>
+                    $record->fecha_solicitud->format('H:i')),
 
                 Tables\Columns\TextColumn::make('aprobadoPor.name')
                     ->label('Gestionado por')
@@ -308,12 +308,12 @@ class SolicitudDispositivoResource extends Resource
 
                 Tables\Columns\TextColumn::make('ticket.id')
                     ->label('Ticket')
-                    ->formatStateUsing(fn ($state) => $state ? "#{$state}" : '-')
-                    ->url(fn (SolicitudDispositivo $record): ?string =>
-                        $record->ticket_id ? "/admin/tickets/{$record->ticket_id}" : null)
+                    ->formatStateUsing(fn($state) => $state ? "#{$state}" : '-')
+                    ->url(fn(SolicitudDispositivo $record): ?string =>
+                    $record->ticket_id ? "/admin/tickets/{$record->ticket_id}" : null)
                     ->color('info')
-                    ->tooltip(fn (SolicitudDispositivo $record): ?string =>
-                        $record->ticket ? "Estado: {$record->ticket->estado}" : null)
+                    ->tooltip(fn(SolicitudDispositivo $record): ?string =>
+                    $record->ticket ? "Estado: {$record->ticket->estado}" : null)
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
@@ -355,11 +355,11 @@ class SolicitudDispositivoResource extends Resource
                         return $query
                             ->when(
                                 $data['desde'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_solicitud', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('fecha_solicitud', '>=', $date),
                             )
                             ->when(
                                 $data['hasta'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_solicitud', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('fecha_solicitud', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -379,18 +379,18 @@ class SolicitudDispositivoResource extends Resource
                     ->trueLabel('Con documento')
                     ->falseLabel('Sin documento')
                     ->queries(
-                        true: fn (Builder $query) => $query->whereNotNull('documento_requerimiento'),
-                        false: fn (Builder $query) => $query->whereNull('documento_requerimiento'),
+                        true: fn(Builder $query) => $query->whereNotNull('documento_requerimiento'),
+                        false: fn(Builder $query) => $query->whereNull('documento_requerimiento'),
                     ),
 
                 Tables\Filters\Filter::make('urgentes')
                     ->label('Solo Urgentes')
-                    ->query(fn (Builder $query): Builder => $query->where('prioridad', 'Alta'))
+                    ->query(fn(Builder $query): Builder => $query->where('prioridad', 'Alta'))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('pendientes')
                     ->label('Solo Pendientes')
-                    ->query(fn (Builder $query): Builder => $query->where('estado', 'Pendiente'))
+                    ->query(fn(Builder $query): Builder => $query->where('estado', 'Pendiente'))
                     ->toggle(),
             ], layout: FiltersLayout::AboveContentCollapsible)
             ->filtersFormWidth('2xl')
@@ -409,21 +409,21 @@ class SolicitudDispositivoResource extends Resource
                         ->label('Descargar')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('success')
-                        ->visible(fn (SolicitudDispositivo $record): bool => !empty($record->documento_requerimiento))
-                        ->url(fn (SolicitudDispositivo $record): string => asset('storage/' . $record->documento_requerimiento))
+                        ->visible(fn(SolicitudDispositivo $record): bool => !empty($record->documento_requerimiento))
+                        ->url(fn(SolicitudDispositivo $record): string => asset('storage/' . $record->documento_requerimiento))
                         ->openUrlInNewTab(),
                 ])
-                ->label('Acciones')
-                ->icon('heroicon-m-ellipsis-vertical')
-                ->size('sm')
-                ->color('gray'),
+                    ->label('Acciones')
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->size('sm')
+                    ->color('gray'),
 
                 Tables\Actions\Action::make('aprobar')
                     ->label('Aprobar')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->size('sm')
-                    ->visible(fn (SolicitudDispositivo $record): bool => $record->estado === 'Pendiente')
+                    ->visible(fn(SolicitudDispositivo $record): bool => $record->estado === 'Pendiente')
                     ->form([
                         Forms\Components\Grid::make()
                             ->schema([
@@ -460,7 +460,7 @@ class SolicitudDispositivoResource extends Resource
                         Notification::make()
                             ->title('Requerimiento Aprobado')
                             ->body('El requerimiento ha sido aprobado exitosamente.' .
-                                   ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
+                                ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
                             ->success()
                             ->send();
                     }),
@@ -470,7 +470,7 @@ class SolicitudDispositivoResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->size('sm')
-                    ->visible(fn (SolicitudDispositivo $record): bool => $record->estado === 'Pendiente')
+                    ->visible(fn(SolicitudDispositivo $record): bool => $record->estado === 'Pendiente')
                     ->form([
                         Forms\Components\Textarea::make('motivo')
                             ->label('Motivo del rechazo')
@@ -487,7 +487,7 @@ class SolicitudDispositivoResource extends Resource
                         Notification::make()
                             ->title('Requerimiento Rechazado')
                             ->body('El requerimiento ha sido rechazado.' .
-                                   ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
+                                ($record->ticket ? ' El ticket asociado ha sido cerrado automáticamente.' : ''))
                             ->warning()
                             ->send();
                     }),
@@ -570,7 +570,7 @@ class SolicitudDispositivoResource extends Resource
                         ->modalDescription('Esta acción rechazará todos los requerimientos pendientes seleccionados.')
                         ->modalSubmitActionLabel('Rechazar Todo'),
                 ])
-                ->label('Acciones Masivas'),
+                    ->label('Acciones Masivas'),
             ])
             ->emptyStateHeading('No hay requerimientos')
             ->emptyStateDescription('Cuando los usuarios envíen requerimientos de dispositivos, aparecerán aquí.')

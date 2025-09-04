@@ -33,7 +33,7 @@ class DispositivoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Dispositivos';
 
-    protected static ?string $recordTitleAttribute = 'nombre';
+    protected static ?string $recordTitleAttribute = null;
 
     public static function getNavigationBadge(): ?string
     {
