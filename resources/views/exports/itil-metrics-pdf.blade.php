@@ -1,3 +1,35 @@
+@php
+    // Función helper para formatear tiempo de manera legible
+    function formatTime($hours) {
+        if ($hours <= 0) return '0 min';
+        
+        $totalMinutes = round($hours * 60);
+        
+        if ($totalMinutes < 60) {
+            return $totalMinutes . ' min';
+        } elseif ($totalMinutes < 1440) { // menos de 24 horas
+            $h = intval($totalMinutes / 60);
+            $m = $totalMinutes % 60;
+            if ($m > 0) {
+                return $h . 'h ' . $m . 'min';
+            } else {
+                return $h . 'h';
+            }
+        } else { // más de 24 horas
+            $days = intval($totalMinutes / 1440);
+            $remainingMinutes = $totalMinutes % 1440;
+            $h = intval($remainingMinutes / 60);
+            $m = $remainingMinutes % 60;
+            
+            $result = $days . 'd';
+            if ($h > 0) $result .= ' ' . $h . 'h';
+            if ($m > 0) $result .= ' ' . $m . 'min';
+            
+            return $result;
+        }
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -184,6 +216,13 @@
     <div class="info-box">
         <strong>Resumen Ejecutivo:</strong> Este reporte contiene las métricas clave del marco ITIL v4 para el período especificado,
         incluyendo análisis de incidentes, cumplimiento de SLA, carga de trabajo del equipo y satisfacción del usuario.
+        @if(!($has_incident_data ?? true) && !($has_workload_data ?? true))
+            <br><br><strong>⚠️ Nota:</strong> No se registró actividad de tickets en el período seleccionado. 
+            Los valores mostrados representan el estado base del sistema.
+        @elseif(!($has_incident_data ?? true))
+            <br><br><strong>ℹ️ Nota:</strong> No hay incidentes nuevos en el período seleccionado. 
+            Los datos de carga de trabajo corresponden a la actividad histórica del equipo.
+        @endif
     </div>
 
     <!-- Métricas Principales -->
@@ -240,19 +279,19 @@
         <div class="resolution-metrics">
             <div class="resolution-item">
                 <div class="resolution-label">Tiempo Promedio:</div>
-                <div class="resolution-value">{{ round($resolution_metrics['mean_time_to_resolve'] ?? 0, 2) }} horas</div>
+                <div class="resolution-value">{{ formatTime($resolution_metrics['mean_time_to_resolve'] ?? 0) }}</div>
             </div>
             <div class="resolution-item">
                 <div class="resolution-label">Tiempo Mediano:</div>
-                <div class="resolution-value">{{ round($resolution_metrics['median_time_to_resolve'] ?? 0, 2) }} horas</div>
+                <div class="resolution-value">{{ formatTime($resolution_metrics['median_time_to_resolve'] ?? 0) }}</div>
             </div>
             <div class="resolution-item">
                 <div class="resolution-label">Tiempo Mínimo:</div>
-                <div class="resolution-value">{{ round($resolution_metrics['min_time_to_resolve'] ?? 0, 2) }} horas</div>
+                <div class="resolution-value">{{ formatTime($resolution_metrics['min_time_to_resolve'] ?? 0) }}</div>
             </div>
             <div class="resolution-item">
                 <div class="resolution-label">Tiempo Máximo:</div>
-                <div class="resolution-value">{{ round($resolution_metrics['max_time_to_resolve'] ?? 0, 2) }} horas</div>
+                <div class="resolution-value">{{ formatTime($resolution_metrics['max_time_to_resolve'] ?? 0) }}</div>
             </div>
         </div>
     </div>
@@ -351,7 +390,7 @@
                 </li>
                 <li>La tasa de resolución general es del {{ $incident_metrics['resolution_rate'] ?? 0 }}%</li>
                 <li>Se procesaron {{ $incident_metrics['total_incidents'] ?? 0 }} incidentes en el período</li>
-                <li>Tiempo promedio de resolución: {{ round($resolution_metrics['mean_time_to_resolve'] ?? 0, 2) }} horas</li>
+                <li>Tiempo promedio de resolución: {{ formatTime($resolution_metrics['mean_time_to_resolve'] ?? 0) }}</li>
             </ul>
 
             <p><strong>Recomendaciones:</strong></p>
