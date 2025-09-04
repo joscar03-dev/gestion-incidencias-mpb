@@ -40,6 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Purple,
             ])
+            ->globalSearch(false) // Deshabilitar búsqueda global completamente
             ->plugins([
                 CommentionsPlugin::make(),
                 FilamentApexChartsPlugin::make(),
@@ -82,9 +83,9 @@ class AdminPanelProvider extends PanelProvider
             Filament::registerUserMenuItems([
                 MenuItem::make()
                     ->label('Cambiar vista')
-                    ->url(fn () => request()->is('admin*') ? url('/dashboard') : url('/admin'))
+                    ->url(fn() => request()->is('admin*') ? url('/dashboard') : url('/admin'))
                     ->icon('heroicon-o-user-group')
-                    ->visible(fn () => auth()->user()?->hasRole(['Super Admin', 'Admin', 'Técnico'])),
+                    ->visible(fn() => auth()->user()?->hasRole(['Super Admin', 'Admin', 'Técnico'])),
             ]);
         });
     }
