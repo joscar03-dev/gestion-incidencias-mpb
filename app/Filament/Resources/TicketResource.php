@@ -30,6 +30,10 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
+use App\Exports\TicketsExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -533,19 +537,27 @@ class TicketResource extends Resource
                 TextColumn::make('tiempo_restante')
                     ->label('Tiempo Restante')
                     ->getStateUsing(function (Ticket $record) {
+                        // Si está cerrado, mostrar "Completado"
+                        if (in_array($record->estado, ['Cerrado', 'Cancelado', 'Archivado'])) {
+                            $fechaResolucion = $record->fecha_resolucion ?? $record->fecha_cierre;
+                            if ($fechaResolucion) {
+                                $tiempoReal = abs($fechaResolucion->diffInMinutes($record->created_at));
+                                return "Completado en " . Ticket::formatTiempo($tiempoReal);
+                            }
+                            return 'Completado';
+                        }
+
                         $tiempo = $record->getTiempoRestanteSla('respuesta');
                         if ($tiempo === null) return 'N/A';
-                        if ($tiempo <= 0) return 'Vencido';
 
-                        $horas = floor($tiempo / 60);
-                        $minutos = $tiempo % 60;
-
-                        if ($horas > 0) {
-                            return "{$horas}h {$minutos}m";
-                        }
-                        return "{$minutos}m";
+                        return Ticket::formatTiempo($tiempo);
                     })
                     ->color(function (Ticket $record) {
+                        // Color verde para tickets completados dentro del SLA
+                        if (in_array($record->estado, ['Cerrado', 'Cancelado', 'Archivado'])) {
+                            return $record->getEstadoSla() === 'ok' ? 'success' : 'danger';
+                        }
+
                         $tiempo = $record->getTiempoRestanteSla('respuesta');
                         if ($tiempo === null) return 'secondary';
                         if ($tiempo <= 0) return 'danger';
@@ -582,67 +594,37 @@ class TicketResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(self::$model::ESTADOS)
-                    ->multiple(),
-
-                SelectFilter::make('prioridad')
-                    ->options(self::$model::PRIORIDAD)
-                    ->multiple(),
-
-                SelectFilter::make('tipo')
-                    ->label('Tipo de Ticket')
-                    ->options(self::$model::TIPOS)
-                    ->multiple(),
-
-                SelectFilter::make('categorias')
-                    ->label('Categorías ITIL')
-                    ->relationship('categorias', 'nombre')
-                    ->multiple()
-                    ->searchable()
-                    ->optionsLimit(50),
-
-                SelectFilter::make('categoria_tipo')
-                    ->label('Tipo de Categoría ITIL')
-                    ->options([
-                        'incidente' => '🔴 Incidentes',
-                        'solicitud_servicio' => '🔵 Solicitudes de Servicio',
-                        'cambio' => '🟡 Cambios',
-                        'problema' => '🟢 Problemas',
+                // Filtros básicos para la tabla
+                Filter::make('fecha_creacion')
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Creado desde'),
+                        DatePicker::make('created_until')
+                            ->label('Creado hasta'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['value'],
-                            fn(Builder $query, $value): Builder => $query->whereHas(
-                                'categorias',
-                                fn(Builder $query): Builder => $query->where('tipo_categoria', $value)
-                            ),
-                        );
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
                     }),
 
-                SelectFilter::make('area_id')
-                    ->label('Área')
-                    ->relationship('area', 'nombre')
-                    ->multiple(),
-
-                SelectFilter::make('escalado')
-                    ->label('Escalado')
-                    ->options([
-                        '1' => 'Escalado',
-                        '0' => 'No Escalado',
-                    ]),
-
-                SelectFilter::make('sla_vencido')
-                    ->label('SLA Vencido')
-                    ->options([
-                        '1' => 'SLA Vencido',
-                        '0' => 'SLA Vigente',
-                    ]),
+                SelectFilter::make('creado_por')
+                    ->label('Creado por')
+                    ->relationship('creadoPor', 'name')
+                    ->multiple()
+                    ->searchable(),
 
                 SelectFilter::make('asignado_a')
                     ->label('Asignado a')
                     ->relationship('asignadoA', 'name')
-                    ->multiple(),
+                    ->multiple()
+                    ->searchable(),
             ])
             ->actions([
                 // Acción para escalar manualmente
@@ -695,6 +677,16 @@ class TicketResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+
+                    // Acción de exportar seleccionados
+                    Tables\Actions\BulkAction::make('export_selected')
+                        ->label('Exportar Seleccionados')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('success')
+                        ->action(function ($records) {
+                            $tickets = $records->load(['area', 'creadoPor', 'asignadoA', 'categorias', 'dispositivo']);
+                            return Excel::download(new TicketsExport($tickets), 'tickets_seleccionados_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+                        }),
                 ]),
             ]);
     }
