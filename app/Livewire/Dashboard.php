@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class Dashboard extends Component
 {
@@ -20,7 +21,8 @@ class Dashboard extends Component
 
     protected $listeners = [
         'changeView' => 'setView',
-        'ticket-created' => 'onTicketCreated'
+        'ticket-created' => 'onTicketCreated',
+        'create-satisfaction-survey' => 'createSatisfactionSurvey'
     ];
 
     public function setView($view)
@@ -46,6 +48,53 @@ class Dashboard extends Component
     public function showDevices()
     {
         $this->currentView = 'devices';
+    }
+
+    public function createSatisfactionSurvey($surveyData)
+    {
+        try {
+            // Validar que el usuario esté autenticado
+            if (!Auth::check()) {
+                return;
+            }
+
+            // Validar que el ticket existe y pertenece al usuario
+            $ticket = \App\Models\Ticket::find($surveyData['ticket_id']);
+            if (!$ticket || $ticket->creado_por !== Auth::id()) {
+                return;
+            }
+
+            // Verificar que no existe ya una encuesta para este ticket y usuario
+            $existingSurvey = \App\Models\TicketSatisfaction::where('ticket_id', $ticket->id)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if ($existingSurvey) {
+                return; // Ya existe una encuesta
+            }
+
+            // Crear la encuesta de satisfacción
+            \App\Models\TicketSatisfaction::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'rating' => $surveyData['rating'],
+                'time_satisfaction' => $surveyData['time_satisfaction'] ?? null,
+                'comments' => $surveyData['comments'] ?? null,
+            ]);
+
+            // Mostrar notificación de éxito
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => '¡Gracias por su feedback! Su encuesta ha sido registrada exitosamente.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error creando encuesta de satisfacción: ' . $e->getMessage());
+
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Error al procesar la encuesta. Por favor, inténtelo de nuevo.'
+            ]);
+        }
     }
 
     public function onTicketCreated()
