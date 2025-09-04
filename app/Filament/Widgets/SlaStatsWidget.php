@@ -15,7 +15,7 @@ class SlaStatsWidget extends BaseWidget
         // Obtener tickets activos
         $ticketsActivos = Ticket::activos()->count();
 
-        // Obtener tickets vencidos
+        // Obtener tickets vencidos (siempre usando el scope unificado)
         $ticketsVencidos = Ticket::vencidos()->count();
 
         // Obtener tickets escalados
