@@ -11,9 +11,32 @@ class ItilSlaComplianceChart extends ApexChartWidget
     protected static ?string $heading = 'Cumplimiento SLA';
     protected static ?int $sort = 6;
 
+    public ?string $filter = 'all';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'today' => 'Hoy',
+            'week' => 'Esta semana',
+            'month' => 'Este mes',
+            'quarter' => 'Este trimestre',
+            'all' => 'Todos los tiempos',
+        ];
+    }
+
+    protected function getHeading(): ?string
+    {
+        $metrics = ItilDashboard::getIncidentMetrics($this->filter);
+        $filterLabels = $this->getFilters();
+        $selectedLabel = $filterLabels[$this->filter] ?? 'Todos los tiempos';
+
+        return "Cumplimiento SLA - {$selectedLabel} ({$metrics['total_incidents']} tickets)";
+    }
+
     protected function getOptions(): array
     {
-        $metrics = ItilDashboard::getIncidentMetrics();
+        // Usar el filtro seleccionado por el usuario
+        $metrics = ItilDashboard::getIncidentMetrics($this->filter);
 
         return [
             'chart' => [
@@ -42,7 +65,7 @@ class ItilSlaComplianceChart extends ApexChartWidget
                     ],
                 ],
             ],
-            'colors' => [$metrics['sla_compliance'] >= 90 ? '#10b981' : '#ef4444'],
+            'colors' => [$this->getSlaColor($metrics['sla_compliance'])],
             'labels' => ['SLA'],
             'fill' => [
                 'type' => 'gradient',
@@ -54,6 +77,26 @@ class ItilSlaComplianceChart extends ApexChartWidget
                     'opacityTo' => 1,
                 ],
             ],
+            'tooltip' => [
+                'enabled' => true,
+                'custom' => "function(opts) {
+                    const metrics = " . json_encode($metrics) . ";
+                    return '<div class=\"p-2\">' +
+                           '<div><strong>Total de tickets:</strong> ' + metrics.total_incidents + '</div>' +
+                           '<div><strong>SLA cumplido:</strong> ' + (metrics.total_incidents - metrics.sla_breached) + '</div>' +
+                           '<div><strong>SLA vencido:</strong> ' + metrics.sla_breached + '</div>' +
+                           '<div><strong>Cumplimiento:</strong> ' + metrics.sla_compliance + '%</div>' +
+                           '</div>';
+                }"
+            ],
         ];
+    }
+
+    private function getSlaColor(float $percentage): string
+    {
+        if ($percentage >= 95) return '#10b981'; // Verde - Excelente
+        if ($percentage >= 85) return '#f59e0b'; // Amarillo - Bueno
+        if ($percentage >= 70) return '#f97316'; // Naranja - Regular
+        return '#ef4444'; // Rojo - Malo
     }
 }

@@ -120,6 +120,9 @@ class ItilDashboard extends Model
             case 'quarter':
                 $baseQuery->whereBetween('created_at', [now()->startOfQuarter(), now()->endOfQuarter()]);
                 break;
+            case 'all':
+                // No aplicar filtro de fecha, mostrar todos los tickets
+                break;
         }
 
         // Usar clones para evitar acumulación de filtros
@@ -128,7 +131,9 @@ class ItilDashboard extends Model
         $open = (clone $baseQuery)->whereIn('estado', ['Abierto', 'En Progreso'])->count();
         $escalated = (clone $baseQuery)->where('escalado', true)->count(); // Usar propiedad booleana
         $cancelled = (clone $baseQuery)->where('estado', 'Cancelado')->count();
-        $sla_breached = (clone $baseQuery)->where('sla_vencido', true)->count();
+
+        // Usar el scope unificado para tickets vencidos (sincroniza automáticamente)
+        $sla_breached = (clone $baseQuery)->vencidos()->count();
 
         return [
             'total_incidents' => $total,
@@ -214,9 +219,11 @@ class ItilDashboard extends Model
     {
         // Simulamos métricas de satisfacción basadas en resolución de tickets
         $totalTickets = Ticket::count();
-        $resolvedOnTime = Ticket::where('sla_vencido', false)
-            ->where('estado', 'Cerrado')
-            ->count();
+
+        // Usar scope para obtener tickets NO vencidos
+        $totalVencidos = Ticket::vencidos()->count();
+        $resolvedOnTime = Ticket::where('estado', 'Cerrado')
+            ->count() - Ticket::where('estado', 'Cerrado')->vencidos()->count();
 
         $satisfactionScore = $totalTickets > 0 ?
             round((($resolvedOnTime / $totalTickets) * 100), 2) : 0;
@@ -337,15 +344,15 @@ class ItilDashboard extends Model
         $technicianProductivity = User::whereHas('ticketsAsignados')
             ->withCount([
                 'ticketsAsignados as total_assigned',
-                'ticketsAsignados as resolved_count' => function($q) {
+                'ticketsAsignados as resolved_count' => function ($q) {
                     $q->where('estado', 'Cerrado');
                 },
-                'ticketsAsignados as pending_count' => function($q) {
+                'ticketsAsignados as pending_count' => function ($q) {
                     $q->whereIn('estado', ['Abierto', 'En Progreso']);
                 }
             ])
             ->get()
-            ->map(function($user) {
+            ->map(function ($user) {
                 $efficiency = $user->total_assigned > 0
                     ? round(($user->resolved_count / $user->total_assigned) * 100, 2)
                     : 0;
@@ -362,8 +369,8 @@ class ItilDashboard extends Model
             ->sortByDesc('efficiency_rate');
 
         // Eficiencia por categoría
-        $categoryEfficiency = collect(self::ITIL_INCIDENT_CATEGORIES)->map(function($category, $key) {
-            $categoryTickets = Ticket::whereHas('categorias', function($q) use ($category) {
+        $categoryEfficiency = collect(self::ITIL_INCIDENT_CATEGORIES)->map(function ($category, $key) {
+            $categoryTickets = Ticket::whereHas('categorias', function ($q) use ($category) {
                 $q->where('nombre', 'like', '%' . $category . '%');
             });
 
@@ -407,24 +414,26 @@ class ItilDashboard extends Model
         $totalResolved = Ticket::where('estado', 'Cerrado')->count();
 
         // Tickets reabiertos (aproximación: tickets que tienen comentarios sobre reapertura)
-        $reopenedTickets = Ticket::whereExists(function($query) {
+        $reopenedTickets = Ticket::whereExists(function ($query) {
             $query->select('id')
-                  ->from('comments')
-                  ->whereColumn('commentable_id', 'tickets.id')
-                  ->where('commentable_type', 'App\\Models\\Ticket')
-                  ->where('body', 'like', '%reabierto%')
-                  ->orWhere('body', 'like', '%reabrir%');
+                ->from('comments')
+                ->whereColumn('commentable_id', 'tickets.id')
+                ->where('commentable_type', 'App\\Models\\Ticket')
+                ->where('body', 'like', '%reabierto%')
+                ->orWhere('body', 'like', '%reabrir%');
         })->count();
         $reopenRate = $totalResolved > 0 ? round(($reopenedTickets / $totalResolved) * 100, 2) : 0;
 
-        // Cumplimiento de SLA
-        $slaCompliance = Ticket::where('sla_vencido', false)->count();
-        $totalWithSLA = Ticket::count(); // Todos los tickets tienen SLA
+        // Cumplimiento de SLA - usar scope unificado
+        $totalTickets = Ticket::count();
+        $ticketsVencidos = Ticket::vencidos()->count();
+        $slaCompliance = $totalTickets - $ticketsVencidos;
+        $totalWithSLA = $totalTickets; // Todos los tickets tienen SLA
         $slaComplianceRate = $totalWithSLA > 0 ? round(($slaCompliance / $totalWithSLA) * 100, 2) : 0;
 
         // Satisfacción del cliente por categoría (simulado ya que no hay campo calificacion)
-        $satisfactionByCategory = collect(self::ITIL_INCIDENT_CATEGORIES)->map(function($category) {
-            $tickets = Ticket::whereHas('categorias', function($q) use ($category) {
+        $satisfactionByCategory = collect(self::ITIL_INCIDENT_CATEGORIES)->map(function ($category) {
+            $tickets = Ticket::whereHas('categorias', function ($q) use ($category) {
                 $q->where('nombre', 'like', '%' . $category . '%');
             })->where('estado', 'Cerrado');
 
@@ -451,8 +460,8 @@ class ItilDashboard extends Model
         $escalationAnalysis = [
             'total_escalated' => Ticket::where('escalado', true)->count(),
             'escalation_rate' => Ticket::count() > 0 ? round((Ticket::where('escalado', true)->count() / Ticket::count()) * 100, 2) : 0,
-            'escalation_by_category' => collect(self::ITIL_INCIDENT_CATEGORIES)->map(function($category) {
-                $categoryTickets = Ticket::whereHas('categorias', function($q) use ($category) {
+            'escalation_by_category' => collect(self::ITIL_INCIDENT_CATEGORIES)->map(function ($category) {
+                $categoryTickets = Ticket::whereHas('categorias', function ($q) use ($category) {
                     $q->where('nombre', 'like', '%' . $category . '%');
                 });
 
@@ -477,19 +486,19 @@ class ItilDashboard extends Model
 
         // Calidad por técnico (simplificado sin calificaciones)
         $technicianQuality = User::whereHas('ticketsAsignados')
-            ->with(['ticketsAsignados' => function($q) {
+            ->with(['ticketsAsignados' => function ($q) {
                 $q->where('estado', 'Cerrado');
             }])
             ->get()
-            ->map(function($user) {
+            ->map(function ($user) {
                 $resolvedTickets = $user->ticketsAsignados->where('estado', 'Cerrado');
                 $totalResolved = $resolvedTickets->count();
 
                 // Simular satisfacción basada en tiempo de resolución
                 $avgResolutionTime = $totalResolved > 0 ?
-                    $resolvedTickets->filter(function($ticket) {
+                    $resolvedTickets->filter(function ($ticket) {
                         return $ticket->fecha_resolucion && $ticket->created_at;
-                    })->avg(function($ticket) {
+                    })->avg(function ($ticket) {
                         return $ticket->created_at->diffInHours($ticket->fecha_resolucion);
                     }) : 0;
 
@@ -540,14 +549,14 @@ class ItilDashboard extends Model
         $currentQuality = self::getQualityIndicators();
 
         // Comparar con período anterior
-        $previousPeriodStart = match($period) {
+        $previousPeriodStart = match ($period) {
             'week' => now()->subWeeks(2)->startOfWeek(),
             'month' => now()->subMonths(2)->startOfMonth(),
             'quarter' => now()->subQuarters(2)->startOfQuarter(),
             default => now()->subMonths(2)->startOfMonth()
         };
 
-        $previousPeriodEnd = match($period) {
+        $previousPeriodEnd = match ($period) {
             'week' => now()->subWeek()->endOfWeek(),
             'month' => now()->subMonth()->endOfMonth(),
             'quarter' => now()->subQuarter()->endOfQuarter(),
@@ -567,12 +576,130 @@ class ItilDashboard extends Model
             'efficiency_trend' => $currentMetrics['overall_efficiency'] - $previousEfficiency,
             'current_quality' => $currentQuality['overall_quality_score'],
             'performance_indicators' => [
-                'efficiency_status' => $currentMetrics['overall_efficiency'] >= 85 ? 'Excelente' :
-                                     ($currentMetrics['overall_efficiency'] >= 70 ? 'Bueno' : 'Necesita Mejora'),
-                'quality_status' => $currentQuality['overall_quality_score'] >= 85 ? 'Excelente' :
-                                  ($currentQuality['overall_quality_score'] >= 70 ? 'Bueno' : 'Necesita Mejora'),
+                'efficiency_status' => $currentMetrics['overall_efficiency'] >= 85 ? 'Excelente' : ($currentMetrics['overall_efficiency'] >= 70 ? 'Bueno' : 'Necesita Mejora'),
+                'quality_status' => $currentQuality['overall_quality_score'] >= 85 ? 'Excelente' : ($currentQuality['overall_quality_score'] >= 70 ? 'Bueno' : 'Necesita Mejora'),
                 'trend_direction' => $currentMetrics['overall_efficiency'] - $previousEfficiency > 0 ? 'up' : 'down'
             ]
         ];
+    }
+
+    /**
+     * Métricas ITIL para Incidentes con fechas personalizadas
+     */
+    public static function getIncidentMetricsCustom($startDate, $endDate)
+    {
+        $baseQuery = Ticket::whereBetween('created_at', [$startDate, $endDate]);
+
+        // Usar clones para evitar acumulación de filtros
+        $total = (clone $baseQuery)->count();
+        $resolved = (clone $baseQuery)->where('estado', 'Cerrado')->count();
+        $open = (clone $baseQuery)->whereIn('estado', ['Abierto', 'En Progreso'])->count();
+        $escalated = (clone $baseQuery)->where('escalado', true)->count();
+        $cancelled = (clone $baseQuery)->where('estado', 'Cancelado')->count();
+
+        // Usar el scope unificado para tickets vencidos (sincroniza automáticamente)
+        $sla_breached = (clone $baseQuery)->vencidos()->count();
+
+        return [
+            'total_incidents' => $total,
+            'resolved_incidents' => $resolved,
+            'open_incidents' => $open,
+            'escalated_incidents' => $escalated,
+            'cancelled_incidents' => $cancelled,
+            'sla_breached' => $sla_breached,
+            'resolution_rate' => $total > 0 ? round(($resolved / $total) * 100, 2) : 0,
+            'escalation_rate' => $total > 0 ? round(($escalated / $total) * 100, 2) : 0,
+            'sla_compliance' => $total > 0 ? round((($total - $sla_breached) / $total) * 100, 2) : 100,
+        ];
+    }
+
+    /**
+     * Métricas de tiempo promedio de resolución con fechas personalizadas
+     */
+    public static function getResolutionTimeMetricsCustom($startDate, $endDate)
+    {
+        $tickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
+            ->whereNotNull('fecha_resolucion')
+            ->whereNotNull('created_at')
+            ->get();
+
+        $resolutionTimes = $tickets->map(function ($ticket) {
+            return $ticket->created_at->diffInHours($ticket->fecha_resolucion);
+        });
+
+        return [
+            'mean_time_to_resolve' => $resolutionTimes->avg() ?: 0,
+            'median_time_to_resolve' => $resolutionTimes->median() ?: 0,
+            'min_time_to_resolve' => $resolutionTimes->min() ?: 0,
+            'max_time_to_resolve' => $resolutionTimes->max() ?: 0,
+        ];
+    }
+
+    /**
+     * Distribución por categorías ITIL con fechas personalizadas
+     */
+    public static function getCategoryDistributionCustom($startDate, $endDate)
+    {
+        $distribution = [];
+
+        foreach (self::ITIL_INCIDENT_CATEGORIES as $key => $category) {
+            $count = Ticket::whereBetween('created_at', [$startDate, $endDate])
+                ->whereHas('categorias', function ($query) use ($category) {
+                    $query->where('nombre', 'like', '%' . $category . '%');
+                })->count();
+
+            $distribution[$key] = [
+                'name' => $category,
+                'count' => $count
+            ];
+        }
+
+        return $distribution;
+    }
+
+    /**
+     * Análisis de carga de trabajo con fechas personalizadas
+     */
+    public static function getWorkloadAnalysisCustom($startDate, $endDate)
+    {
+        // Obtener usuarios que tienen tickets asignados en el período especificado
+        $users = \App\Models\User::whereHas('ticketsAsignados', function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        })
+            ->with(['ticketsAsignados' => function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate])
+                    ->select('id', 'asignado_a', 'estado', 'escalado', 'created_at');
+            }])
+            ->get();
+
+        $workload = [];
+
+        foreach ($users as $user) {
+            $tickets = $user->ticketsAsignados;
+            $openTickets = $tickets->whereIn('estado', ['Abierto', 'En Progreso'])->count();
+            $totalTickets = $tickets->count();
+            $resolvedTickets = $tickets->where('estado', 'Cerrado')->count();
+            $escalatedTickets = $tickets->where('escalado', true)->count();
+
+            $workload[] = [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'open_tickets' => $openTickets,
+                'total_tickets' => $totalTickets,
+                'resolved_tickets' => $resolvedTickets,
+                'escalated_tickets' => $escalatedTickets,
+                'resolution_rate' => $totalTickets > 0 ? round(($resolvedTickets / $totalTickets) * 100, 2) : 0,
+                'escalation_rate' => $totalTickets > 0 ? round(($escalatedTickets / $totalTickets) * 100, 2) : 0,
+                'workload_status' => $openTickets > 10 ? 'Alto' : ($openTickets > 5 ? 'Medio' : 'Bajo'),
+                'efficiency_score' => $totalTickets > 0 ? round((($resolvedTickets / $totalTickets) * 100) - ($escalatedTickets * 10), 2) : 0
+            ];
+        }
+
+        // Ordenar por total de tickets descendente
+        usort($workload, function ($a, $b) {
+            return $b['total_tickets'] - $a['total_tickets'];
+        });
+
+        return $workload;
     }
 }

@@ -513,6 +513,14 @@ class Ticket extends Model implements Commentable
 
     public function scopeVencidos($query)
     {
+        // Sincroniza el campo sla_vencido si está desactualizado
+        $query->get()->each(function ($ticket) {
+            if ($ticket->estaVencido('respuesta') && !$ticket->sla_vencido) {
+                $ticket->update(['sla_vencido' => true]);
+            } elseif (!$ticket->estaVencido('respuesta') && $ticket->sla_vencido) {
+                $ticket->update(['sla_vencido' => false]);
+            }
+        });
         return $query->where('sla_vencido', true);
     }
 
