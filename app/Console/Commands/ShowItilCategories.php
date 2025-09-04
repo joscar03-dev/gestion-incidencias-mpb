@@ -19,8 +19,8 @@ class ShowItilCategories extends Command
 
         foreach ($tipos as $tipo) {
             $categorias = Categoria::where('tipo_categoria', $tipo)
-                                  ->where('itil_category', true)
-                                  ->get();
+                ->where('itil_category', true)
+                ->get();
 
             if ($categorias->count() > 0) {
                 $this->line('');
@@ -29,10 +29,9 @@ class ShowItilCategories extends Command
 
                 foreach ($categorias as $categoria) {
                     $this->line(sprintf(
-                        '• %s (Prioridad: %s, SLA: %dh)',
+                        '• %s (Prioridad: %s)',
                         $categoria->nombre,
-                        $categoria->prioridad_default,
-                        $categoria->sla_horas
+                        $categoria->prioridad_default
                     ));
                 }
             }
