@@ -2,88 +2,124 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\ItilDashboard;
+use App\Models\Ticket;
+use App\Models\Categoria;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class ItilTrendAnalysisWidget extends ApexChartWidget
 {
-    protected static ?string $chartId = 'itilTrendAnalysis';
-    protected static ?string $heading = 'Tendencia de Incidentes (Últimos 30 días)';
+    protected static ?string $chartId = 'topCategoriasChart';
     protected static ?int $sort = 3;
+    protected int | string | array $columnSpan = 'full';
+
+    protected function getHeading(): string
+    {
+        $ticketsWithCategories = Ticket::whereHas('categorias')->count();
+        $totalTickets = Ticket::count();
+
+        if ($ticketsWithCategories > 0) {
+            return "Top Categorías de Tickets ({$ticketsWithCategories} de {$totalTickets} categorizados)";
+        }
+
+        return "Distribución de Tickets por Estado ({$totalTickets} tickets)";
+    }
 
     protected function getOptions(): array
     {
-        $trends = ItilDashboard::getTrendAnalysis(30);
-
-        $dates = [];
-        $created = [];
-        $resolved = [];
-        $escalated = [];
-
-        foreach ($trends as $trend) {
-            $dates[] = \Carbon\Carbon::parse($trend['date'])->format('d/m');
-            $created[] = $trend['incidents_created'];
-            $resolved[] = $trend['incidents_resolved'];
-            $escalated[] = $trend['incidents_escalated'];
-        }
+        $data = $this->getTopCategories();
 
         return [
             'chart' => [
-                'type' => 'line',
+                'type' => 'bar',
                 'height' => 350,
-                'toolbar' => [
-                    'show' => true,
-                ],
             ],
             'series' => [
                 [
-                    'name' => 'Creados',
-                    'data' => $created,
-                    'color' => '#3b82f6',
-                ],
-                [
-                    'name' => 'Resueltos',
-                    'data' => $resolved,
-                    'color' => '#10b981',
-                ],
-                [
-                    'name' => 'Escalados',
-                    'data' => $escalated,
-                    'color' => '#ef4444',
+                    'name' => 'Tickets',
+                    'data' => $data['values'],
                 ],
             ],
             'xaxis' => [
-                'categories' => $dates,
-                'title' => [
-                    'text' => 'Fecha',
+                'categories' => $data['categories'],
+            ],
+            'plotOptions' => [
+                'bar' => [
+                    'horizontal' => false,
+                    'columnWidth' => '60%',
                 ],
+            ],
+            'colors' => ['#3b82f6'],
+            'dataLabels' => [
+                'enabled' => true,
             ],
             'yaxis' => [
                 'title' => [
-                    'text' => 'Cantidad de Incidentes',
+                    'text' => 'Número de Tickets',
                 ],
             ],
-            'stroke' => [
-                'curve' => 'smooth',
-                'width' => 3,
-            ],
-            'markers' => [
-                'size' => 4,
-                'hover' => [
-                    'sizeOffset' => 2,
+            'title' => [
+                'text' => $data['total'] > 0 ? "Total: {$data['total']} tickets" : 'Sin datos disponibles',
+                'align' => 'center',
+                'style' => [
+                    'fontSize' => '14px',
+                    'color' => '#666',
                 ],
             ],
-            'grid' => [
-                'borderColor' => '#e7e7e7',
-                'row' => [
-                    'colors' => ['#f3f3f3', 'transparent'],
-                    'opacity' => 0.5,
-                ],
-            ],
-            'legend' => [
-                'position' => 'top',
-                'horizontalAlign' => 'right',
-            ],
+        ];
+    }
+
+    private function getTopCategories(): array
+    {
+        // Obtener tickets con categorías
+        $categoryStats = Ticket::whereHas('categorias')
+            ->with('categorias')
+            ->get()
+            ->flatMap(function ($ticket) {
+                return $ticket->categorias;
+            })
+            ->groupBy('nombre')
+            ->map(function ($categories) {
+                return $categories->count();
+            })
+            ->sortDesc()
+            ->take(10); // Top 10 categorías
+
+        $total = $categoryStats->sum();
+
+        if ($categoryStats->isEmpty()) {
+            // Si no hay datos de categorías, mostrar distribución por estado
+            return $this->getFallbackData();
+        }
+
+        $categories = $categoryStats->keys()->toArray();
+        $values = $categoryStats->values()->toArray();
+
+        return [
+            'categories' => $categories,
+            'values' => $values,
+            'total' => $total,
+        ];
+    }
+
+    private function getFallbackData(): array
+    {
+        // Fallback: mostrar distribución por estado si no hay categorías
+        $statusStats = Ticket::selectRaw('estado, COUNT(*) as count')
+            ->groupBy('estado')
+            ->pluck('count', 'estado');
+
+        if ($statusStats->isEmpty()) {
+            return [
+                'categories' => ['Sin datos'],
+                'values' => [0],
+                'total' => 0,
+            ];
+        }
+
+        return [
+            'categories' => $statusStats->keys()->toArray(),
+            'values' => $statusStats->values()->toArray(),
+            'total' => $statusStats->sum(),
         ];
     }
 }
