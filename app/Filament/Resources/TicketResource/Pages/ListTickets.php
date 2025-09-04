@@ -211,7 +211,7 @@ class ListTickets extends ListRecords
         return [
             // StatsOverview::class, //agregar widgets de encabezado
             MetricsOverviewSample::class,
-            TicketsTiempoResolucionChart::class,
+            // TicketsTiempoResolucionChart::class,
         ];
     }
 }
