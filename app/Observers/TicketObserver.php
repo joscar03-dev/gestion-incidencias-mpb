@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\Ticket;
 use App\Models\User;
+use App\Events\TicketClosed;
+use App\Models\TicketSatisfaction;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -82,6 +84,7 @@ class TicketObserver
                 $creador = $ticket->creadoPor;
 
                 if ($creador) {
+                    // Notificación tradicional de cierre
                     $this->sendNotificationToUser(
                         $creador,
                         '✅ Ticket resuelto',
@@ -90,7 +93,10 @@ class TicketObserver
                         'success'
                     );
 
-                    Log::info("Notificación de cierre enviada", [
+                    // Enviar encuesta de satisfacción via evento/broadcasting
+                    $this->enviarEncuestaSatisfaccion($ticket);
+
+                    Log::info("Notificación de cierre y encuesta enviada", [
                         'ticket_id' => $ticket->id,
                         'creator_id' => $creador->id,
                         'creator_name' => $creador->name
@@ -316,6 +322,70 @@ class TicketObserver
     }
 
     /**
+     * Enviar encuesta de satisfacción al usuario cuando se cierra el ticket
+     */
+    private function enviarEncuestaSatisfaccion(Ticket $ticket): void
+    {
+        try {
+            // Verificar que el ticket tenga un creador
+            if (!$ticket->creadoPor) {
+                Log::warning("Ticket #{$ticket->id} no tiene creador asignado, no se puede enviar encuesta");
+                return;
+            }
+
+            // Verificar que no existe ya una encuesta para este ticket y usuario
+            $existingSurvey = TicketSatisfaction::where('ticket_id', $ticket->id)
+                ->where('user_id', $ticket->creado_por)
+                ->first();
+
+            if ($existingSurvey) {
+                Log::info("Ya existe encuesta para ticket #{$ticket->id}, no se envía duplicada");
+                return;
+            }
+
+            // Disparar evento para notificación en tiempo real via Reverb
+            event(new TicketClosed($ticket));
+
+            // También enviar notificación Filament persistente con acción para ir al dashboard
+            $notification = Notification::make()
+                ->title('📋 Encuesta de Satisfacción')
+                ->body("¡Tu ticket #{$ticket->id} ha sido resuelto! Ayúdanos a mejorar calificando nuestro servicio.")
+                ->icon('heroicon-o-clipboard-document-check')
+                ->iconColor('info')
+                ->persistent()
+                ->actions([
+                    Action::make('ver_encuesta')
+                        ->label('📝 Responder Encuesta')
+                        ->url(route('dashboard', ['survey' => $ticket->id]))
+                        ->button()
+                        ->color('primary')
+                        ->extraAttributes([
+                            'data-ticket-id' => $ticket->id,
+                            'data-action-type' => 'survey'
+                        ]),
+                    Action::make('cerrar')
+                        ->label('Después')
+                        ->close()
+                        ->color('gray')
+                ]);
+
+            // Enviar la notificación
+            $notification->sendToDatabase($ticket->creadoPor)->broadcast($ticket->creadoPor);
+
+            Log::info("Encuesta de satisfacción enviada", [
+                'ticket_id' => $ticket->id,
+                'user_id' => $ticket->creado_por,
+                'user_name' => $ticket->creadoPor->name
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error enviando encuesta de satisfacción", [
+                'ticket_id' => $ticket->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Helper method to send notifications to users
      */
     private function sendNotificationToUser(
@@ -348,10 +418,7 @@ class TicketObserver
     /**
      * Handle the Ticket "deleted" event.
      */
-    public function deleted(Ticket $ticket): void
-    {
-
-    }
+    public function deleted(Ticket $ticket): void {}
 
     /**
      * Handle the Ticket "restored" event.
