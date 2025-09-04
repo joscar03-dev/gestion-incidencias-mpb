@@ -1,3 +1,35 @@
+@php
+    // Función helper para formatear tiempo de manera legible
+    function formatTime($hours) {
+        if ($hours <= 0) return '0 min';
+        
+        $totalMinutes = round($hours * 60);
+        
+        if ($totalMinutes < 60) {
+            return $totalMinutes . ' min';
+        } elseif ($totalMinutes < 1440) { // menos de 24 horas
+            $h = intval($totalMinutes / 60);
+            $m = $totalMinutes % 60;
+            if ($m > 0) {
+                return $h . 'h ' . $m . 'min';
+            } else {
+                return $h . 'h';
+            }
+        } else { // más de 24 horas
+            $days = intval($totalMinutes / 1440);
+            $remainingMinutes = $totalMinutes % 1440;
+            $h = intval($remainingMinutes / 60);
+            $m = $remainingMinutes % 60;
+            
+            $result = $days . 'd';
+            if ($h > 0) $result .= ' ' . $h . 'h';
+            if ($m > 0) $result .= ' ' . $m . 'min';
+            
+            return $result;
+        }
+    }
+@endphp
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -178,12 +210,12 @@
                 </tr>
                 <tr>
                     <td>Tiempo Promedio Resolución</td>
-                    <td>{{ round($resolution_metrics['mean_time_to_resolve'] ?? 0, 2) }} horas</td>
+                    <td>{{ formatTime($resolution_metrics['mean_time_to_resolve'] ?? 0) }}</td>
                     <td>MTTR - Mean Time To Resolve</td>
                 </tr>
                 <tr>
                     <td>Tiempo Mediano Resolución</td>
-                    <td>{{ round($resolution_metrics['median_time_to_resolve'] ?? 0, 2) }} horas</td>
+                    <td>{{ formatTime($resolution_metrics['median_time_to_resolve'] ?? 0) }}</td>
                     <td>Tiempo mediano de resolución</td>
                 </tr>
             </tbody>
