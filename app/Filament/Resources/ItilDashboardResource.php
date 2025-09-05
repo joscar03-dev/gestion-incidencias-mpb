@@ -289,7 +289,7 @@ class ItilDashboardResource extends Resource
                     ->label('Ver Métricas ITIL')
                     ->icon('heroicon-m-chart-bar')
                     ->color('info')
-                    ->url(fn () => static::getUrl('metrics')),
+                    ->url(fn() => static::getUrl('metrics')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('export_selected')
@@ -315,7 +315,6 @@ class ItilDashboardResource extends Resource
         return [
             'index' => Pages\ListItilDashboard::route('/'),
             'metrics' => Pages\ItilMetrics::route('/metrics'),
-            'analytics' => Pages\ItilAnalytics::route('/analytics'),
             'service-catalog' => Pages\ItilServiceCatalog::route('/service-catalog'),
         ];
     }
@@ -362,7 +361,7 @@ class ItilDashboardResource extends Resource
         $updatedCount = 0;
 
         // Obtener todos los tickets que tienen categorías ITIL
-        $tickets = Ticket::whereHas('categorias', function($query) {
+        $tickets = Ticket::whereHas('categorias', function ($query) {
             $query->where('itil_category', true);
         })->with('categorias')->get();
 
@@ -394,7 +393,7 @@ class ItilDashboardResource extends Resource
      */
     private static function mapItilPriorityToTicket($itilPriority): string
     {
-        return match(strtolower($itilPriority)) {
+        return match (strtolower($itilPriority)) {
             'baja' => 'Baja',
             'media' => 'Media',
             'alta' => 'Alta',
