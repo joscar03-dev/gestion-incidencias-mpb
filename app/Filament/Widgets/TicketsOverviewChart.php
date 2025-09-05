@@ -11,6 +11,8 @@ use Filament\Widgets\ChartWidget;
 class TicketsOverviewChart extends ChartWidget
 {
     protected static ?string $heading = 'Tickets Overview';
+    protected static ?string $pollingInterval = '30s';
+    protected static ?int $sort = 5;
 
     public ?string $filter  = 'week';
     protected function getFilters(): ?array
@@ -32,7 +34,7 @@ class TicketsOverviewChart extends ChartWidget
             case 'week':
                 $start = now()->startOfWeek();
                 $end = now()->endOfWeek();
-                $perData ='perDay';
+                $perData = 'perDay';
                 break;
             case 'month':
                 $start = now()->subDays(30);
@@ -42,12 +44,12 @@ class TicketsOverviewChart extends ChartWidget
             case 'year':
                 $start = now()->startOfYear();
                 $end = now()->endOfYear();
-                $perData ='perMonth';
+                $perData = 'perMonth';
                 break;
             default:
                 $start = now()->startOfWeek();
                 $end = now()->endOfWeek();
-                $perData ='perDay';
+                $perData = 'perDay';
                 break;
         }
         $data = Trend::model(Ticket::class)

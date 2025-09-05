@@ -9,6 +9,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class SlaStatsWidget extends BaseWidget
 {
     protected static ?string $pollingInterval = '30s';
+    protected ?string $heading = 'SLA Overview';
 
     protected function getStats(): array
     {

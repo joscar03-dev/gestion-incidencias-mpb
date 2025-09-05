@@ -13,14 +13,16 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class StatsOverview extends BaseWidget
 {
-    
+    protected static ?string $pollingInterval = '30s';
+    protected ?string $heading = 'Resumen del Sistema';
+
     protected function getStats(): array
     {
         return [
 
             Stat::make('Total de tickets', Ticket::count()),
             Stat::make('Tickets Resueltos', Ticket::where('estado', Ticket::ESTADOS['Cerrado'])->count()),
-                
+
             Stat::make('Total de dispositivos', Dispositivo::count())
                 ->color('success')
                 ->icon('heroicon-o-device-phone-mobile'),
