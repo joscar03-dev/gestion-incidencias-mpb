@@ -426,6 +426,10 @@ class TicketResource extends Resource
             )
             ->defaultSort('created_at', 'desc')
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('titulo')
                     ->description(fn(Ticket $record): ?string => $record?->descripcion ?? null)
                     ->label('Título')
