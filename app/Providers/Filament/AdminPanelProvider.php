@@ -52,6 +52,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                // NPS Dashboard - Prioridad máxima para decisiones ejecutivas
+                \App\Filament\Widgets\NPSDashboardWidget::class,
+
+                // Satisfacción por Técnico - Para decisiones de personal
+                \App\Filament\Widgets\TechnicianSatisfactionWidget::class,
 
                 TicketsTiempoResolucionChart::class,
                 \App\Filament\Widgets\ItilTrendAnalysisWidget::class,
