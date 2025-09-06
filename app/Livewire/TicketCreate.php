@@ -111,7 +111,7 @@ class TicketCreate extends Component
         ];
 
         // Buscar usuarios con rol 'Tecnico' (debe coincidir con el rol exacto)
-        $tecnicos = User::role(['Tecnico'])->get();
+        $tecnicos = User::role(['Técnico'])->get();
 
         if ($tecnicos->isEmpty()) {
             return null;

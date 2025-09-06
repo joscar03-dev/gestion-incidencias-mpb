@@ -89,7 +89,7 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Cambiar vista')
                     ->url(fn() => request()->is('admin*') ? url('/dashboard') : url('/admin'))
                     ->icon('heroicon-o-user-group')
-                    ->visible(fn() => auth()->user()?->hasRole(['Super Admin', 'Admin', 'Tecnico'])),
+                    ->visible(fn() => auth()->user()?->hasRole(['Super Admin', 'Admin', 'Técnico'])),
             ]);
         });
     }

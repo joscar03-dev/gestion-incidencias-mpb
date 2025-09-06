@@ -276,7 +276,7 @@ class TicketResource extends Resource
                         Select::make('asignado_a')
                             ->label('Asignado a')
                             ->options(
-                                User::role(['Tecnico'])->pluck('name', 'id')->toArray()
+                                User::role(['Técnico'])->pluck('name', 'id')->toArray()
                             )
                             ->visible(fn() => Auth::user()?->hasRole(['Super Admin', 'Admin',]))
                             ->columnSpan([

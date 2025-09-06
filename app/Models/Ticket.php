@@ -584,7 +584,7 @@ class Ticket extends Model implements Commentable
         ];
 
         // Buscar usuarios con rol 'Técnico' o 'Tecnico' (por compatibilidad)
-        $tecnicos = User::role(['Técnico', 'Tecnico'])->get();
+        $tecnicos = User::role(['Técnico'])->get();
 
         if ($tecnicos->isEmpty()) {
             return null;

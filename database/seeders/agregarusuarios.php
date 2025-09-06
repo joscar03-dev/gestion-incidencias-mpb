@@ -92,7 +92,7 @@ class agregarusuarios extends Seeder
         DB::table('users')->insert($usuarios);
 
         // Asigna el rol 'Tecnico' a todos los usuarios insertados
-        $role = Role::firstOrCreate(['name' => 'Tecnico']);
+        $role = Role::firstOrCreate(['name' => 'Técnico']);
         $emails = array_column($usuarios, 'email');
         $users = User::whereIn('email', $emails)->get();
         foreach ($users as $user) {
