@@ -81,14 +81,41 @@ class PermissionSeeder extends Seeder
         $admin = Role::where('name', 'Admin')->first();
         if ($admin) {
             $permisosAdmin = Permission::whereIn('name', [
-                'ver-area', 'crear-area', 'editar-area', 'borrar-area',
-                'ver-categoria', 'crear-categoria', 'editar-categoria', 'borrar-categoria',
-                'ver-categoria-dispositivo', 'crear-categoria-dispositivo', 'editar-categoria-dispositivo', 'borrar-categoria-dispositivo',
-                'ver-dispositivo', 'crear-dispositivo', 'editar-dispositivo', 'borrar-dispositivo',
-                'ver-dispositivo-asignacion', 'crear-dispositivo-asignacion', 'editar-dispositivo-asignacion', 'borrar-dispositivo-asignacion',
-                'ver-sla', 'crear-sla', 'editar-sla', 'borrar-sla',
-                'ver-ticket', 'crear-ticket', 'editar-ticket', 'borrar-ticket',
-                'ver-user', 'crear-user', 'editar-user', 'ver-local', 'editar-local', 'borrar-local', 'crear-local'
+                'ver-area',
+                'crear-area',
+                'editar-area',
+                'borrar-area',
+                'ver-categoria',
+                'crear-categoria',
+                'editar-categoria',
+                'borrar-categoria',
+                'ver-categoria-dispositivo',
+                'crear-categoria-dispositivo',
+                'editar-categoria-dispositivo',
+                'borrar-categoria-dispositivo',
+                'ver-dispositivo',
+                'crear-dispositivo',
+                'editar-dispositivo',
+                'borrar-dispositivo',
+                'ver-dispositivo-asignacion',
+                'crear-dispositivo-asignacion',
+                'editar-dispositivo-asignacion',
+                'borrar-dispositivo-asignacion',
+                'ver-sla',
+                'crear-sla',
+                'editar-sla',
+                'borrar-sla',
+                'ver-ticket',
+                'crear-ticket',
+                'editar-ticket',
+                'borrar-ticket',
+                'ver-user',
+                'crear-user',
+                'editar-user',
+                'ver-local',
+                'editar-local',
+                'borrar-local',
+                'crear-local'
             ])->get();
             $admin->syncPermissions($permisosAdmin);
             $this->command->info("Permisos específicos asignados al Admin");
@@ -101,10 +128,16 @@ class PermissionSeeder extends Seeder
                 'ver-area',
                 'ver-categoria',
                 'ver-categoria-dispositivo',
-                'ver-dispositivo', 'crear-dispositivo', 'editar-dispositivo',
-                'ver-dispositivo-asignacion', 'crear-dispositivo-asignacion', 'editar-dispositivo-asignacion',
+                'ver-dispositivo',
+                'crear-dispositivo',
+                'editar-dispositivo',
+                'ver-dispositivo-asignacion',
+                'crear-dispositivo-asignacion',
+                'editar-dispositivo-asignacion',
                 'ver-sla',
-                'ver-ticket', 'crear-ticket', 'editar-ticket',
+                'ver-ticket',
+                'crear-ticket',
+                'editar-ticket',
                 'ver-user'
             ])->get();
             $tecnico->syncPermissions($permisosTecnico);
@@ -118,7 +151,8 @@ class PermissionSeeder extends Seeder
                 'ver-area',
                 'ver-categoria',
                 'ver-dispositivo',
-                'ver-ticket', 'crear-ticket'
+                'ver-ticket',
+                'crear-ticket'
             ])->get();
             $usuario->syncPermissions($permisosUsuario);
             $this->command->info("Permisos específicos asignados al Usuario");
@@ -138,7 +172,7 @@ class PermissionSeeder extends Seeder
             $superAdminUser = User::create([
                 'name' => 'Super Administrador',
                 'email' => 'superadmin@superadmin.com',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('verano8080'),
                 'email_verified_at' => now(),
                 'area_id' => $areaAdmin->id,
             ]);

@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PermissionSeeder::class,
-            SlaSeeder::class,
+            //SlaSeeder::class,
             ItilCategoriasSeeder::class,
             CategoriaDispositivoSeeder::class,
             DispositivoSeeder::class,
