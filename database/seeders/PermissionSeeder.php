@@ -22,7 +22,14 @@ class PermissionSeeder extends Seeder
             'categoria-dispositivo',
             'dispositivo',
             'dispositivo-asignacion',
+            'solicitud-dispositivo',
+            'solicitud-transferencia',
             'sla',
+            'factor-prioridad-sla',
+            'factor-tipo-sla',
+            'monitor-sla',
+            'encuesta-satisfaccion',
+            'dashboard-itil',
             'ticket',
             'user',
             'role',
@@ -56,6 +63,7 @@ class PermissionSeeder extends Seeder
         $roles = [
             'Super Admin' => 'Acceso completo al sistema',
             'Admin' => 'Administrador del sistema',
+            'Jefe de Administración' => 'Jefe de área administrativa',
             'Técnico' => 'Personal técnico',
             'Usuario' => 'Usuario final'
         ];
@@ -105,6 +113,26 @@ class PermissionSeeder extends Seeder
                 'crear-sla',
                 'editar-sla',
                 'borrar-sla',
+                'ver-factor-prioridad-sla',
+                'crear-factor-prioridad-sla',
+                'editar-factor-prioridad-sla',
+                'borrar-factor-prioridad-sla',
+                'ver-factor-tipo-sla',
+                'crear-factor-tipo-sla',
+                'editar-factor-tipo-sla',
+                'borrar-factor-tipo-sla',
+                'ver-monitor-sla',
+                'crear-monitor-sla',
+                'editar-monitor-sla',
+                'borrar-monitor-sla',
+                'ver-encuesta-satisfaccion',
+                'crear-encuesta-satisfaccion',
+                'editar-encuesta-satisfaccion',
+                'borrar-encuesta-satisfaccion',
+                'ver-dashboard-itil',
+                'crear-dashboard-itil',
+                'editar-dashboard-itil',
+                'borrar-dashboard-itil',
                 'ver-ticket',
                 'crear-ticket',
                 'editar-ticket',
@@ -121,12 +149,12 @@ class PermissionSeeder extends Seeder
             $this->command->info("Permisos específicos asignados al Admin");
         }
 
-        // Asignar permisos específicos al Técnico
+        // Asignar permisos específicos al Técnico (RESTRINGIDOS)
         $tecnico = Role::where('name', 'Técnico')->first();
         if ($tecnico) {
             $permisosTecnico = Permission::whereIn('name', [
-                'ver-area',
                 'ver-categoria',
+                'ver-sla',
                 'ver-categoria-dispositivo',
                 'ver-dispositivo',
                 'crear-dispositivo',
@@ -134,14 +162,41 @@ class PermissionSeeder extends Seeder
                 'ver-dispositivo-asignacion',
                 'crear-dispositivo-asignacion',
                 'editar-dispositivo-asignacion',
-                'ver-sla',
                 'ver-ticket',
                 'crear-ticket',
                 'editar-ticket',
-                'ver-user'
             ])->get();
             $tecnico->syncPermissions($permisosTecnico);
-            $this->command->info("Permisos específicos asignados al Técnico");
+            $this->command->info("Permisos específicos asignados al Técnico (sin acceso a SLA, factores, monitor, encuestas ni dashboard ITIL)");
+        }
+
+        // Asignar permisos específicos al Jefe de Administración
+        $jefeAdmin = Role::where('name', 'Jefe de Administración')->first();
+        if ($jefeAdmin) {
+            $permisosJefeAdmin = Permission::whereIn('name', [
+                // Gestión de solicitudes y transferencias
+                'ver-solicitud-dispositivo',
+                'crear-solicitud-dispositivo',
+                'editar-solicitud-dispositivo',
+                'borrar-solicitud-dispositivo',
+                'ver-solicitud-transferencia',
+                'crear-solicitud-transferencia',
+                'editar-solicitud-transferencia',
+                'borrar-solicitud-transferencia',
+                // Tickets
+                'ver-ticket',
+                'crear-ticket',
+                'editar-ticket',
+                // Consulta de dispositivos y categorías
+                'ver-categoria-dispositivo',
+                'ver-dispositivo',
+                'ver-dispositivo-asignacion',
+                // Consulta de áreas y categorías
+                'ver-area',
+                'ver-categoria',
+            ])->get();
+            $jefeAdmin->syncPermissions($permisosJefeAdmin);
+            $this->command->info("Permisos específicos asignados al Jefe de Administración (solicitudes de dispositivos, transferencias y tickets)");
         }
 
         // Asignar permisos específicos al Usuario
