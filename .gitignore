@@ -1,21 +1,33 @@
-/.phpunit.cache
-/node_modules
-/public/build
+# Laravel
+/vendor/
+/node_modules/
+/public/build/
 /public/hot
 /public/storage
+/storage/*
+!storage/app/public
 /storage/*.key
-/vendor
-/tailwind-ui-components-main
-.env
-.env.backup
-.env.production
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-auth.json
+/bootstrap/cache/
+
+# Logs
+*.log
 npm-debug.log
 yarn-error.log
-/.fleet
+pnpm-debug.log
+
+# Env files
+.env
+.env.*.backup
+.env.production
+
+# IDE & editor
 /.idea
 /.vscode
+/.fleet
+Homestead.json
+Homestead.yaml
+.phpunit.result.cache
+/.phpunit.cache
 
+# Tailwind test folder
+/tailwind-ui-components-main
