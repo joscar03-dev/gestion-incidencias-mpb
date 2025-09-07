@@ -104,7 +104,7 @@ class DispositivosUsuario extends Component
         $jefeAdministracion = User::role('Jefe de Administración')->first();
         if (!$jefeAdministracion) {
             // Fallback: buscar administrador
-            $jefeAdministracion = User::role(['Administrador', 'Admin'])->first();
+            $jefeAdministracion = User::role(['Admin'])->first();
         }
 
         // Crear la solicitud de dispositivo
@@ -253,7 +253,6 @@ class DispositivosUsuario extends Component
             $asignacion->confirmarRecepcion();
 
             session()->flash('success', '✅ Recepción confirmada exitosamente. Gracias por confirmar que has recibido el dispositivo.');
-
         } catch (\Exception $e) {
             session()->flash('error', 'Error al confirmar la recepción: ' . $e->getMessage());
         }
