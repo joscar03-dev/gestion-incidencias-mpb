@@ -261,6 +261,16 @@ class Ticket extends Model implements Commentable
     }
 
     /**
+     * Determina si un estado está en la lista de estados cerrados
+     * (maneja inconsistencias entre mayúsculas/minúsculas)
+     */
+    private function esEstadoCerrado($estado)
+    {
+        $estadoLower = strtolower($estado);
+        return in_array($estadoLower, ['cerrado', 'cancelado', 'archivado']);
+    }
+
+    /**
      * Verifica si el ticket está vencido según su SLA efectivo
      */
     public function estaVencido($tipo = 'respuesta')
@@ -271,7 +281,7 @@ class Ticket extends Model implements Commentable
         }
 
         // Usar fecha de resolución para tickets cerrados, o 'now()' para activos
-        $fechaFin = (in_array($this->estado, [self::ESTADOS['Cerrado'], self::ESTADOS['Cancelado'], self::ESTADOS['Archivado']]))
+        $fechaFin = $this->esEstadoCerrado($this->estado)
             ? ($this->fecha_resolucion ?? $this->fecha_cierre ?? now())
             : now();
 
