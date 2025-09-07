@@ -18,10 +18,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PermissionSeeder::class,
-            //SlaSeeder::class,
             ItilCategoriasSeeder::class,
             CategoriaDispositivoSeeder::class,
             DispositivoSeeder::class,
+            agregarusuarios::class,
+            AreasSeeder::class,
+            SlaFactoresSeeder::class,  // ¡IMPORTANTE! Debe ir ANTES de SlaSeeder
+            SlaSeeder::class,
+            ActualizarUsuariosConAreas::class,
+            TicketsSeederCorregido::class,      // Crear tickets al final con todos los datos listos
         ]);
     }
 }
