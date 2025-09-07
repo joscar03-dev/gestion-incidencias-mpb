@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotificationsPolling(null)
             ->sidebarCollapsibleOnDesktop()
             ->colors([
-                'primary' => Color::Purple,
+                'primary' => Color::Green,
             ])
             ->globalSearch(false) // Deshabilitar búsqueda global completamente
             ->plugins([
