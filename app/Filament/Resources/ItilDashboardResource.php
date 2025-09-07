@@ -415,4 +415,30 @@ class ItilDashboardResource extends Resource
     {
         return '📊 ITIL Management';
     }
+
+    // Métodos de autorización para restringir acceso
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-dashboard-itil');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-dashboard-itil');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-dashboard-itil');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-dashboard-itil');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('borrar-dashboard-itil');
+    }
 }

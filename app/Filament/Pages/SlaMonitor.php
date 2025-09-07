@@ -17,6 +17,11 @@ class SlaMonitor extends Page
     protected static string $view = 'filament.pages.sla-monitor';
     protected static ?int $navigationSort = 9;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('ver-monitor-sla');
+    }
+
     public function getHeading(): string
     {
         return 'Monitor de SLA - Sistema Híbrido';

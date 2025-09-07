@@ -23,6 +23,31 @@ class SlaResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-sla');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-sla');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-sla');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-sla');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('eliminar-sla');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -233,7 +258,7 @@ class SlaResource extends Resource
                 Tables\Columns\TextColumn::make('nivel')
                     ->label('Nivel')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'Alto' => 'danger',
                         'Medio' => 'warning',
                         'Bajo' => 'success',
@@ -333,7 +358,7 @@ class SlaResource extends Resource
                     ->label('Ver Ejemplos SLA')
                     ->icon('heroicon-o-calculator')
                     ->color('info')
-                    ->modalHeading(fn ($record) => 'Ejemplos de SLA para ' . $record->area->nombre)
+                    ->modalHeading(fn($record) => 'Ejemplos de SLA para ' . $record->area->nombre)
                     ->modalContent(function ($record) {
                         if (!$record->override_area) {
                             return view('filament.sla.ejemplos-sin-override', ['sla' => $record]);

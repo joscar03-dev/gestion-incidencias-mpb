@@ -29,6 +29,31 @@ class SlaPrioridadFactorResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-factor-prioridad-sla');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-factor-prioridad-sla');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-factor-prioridad-sla');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-factor-prioridad-sla');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('eliminar-factor-prioridad-sla');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -29,6 +29,31 @@ class SlaTipoFactorResource extends Resource
 
     protected static ?int $navigationSort = 21;
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-factor-tipo-sla');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-factor-tipo-sla');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-factor-tipo-sla');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-factor-tipo-sla');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('eliminar-factor-tipo-sla');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

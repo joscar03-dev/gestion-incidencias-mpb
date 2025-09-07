@@ -88,4 +88,30 @@ class AreaResource extends Resource
             // 'view' => Pages\ViewArea::route('/{record}'),
         ];
     }
+
+    // Métodos de autorización
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-area');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-area');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-area');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-area');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('borrar-area');
+    }
 }
