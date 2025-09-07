@@ -624,8 +624,34 @@ class TicketResource extends Resource
                     ->multiple()
                     ->searchable(),
 
+                SelectFilter::make('estado')
+                    ->label('Estado')
+                    ->options([
+                        Ticket::ESTADOS['Abierto'] => 'Abierto',
+                        Ticket::ESTADOS['En Progreso'] => 'En Progreso',
+                        Ticket::ESTADOS['Cerrado'] => 'Cerrado',
+                        Ticket::ESTADOS['Archivado'] => 'Archivado',
+                    ])
+                    ->multiple(),
+
+                SelectFilter::make('prioridad')
+                    ->label('Prioridad')
+                    ->options([
+                        Ticket::PRIORIDAD['Alta'] => 'Alta',
+                        Ticket::PRIORIDAD['Media'] => 'Media',
+                        Ticket::PRIORIDAD['Baja'] => 'Baja',
+                    ])
+                    ->multiple(),
+
+                SelectFilter::make('area_id')
+                    ->label('Área')
+                    ->relationship('area', 'nombre')
+                    ->multiple()
+                    ->searchable(),
+
                 SelectFilter::make('asignado_a')
                     ->label('Asignado a')
+                    ->visible(fn() => Auth::user()?->hasRole('Super Admin'))
                     ->relationship('asignadoA', 'name')
                     ->multiple()
                     ->searchable(),
@@ -680,13 +706,19 @@ class TicketResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(function () {
+                            return auth()->user()->hasRole('Super Admin');
+                        }),
 
                     // Acción de exportar seleccionados
                     Tables\Actions\BulkAction::make('export_selected')
                         ->label('Exportar Seleccionados')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('success')
+                        ->visible(function () {
+                            return auth()->user()->hasRole(['Super Admin', 'Admin']);
+                        })
                         ->action(function ($records) {
                             $tickets = $records->load(['area', 'creadoPor', 'asignadoA', 'categorias', 'dispositivo']);
                             return Excel::download(new TicketsExport($tickets), 'tickets_seleccionados_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
