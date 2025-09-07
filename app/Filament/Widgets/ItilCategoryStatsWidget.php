@@ -11,6 +11,11 @@ class ItilCategoryStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 3;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     protected function getStats(): array
     {
         // Obtener estadísticas de categorías ITIL
@@ -18,24 +23,24 @@ class ItilCategoryStatsWidget extends BaseWidget
         $categoriasActivas = Categoria::where('itil_category', true)->where('is_active', true)->count();
 
         // Tickets con categorías ITIL
-        $ticketsConCategorias = Ticket::whereHas('categorias', function($query) {
+        $ticketsConCategorias = Ticket::whereHas('categorias', function ($query) {
             $query->where('itil_category', true);
         })->count();
 
         // Distribución por tipo de categoría
-        $incidentes = Ticket::whereHas('categorias', function($query) {
+        $incidentes = Ticket::whereHas('categorias', function ($query) {
             $query->where('tipo_categoria', 'incidente');
         })->count();
 
-        $solicitudes = Ticket::whereHas('categorias', function($query) {
+        $solicitudes = Ticket::whereHas('categorias', function ($query) {
             $query->where('tipo_categoria', 'solicitud_servicio');
         })->count();
 
-        $cambios = Ticket::whereHas('categorias', function($query) {
+        $cambios = Ticket::whereHas('categorias', function ($query) {
             $query->where('tipo_categoria', 'cambio');
         })->count();
 
-        $problemas = Ticket::whereHas('categorias', function($query) {
+        $problemas = Ticket::whereHas('categorias', function ($query) {
             $query->where('tipo_categoria', 'problema');
         })->count();
 

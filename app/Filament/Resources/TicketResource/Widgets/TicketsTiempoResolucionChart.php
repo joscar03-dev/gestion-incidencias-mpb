@@ -13,6 +13,11 @@ class TicketsTiempoResolucionChart extends ChartWidget
     protected int | string | array $columnSpan = 'full';
     public ?string $filter = 'week';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public function getDescription(): ?string
     {
         $periodo = match ($this->filter) {

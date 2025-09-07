@@ -12,6 +12,11 @@ class NPSDashboardWidget extends BaseWidget
     protected static ?string $pollingInterval = '30s';
     protected ?string $heading = 'NPS Dashboard';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     protected function getStats(): array
     {
         // Obtener datos del período actual (últimos 30 días)

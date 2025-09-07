@@ -13,14 +13,22 @@ use Filament\Widgets\TableWidget as BaseWidget;
 class UltimosTickets extends BaseWidget
 {
     protected int | string | array $columnSpan = 'full';
+
+    public function getHeading(): string
+    {
+        return auth()->user()->hasRole('Técnico')
+            ? 'Mis Últimos Tickets'
+            : 'Últimos Tickets del Sistema';
+    }
+
     public function table(Table $table): Table
     {
         return $table
 
             ->query(
-                auth()->user()->hasRole('Admin')
-                    ? Ticket::query()
-                    : Ticket::query()->where('asignado_a', auth()->id())
+                auth()->user()->hasRole('Técnico')
+                    ? Ticket::query()->where('asignado_a', auth()->id())->orderBy('created_at', 'desc')->limit(10) // Solo tickets asignados al técnico, más recientes primero, limitado a 10
+                    : Ticket::query()->orderBy('created_at', 'desc')->limit(10) // Todos los tickets para otros roles, más recientes primero, limitado a 10
             )
             ->columns([
                 TextColumn::make('titulo')
@@ -57,6 +65,9 @@ class UltimosTickets extends BaseWidget
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label('Creado en')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->tooltip('Fecha y hora de creación')
 
             ]);
     }

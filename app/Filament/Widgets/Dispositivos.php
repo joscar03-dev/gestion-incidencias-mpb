@@ -21,6 +21,11 @@ class Dispositivos extends ApexChartWidget
      */
     protected static ?string $heading = 'Dispositivos';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options

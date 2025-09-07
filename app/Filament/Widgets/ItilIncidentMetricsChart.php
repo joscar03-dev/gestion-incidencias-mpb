@@ -11,6 +11,11 @@ class ItilIncidentMetricsChart extends ApexChartWidget
     protected static ?string $heading = 'Distribución de Incidentes ITIL';
     protected static ?int $sort = 5;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public ?string $filter = 'all';
 
     protected function getFilters(): ?array

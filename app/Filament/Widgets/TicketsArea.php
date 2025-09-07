@@ -14,6 +14,11 @@ class TicketsArea extends ApexChartWidget
     protected static ?string $loadingIndicator = 'Loading...';
     public ?string $filter = 'week';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     protected function getOptions(): array
     {
 
@@ -72,7 +77,7 @@ class TicketsArea extends ApexChartWidget
                     ],
                 ],
             ],
-            
+
             'colors' => ['#3b82f6'],
             'plotOptions' => [
                 'bar' => [

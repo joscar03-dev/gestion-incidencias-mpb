@@ -21,6 +21,11 @@ class PorcentajeDispositivos extends ApexChartWidget
      */
     protected static ?string $heading = 'PorcentajeDispositivos';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options

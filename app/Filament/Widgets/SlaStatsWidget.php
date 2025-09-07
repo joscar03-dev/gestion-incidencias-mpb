@@ -11,6 +11,11 @@ class SlaStatsWidget extends BaseWidget
     protected static ?string $pollingInterval = '30s';
     protected ?string $heading = 'SLA Overview';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     protected function getStats(): array
     {
         // Obtener tickets activos

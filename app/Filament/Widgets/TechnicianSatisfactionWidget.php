@@ -22,6 +22,11 @@ class TechnicianSatisfactionWidget extends BaseWidget
     protected static ?string $pollingInterval = '30s';
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public function table(Table $table): Table
     {
         return $table

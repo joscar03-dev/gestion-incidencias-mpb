@@ -11,6 +11,11 @@ class ItilSlaComplianceChart extends ApexChartWidget
     protected static ?string $heading = 'Cumplimiento SLA';
     protected static ?int $sort = 6;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public ?string $filter = 'all';
 
     protected function getFilters(): ?array

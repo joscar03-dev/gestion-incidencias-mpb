@@ -12,6 +12,11 @@ class ItilTrendAnalysisWidget extends ApexChartWidget
     protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     protected function getHeading(): string
     {
         $ticketsWithCategories = Ticket::whereHas('categorias')->count();

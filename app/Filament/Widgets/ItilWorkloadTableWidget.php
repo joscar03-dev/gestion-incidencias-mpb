@@ -14,6 +14,11 @@ class ItilWorkloadTableWidget extends BaseWidget
     protected static ?int $sort = 4;
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public function table(Table $table): Table
     {
         $workload = collect(ItilDashboard::getWorkloadAnalysis());
@@ -44,7 +49,7 @@ class ItilWorkloadTableWidget extends BaseWidget
                         return $analyst['open_tickets'] ?? 0;
                     })
                     ->badge()
-                    ->color(fn (string $state): string => match (true) {
+                    ->color(fn(string $state): string => match (true) {
                         $state > 10 => 'danger',
                         $state > 5 => 'warning',
                         default => 'success',
@@ -75,7 +80,7 @@ class ItilWorkloadTableWidget extends BaseWidget
                         return $analyst['escalated_tickets'] ?? 0;
                     })
                     ->badge()
-                    ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success'),
+                    ->color(fn(string $state): string => $state > 0 ? 'danger' : 'success'),
 
                 Tables\Columns\TextColumn::make('resolution_rate_display')
                     ->label('Tasa Resolución')
@@ -84,7 +89,7 @@ class ItilWorkloadTableWidget extends BaseWidget
                         return ($analyst['resolution_rate'] ?? 0) . '%';
                     })
                     ->badge()
-                    ->color(fn (string $state): string => match (true) {
+                    ->color(fn(string $state): string => match (true) {
                         (int) str_replace('%', '', $state) >= 80 => 'success',
                         (int) str_replace('%', '', $state) >= 60 => 'warning',
                         default => 'danger',
@@ -97,7 +102,7 @@ class ItilWorkloadTableWidget extends BaseWidget
                         return ($analyst['escalation_rate'] ?? 0) . '%';
                     })
                     ->badge()
-                    ->color(fn (string $state): string => match (true) {
+                    ->color(fn(string $state): string => match (true) {
                         (int) str_replace('%', '', $state) >= 20 => 'danger',
                         (int) str_replace('%', '', $state) >= 10 => 'warning',
                         default => 'success',

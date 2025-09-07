@@ -14,6 +14,11 @@ class TicketsOverviewChart extends ChartWidget
     protected static ?string $pollingInterval = '30s';
     protected static ?int $sort = 5;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public ?string $filter  = 'week';
     protected function getFilters(): ?array
     {

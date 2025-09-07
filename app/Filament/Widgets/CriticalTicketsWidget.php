@@ -15,6 +15,11 @@ class CriticalTicketsWidget extends BaseWidget
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -22,8 +27,8 @@ class CriticalTicketsWidget extends BaseWidget
                 Ticket::query()
                     ->where(function ($query) {
                         $query->where('prioridad', 'Critica')
-                              ->orWhere('sla_vencido', true)
-                              ->orWhere('escalado', true);
+                            ->orWhere('sla_vencido', true)
+                            ->orWhere('escalado', true);
                     })
                     ->whereNotIn('estado', ['Cerrado', 'Archivado'])
                     ->orderByRaw("
@@ -105,25 +110,25 @@ class CriticalTicketsWidget extends BaseWidget
                     ->label('Asignado a')
                     ->default('Sin asignar')
                     ->badge()
-                    ->color(fn ($state) => $state === 'Sin asignar' ? 'danger' : 'success'),
+                    ->color(fn($state) => $state === 'Sin asignar' ? 'danger' : 'success'),
 
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->since()
                     ->dateTime('d/m/Y H:i')
-                    ->tooltip(fn ($record) => $record->created_at->format('d/m/Y H:i:s')),
+                    ->tooltip(fn($record) => $record->created_at->format('d/m/Y H:i:s')),
             ])
             ->actions([
                 Tables\Actions\Action::make('ver')
                     ->label('Ver')
                     ->icon('heroicon-o-eye')
-                    ->url(fn (Ticket $record) => route('filament.admin.resources.tickets.view', $record))
+                    ->url(fn(Ticket $record) => route('filament.admin.resources.tickets.view', $record))
                     ->openUrlInNewTab(),
 
                 Tables\Actions\Action::make('editar')
                     ->label('Editar')
                     ->icon('heroicon-o-pencil')
-                    ->url(fn (Ticket $record) => route('filament.admin.resources.tickets.edit', $record))
+                    ->url(fn(Ticket $record) => route('filament.admin.resources.tickets.edit', $record))
                     ->openUrlInNewTab(),
             ])
             ->emptyStateHeading('¡Excelente!')

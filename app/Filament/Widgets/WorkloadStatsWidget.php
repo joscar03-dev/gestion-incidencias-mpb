@@ -9,6 +9,10 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class WorkloadStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 5;
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasRole('Técnico');
+    }
 
     protected function getStats(): array
     {
