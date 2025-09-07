@@ -4,6 +4,8 @@ namespace App\Filament\Resources\TicketResource\Pages;
 
 use App\Filament\Resources\TicketResource;
 use App\Filament\Resources\TicketResource\Widgets\MetricsOverviewSample;
+use App\Filament\Resources\TicketResource\Widgets\TicketsStatusWidget;
+use App\Filament\Resources\TicketResource\Widgets\TicketsPriorityStatusWidget;
 use App\Filament\Resources\TicketResource\Widgets\TicketsTiempoResolucionChart;
 use App\Exports\TicketsExport;
 use App\Models\Ticket;
@@ -28,7 +30,10 @@ class ListTickets extends ListRecords
             Actions\Action::make('export_all')
                 ->label('Exportar Todo a Excel')
                 ->icon('heroicon-o-document-arrow-down')
-                ->color('success')
+                ->color('primary')
+                ->visible(function () {
+                    return auth()->user()->hasRole(['Super Admin', 'Admin']);
+                })
                 ->form([
                     // Filtros de fecha
                     DatePicker::make('created_from')
@@ -209,8 +214,9 @@ class ListTickets extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            // StatsOverview::class, //agregar widgets de encabezado
             MetricsOverviewSample::class,
+            TicketsStatusWidget::class,
+            TicketsPriorityStatusWidget::class,
             // TicketsTiempoResolucionChart::class,
         ];
     }
