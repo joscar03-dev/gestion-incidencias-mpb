@@ -26,6 +26,7 @@ use App\Policies\LocalPolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\SlaPolicy;
 use App\Policies\TicketPolicy;
+use App\Policies\TicketAdministradorPolicy;
 use App\Policies\AreaPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
