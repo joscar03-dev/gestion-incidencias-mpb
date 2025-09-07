@@ -155,4 +155,30 @@ class UserResource extends Resource
         // Otros roles no ven nada
         return $query->whereRaw('0 = 1');
     }
+
+    // Métodos de autorización
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-user');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-user');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-user');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-user');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('borrar-user');
+    }
 }

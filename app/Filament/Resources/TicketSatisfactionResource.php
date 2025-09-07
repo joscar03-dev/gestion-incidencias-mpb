@@ -35,6 +35,31 @@ class TicketSatisfactionResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->can('ver-encuesta-satisfaccion');
+    }
+
+    public static function canView($record): bool
+    {
+        return auth()->user()->can('ver-encuesta-satisfaccion');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('crear-encuesta-satisfaccion');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->can('editar-encuesta-satisfaccion');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->can('eliminar-encuesta-satisfaccion');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
