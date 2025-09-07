@@ -175,9 +175,16 @@ class Ticket extends Model implements Commentable
         return $this->creadoPor ? $this->creadoPor->area : null;
     }
 
-    public function sla()
+    // Relación SLA a través del área (la relación correcta)
+    public function slaArea()
     {
-        return $this->belongsTo(Sla::class, 'sla_id');
+        return $this->hasOneThrough(Sla::class, Area::class, 'id', 'area_id', 'area_id', 'id');
+    }
+
+    // Método para obtener SLAs del área asociada
+    public function getSlas()
+    {
+        return $this->area ? $this->area->slas : collect();
     }
 
     // Relación con encuesta de satisfacción
@@ -390,7 +397,7 @@ class Ticket extends Model implements Commentable
                 "• Fecha: " . now()->format('d/m/Y H:i') . "\n" .
                 "• Sistema: Escalado automático por vencimiento de SLA";
 
-            $this->comment($comentario, $this->creadoPor);
+            $this->comment($comentario, $this->asignadoA);
         } catch (\Exception $e) {
             Log::error("Error al agregar comentario de escalado", [
                 'ticket_id' => $this->id,
