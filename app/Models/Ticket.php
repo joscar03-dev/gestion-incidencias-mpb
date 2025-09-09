@@ -200,6 +200,18 @@ class Ticket extends Model implements Commentable
             if (!$ticket->area_id && $ticket->creadoPor) {
                 $ticket->area_id = $ticket->creadoPor->area_id;
             }
+
+            // Asignar tiempo de respuesta basado en el SLA del área
+            if ($ticket->area_id && !$ticket->tiempo_respuesta) {
+                $slaEfectivo = static::calcularSlaEfectivoParaTicket($ticket);
+                if ($slaEfectivo) {
+                    // Convertir minutos a formato TIME (HH:MM:SS)
+                    $tiempoRespuestaMinutos = $slaEfectivo['tiempo_respuesta'];
+                    $horas = floor($tiempoRespuestaMinutos / 60);
+                    $minutos = $tiempoRespuestaMinutos % 60;
+                    $ticket->tiempo_respuesta = sprintf('%02d:%02d:00', min($horas, 838), $minutos);
+                }
+            }
         });
 
         static::updating(function ($ticket) {
@@ -210,6 +222,15 @@ class Ticket extends Model implements Commentable
                 $ticket->fecha_cierre = now();
                 if (!$ticket->fecha_resolucion) {
                     $ticket->fecha_resolucion = now();
+                }
+
+                // Calcular tiempo de resolución real automáticamente
+                if (!$ticket->tiempo_solucion) {
+                    $minutosSolucion = (int) $ticket->created_at->diffInMinutes($ticket->fecha_resolucion ?? $ticket->fecha_cierre);
+                    // Convertir minutos a formato TIME (HH:MM:SS)
+                    $horas = floor($minutosSolucion / 60);
+                    $minutos = $minutosSolucion % 60;
+                    $ticket->tiempo_solucion = sprintf('%02d:%02d:00', min($horas, 838), $minutos);
                 }
             }
         });
@@ -261,6 +282,52 @@ class Ticket extends Model implements Commentable
             'tiempo_respuesta' => $slaCalculado['tiempo_respuesta'],
             'tiempo_resolucion' => $slaCalculado['tiempo_resolucion'],
             'prioridad_aplicada' => $this->prioridad,
+            'factor_aplicado' => $slaCalculado['factor_aplicado'] ?? 1.0,
+            'override_aplicado' => $slaCalculado['override_aplicado'] ?? false,
+            'sla_base' => $slaArea
+        ];
+    }
+
+    /**
+     * Calcula el SLA efectivo para un ticket en proceso de creación
+     * Método estático para usar en eventos de modelo
+     */
+    public static function calcularSlaEfectivoParaTicket($ticket)
+    {
+        // Obtener el área, ya sea del ticket o del usuario creador
+        $areaId = $ticket->area_id;
+        if (!$areaId && $ticket->creado_por) {
+            $usuario = User::find($ticket->creado_por);
+            $areaId = $usuario?->area_id;
+        }
+
+        if (!$areaId) {
+            return null;
+        }
+
+        $area = Area::with('slas')->find($areaId);
+        if (!$area || $area->slas->isEmpty()) {
+            return null;
+        }
+
+        $slaArea = $area->slas->first();
+
+        // Mapear prioridad del ticket al formato esperado por el SLA
+        $prioridadParaSla = match ($ticket->prioridad) {
+            'Critica' => 'critico',
+            'Alta' => 'alto',
+            'Media' => 'medio',
+            'Baja' => 'bajo',
+            default => 'medio'
+        };
+
+        // Usar el método del SLA que respeta la configuración de override
+        $slaCalculado = $slaArea->calcularSlaEfectivo($prioridadParaSla);
+
+        return [
+            'tiempo_respuesta' => $slaCalculado['tiempo_respuesta'],
+            'tiempo_resolucion' => $slaCalculado['tiempo_resolucion'],
+            'prioridad_aplicada' => $ticket->prioridad,
             'factor_aplicado' => $slaCalculado['factor_aplicado'] ?? 1.0,
             'override_aplicado' => $slaCalculado['override_aplicado'] ?? false,
             'sla_base' => $slaArea

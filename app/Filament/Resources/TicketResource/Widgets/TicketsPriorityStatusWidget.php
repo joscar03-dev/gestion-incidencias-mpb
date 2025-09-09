@@ -33,11 +33,27 @@ class TicketsPriorityStatusWidget extends BaseWidget
             ->where('estado', Ticket::ESTADOS['Abierto'])
             ->count();
 
-        // Tickets próximos a vencer - usar una aproximación basada en tiempo de creación
+        // Tickets próximos a vencer - calcular basado en SLA real
         $proximosVencer = (clone $baseQuery)
             ->where('estado', '!=', Ticket::ESTADOS['Cerrado'])
             ->where('sla_vencido', false)
-            ->where('created_at', '<=', now()->subHours(22)) // Tickets creados hace más de 22 horas (asumiendo SLA de 24h)
+            ->with(['area.slas'])
+            ->get()
+            ->filter(function ($ticket) {
+                $slaEfectivo = $ticket->getSlaEfectivo();
+                if (!$slaEfectivo) {
+                    return false;
+                }
+
+                // Calcular tiempo transcurrido en minutos
+                $tiempoTranscurrido = $ticket->created_at->diffInMinutes(now());
+                $tiempoLimite = $slaEfectivo['tiempo_respuesta'];
+
+                // Considerar "próximo a vencer" si queda menos del 20% del tiempo
+                $umbralAdvertencia = $tiempoLimite * 0.8;
+
+                return $tiempoTranscurrido >= $umbralAdvertencia && $tiempoTranscurrido < $tiempoLimite;
+            })
             ->count();
 
         // Tickets asignados hoy
@@ -52,7 +68,6 @@ class TicketsPriorityStatusWidget extends BaseWidget
                 ->color($criticos > 0 ? 'danger' : 'success'),
 
             Stat::make('Próximos a Vencer', $proximosVencer)
-                ->description('Vencen en 2 horas')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color($proximosVencer > 0 ? 'warning' : 'success'),
 
